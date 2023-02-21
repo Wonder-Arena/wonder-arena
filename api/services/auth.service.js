@@ -9,13 +9,9 @@ const createError = require('http-errors')
 class authService {
 
     static async register(data) {
-
         const { name, email } = data;
-
         const _user = await prisma.user.findUnique({
-          where: {
-              email
-          }
+          where: { email }
         })
 
         if (_user) {
