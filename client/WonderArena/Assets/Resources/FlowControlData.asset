@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e257d130f47ae7b479953871aa021a19, type: 3}
+  m_Name: FlowControlData
+  m_EditorClassIdentifier: 
+  _emulatorSettings:
+    emulatorDataDirectory: G:/Unity/projects/WonderArenaGIT/wonder-arena/client/WonderArena/FLowEmulator
+    flowExecutablePathOverride: 
+    runEmulatorInPlayMode: 0
+    persistData: 1
+    killOtherFlow: 1
+    verbose: 1
+    emulatorEndpoint: http://127.0.0.1:8888/v1
+  _textReplacements: []
+  _accounts:
+  - _name: emulator_service_account
+    infoKeys:
+    - Private Key
+    - Address
+    infoValues:
+    - 59dffd06a93fc6c2e84ad7283d695a45f7f17defc2abfcde274eeba364293bdf
+    - 0xf8d6e0586b0a20c7
+    _gatewayName: Emulator
+  - _name: testnet_service_account
+    infoKeys:
+    - Address
+    - Private Key
+    infoValues:
+    - 0x7598a28287d1d766
+    - '3fb40ae64330d8e79d7b092e60541b38984abfa5f29392547a45d1bba94a7533 '
+    _gatewayName: Flow Testnet
