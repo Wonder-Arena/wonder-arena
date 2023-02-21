@@ -52,13 +52,14 @@ MonoBehaviour:
     infoKeys: []
     infoValues: []
     _gatewayName: 
-  RegisterNewPlayer: {fileID: 2811297602134710623, guid: 4c152752cf38c0240af4b73fb4bf7ef0, type: 3}
-  AddDefenderGroup: {fileID: 2811297602134710623, guid: db47364956e4e5347be0d326ec4d2581, type: 3}
-  RemoveDefenderGroup: {fileID: 2811297602134710623, guid: dfa868e17b6416e4cb2c32ec0fa654cc, type: 3}
-  Fight_OnlyForAdmin: {fileID: 2811297602134710623, guid: 8e1870816850dfa4a8037b23fd33a765, type: 3}
-  GetAllBeasts: {fileID: 2811297602134710623, guid: 467dbee9989384840b42112b29938d9f, type: 3}
-  GetAllPlayers: {fileID: 2811297602134710623, guid: 40d35ee5497878d46a522a49f5f0443e, type: 3}
-  GetBeastsIds: {fileID: 2811297602134710623, guid: d75612049ad86764aa0572d8e5da2103, type: 3}
-  GetChallengeRecords: {fileID: 4900000, guid: fccc03aa39fba53498a2ce3787615f4b, type: 3}
-  GetDefenderGroups: {fileID: 2811297602134710623, guid: ad8104a03b7d4b741a35901b95e894c4, type: 3}
-  GetPlayer: {fileID: 2811297602134710623, guid: bdef7c9703bcc1048ab2f491f2a7b335, type: 3}
+  RegisterNewPlayerTxn: {fileID: 2811297602134710623, guid: 4c152752cf38c0240af4b73fb4bf7ef0, type: 3}
+  AddDefenderGroupTxn: {fileID: 2811297602134710623, guid: db47364956e4e5347be0d326ec4d2581, type: 3}
+  RemoveDefenderGroupTxn: {fileID: 2811297602134710623, guid: dfa868e17b6416e4cb2c32ec0fa654cc, type: 3}
+  Fight_OnlyForAdminTxn: {fileID: 2811297602134710623, guid: 8e1870816850dfa4a8037b23fd33a765, type: 3}
+  GetAllBeastsTxn: {fileID: 2811297602134710623, guid: 467dbee9989384840b42112b29938d9f, type: 3}
+  GetAllPlayersTxn: {fileID: 2811297602134710623, guid: 40d35ee5497878d46a522a49f5f0443e, type: 3}
+  GetBeastsIdsTxn: {fileID: 2811297602134710623, guid: d75612049ad86764aa0572d8e5da2103, type: 3}
+  GetChallengeRecordsTxn: {fileID: 2811297602134710623, guid: 1a71cc956351af14d982d675a92dfdb6, type: 3}
+  GetDefenderGroupsTxn: {fileID: 2811297602134710623, guid: ad8104a03b7d4b741a35901b95e894c4, type: 3}
+  GetPlayerTxn: {fileID: 2811297602134710623, guid: bdef7c9703bcc1048ab2f491f2a7b335, type: 3}
+  GetBeastByIdTxn: {fileID: 2811297602134710623, guid: 5f0dd08e42a346447885da4e3ec54dde, type: 3}

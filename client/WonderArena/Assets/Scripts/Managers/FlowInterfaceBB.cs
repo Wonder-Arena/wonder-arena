@@ -16,6 +16,7 @@ public class FlowInterfaceBB : MonoBehaviour
     public string alicesAddress = "0x1801c3f618a511e6";
     public string bobsAddress = "0x771519260bbe1ee6";
 
+    public List<CadenceNumber> allPlayersBeastsIDs = new();
     public List<CadenceComposite> allAvailableBeasts = new();
     public bool isScriptsCompleted = false;
 
@@ -38,6 +39,7 @@ public class FlowInterfaceBB : MonoBehaviour
     [SerializeField] TextAsset GetChallengeRecordsTxn;
     [SerializeField] TextAsset GetDefenderGroupsTxn;
     [SerializeField] TextAsset GetPlayerTxn;
+    [SerializeField] TextAsset GetBeastByIdTxn;
 
     private static FlowInterfaceBB m_instance = null;
     public static FlowInterfaceBB Instance
@@ -78,9 +80,36 @@ public class FlowInterfaceBB : MonoBehaviour
             }
         }
 
-        StartCoroutine(GetPawns());
+        isScriptsCompleted = true;
+
+        //StartCoroutine(GetPawns());
+        StartCoroutine(GetAllBeastsIDs());
+        //StartCoroutine(GetDefenderGroups());
 
         yield return null;
+    }
+
+    // Executing script to get all Beasts IDs that user has and adding them to allPlayersBeastsIDs list
+    private IEnumerator GetAllBeastsIDs()
+    {
+        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetBeastsIdsTxn.text, new CadenceAddress(alicesAddress));
+
+        yield return new WaitUntil(() => getBeastsIDs.IsCompleted);
+
+        if (getBeastsIDs.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getBeastsIDs.Result.Error.Message}");
+            yield break;
+        }
+
+        isScriptsCompleted = true;
+
+        CadenceBase[] allBeastsIDs = (getBeastsIDs.Result.Value as CadenceArray).Value;
+
+        foreach (CadenceNumber beastID in allBeastsIDs)
+        {
+            allPlayersBeastsIDs.Add(beastID);
+        }
     }
 
     private IEnumerator GetPawns()
@@ -109,7 +138,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     private IEnumerator GetDefenderGroups()
     {
-        Task<FlowScriptResponse> getDefenderGroups = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text, new CadenceAddress(bobsAddress));
+        Task<FlowScriptResponse> getDefenderGroups = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text, new CadenceAddress(alicesAddress));
 
         yield return new WaitUntil(() => getDefenderGroups.IsCompleted);
 
@@ -121,10 +150,49 @@ public class FlowInterfaceBB : MonoBehaviour
 
         CadenceBase[] allDefenderGroups = (getDefenderGroups.Result.Value as CadenceArray).Value;
 
-        // Adding all beasts to List of all beasts that user has
-        foreach (CadenceComposite pawn in allPawns)
+        foreach (CadenceArray defenderGroup in allDefenderGroups)
         {
-            allAvailableBeasts.Add(pawn);
+            foreach (CadenceNumber defenderBeastId in defenderGroup.Value)
+            {
+                StartCoroutine(GetBeastById(defenderBeastId));
+            }
+        }
+    }
+
+    private IEnumerator GetBeastById(CadenceNumber idOfBeast)
+    {
+        Task<FlowScriptResponse> getBeastById = FLOW_ACCOUNT.ExecuteScript(GetBeastByIdTxn.text, 
+            new CadenceAddress(alicesAddress), idOfBeast);
+
+        yield return new WaitUntil(() => getBeastById.IsCompleted);
+
+        if (getBeastById.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getBeastById.Result.Error.Message}");
+            yield break;
+        }
+
+        CadenceComposite beastById = (getBeastById.Result.Value as CadenceComposite);
+        
+        foreach (CadenceCompositeField beastField in beastById.Value.Fields)
+        {
+            switch (beastField.Name)
+            {
+                case ("beastTemplate"):
+                    foreach (CadenceCompositeField beastTemplateField in (beastField.Value as CadenceComposite).Value.Fields)
+                    {
+                        if (beastTemplateField.Name == "name")
+                        {
+                            
+                        }
+
+                        if (beastTemplateField.Name == "skin")
+                        {
+                            
+                        }
+                    }
+                    break;            
+            }
         }
     }
 }
