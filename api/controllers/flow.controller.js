@@ -4,7 +4,6 @@ const createError = require('http-errors');
 class flowController {
     static account = async (req, res, next) => {
         try {
-            console.log(req.user)
             let account = await flow.createWonderArenaAccount(req.user.payload)
             res.status(200).json({
                 status: true,

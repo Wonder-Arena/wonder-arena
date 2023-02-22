@@ -152,9 +152,7 @@ class flowService {
 
     if (txid) {
       let tx = await fcl.tx(txid).onceSealed()
-      console.log(tx)
       let event = tx.events.find((e) => e.type == 'flow.AccountCreated')
-      console.log(event)
       if (!event) {
         throw "Account generate failed"
       }
@@ -179,7 +177,6 @@ class flowService {
 
   static async addDefenderGroup(userData, beastIDs) {
     const { name, email } = userData
-    console.log(userData)
     const user = await prisma.user.findUnique({
       where: { email },
       include: { flowAccount: true } 
@@ -227,7 +224,6 @@ class flowService {
 
   static async removeDefenderGroup(userData, beastIDs) {
     const { name, email } = userData
-    console.log(userData)
     const user = await prisma.user.findUnique({
       where: { email },
       include: { flowAccount: true } 
@@ -273,7 +269,7 @@ class flowService {
     throw "remove defender group failed"
   }
 
-  static async fight(userData) {
+  static async claimBBs(userData) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
@@ -331,7 +327,11 @@ class flowService {
     if (txid) {
       let tx = await fcl.tx(txid).onceSealed()
       if (tx.status === 4 && tx.statusCode === 0) {
-        return
+        let updatedUser = await prisma.user.update({
+          where: { email },
+          data: { claimedBBs: true }
+        }) 
+        return updatedUser
       }
     }
 
