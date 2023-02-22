@@ -93,46 +93,56 @@ class flowService {
     const code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
     import FungibleToken from 0x9a0766d93b6608b7
-
+    import NonFungibleToken from 0x631e88ae7f1d7c20
+    import MetadataViews from 0x631e88ae7f1d7c20
+    import BasicBeasts from 0xfa252d0aa22bf86a
+    
     transaction(name: String, publicKeyHex: String) {
-      prepare(signer: AuthAccount) {
-          let publicKey = publicKeyHex.decodeHex()
-
-          let key = PublicKey(
-              publicKey: publicKey,
-              signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
-          )
-  
-          let account = AuthAccount(payer: signer)
-  
-          account.keys.add(
-              publicKey: key,
-              hashAlgorithm: HashAlgorithm.SHA3_256,
-              weight: 1000.0
-          )
-
-          let signerVault <- signer
-            .borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
-            .withdraw(amount: 1.0)
-
-          account
-            .getCapability(/public/flowTokenReceiver)!
-            .borrow<&{FungibleToken.Receiver}>()!
-            .deposit(from: <-signerVault)
-
-          let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
-              name: name,
-              address: account.address
-          )
-
-          account.save(<- player, to: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
-          let playerCap = account.link<&WonderArenaBattleField_BasicBeasts1.Player{WonderArenaBattleField_BasicBeasts1.PlayerPublic}>(
-              WonderArenaBattleField_BasicBeasts1.PlayerPublicPath, 
-              target: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
-              ?? panic("link player failed")
-
-          WonderArenaBattleField_BasicBeasts1.register(playerCap: playerCap)
-      }
+        prepare(signer: AuthAccount) {
+            let publicKey = publicKeyHex.decodeHex()
+    
+            let key = PublicKey(
+                publicKey: publicKey,
+                signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
+            )
+    
+            let account = AuthAccount(payer: signer)
+    
+            account.keys.add(
+                publicKey: key,
+                hashAlgorithm: HashAlgorithm.SHA3_256,
+                weight: 1000.0
+            )
+    
+            // Add some FLOW
+            let signerVault <- signer
+                .borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
+                .withdraw(amount: 1.0)
+    
+            account
+                .getCapability(/public/flowTokenReceiver)!
+                .borrow<&{FungibleToken.Receiver}>()!
+                .deposit(from: <-signerVault)
+    
+            // setup WonderArena player
+            let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
+                name: name,
+                address: account.address
+            )
+    
+            account.save(<- player, to: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+            let playerCap = account.link<&WonderArenaBattleField_BasicBeasts1.Player{WonderArenaBattleField_BasicBeasts1.PlayerPublic}>(
+                WonderArenaBattleField_BasicBeasts1.PlayerPublicPath, 
+                target: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+                ?? panic("link player failed")
+    
+            WonderArenaBattleField_BasicBeasts1.register(playerCap: playerCap)
+    
+            // setup BasicBeasts collection
+            account.save(<-BasicBeasts.createEmptyCollection(), to: BasicBeasts.CollectionStoragePath)
+            account.unlink(BasicBeasts.CollectionPublicPath)
+            account.link<&BasicBeasts.Collection{NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, BasicBeasts.BeastCollectionPublic}>(BasicBeasts.CollectionPublicPath, target: BasicBeasts.CollectionStoragePath)
+        }
     }
     `
     const txid = await signer.sendTransaction(code, (arg, t) => [
