@@ -5,6 +5,7 @@ const createError = require('http-errors')
 const prisma = new PrismaClient()
 
 require('dotenv').config()
+utils.switchToTestnet()
 
 class flowService {
   static async getAdminAccount() {
@@ -31,7 +32,30 @@ class flowService {
     return {privateKey: privateKey, publicKey: publicKey}
   }
 
-  static async createAccount(data) {
+  static isGeneratingAccounts = false
+
+  static async generateWonderArenaAccounts() {
+    if (this.isGeneratingAccounts) {
+      return
+    }
+
+    this.isGeneratingAccounts = true
+    const users = await prisma.user.findMany({
+      where: { flowAccount: null }
+    })
+
+    for (let i = 0; i < users.length; i++) {
+      let user = users[i]
+      try {
+        await this.createWonderArenaAccount(user)
+      } catch (e) {
+        console.log(e)
+      }
+    }
+    this.isGeneratingAccounts = false
+  }
+
+  static async createWonderArenaAccount(data) {
     const { name, email } = data
     const user = await prisma.user.findUnique({
       where: { email },
@@ -49,14 +73,13 @@ class flowService {
       return user.flowAccount
     }
 
-    utils.switchToTestnet()
     const signer = await this.getAdminAccount()
 
     const {privateKey: privateKey, publicKey: publicKeyHex} = this.generateKeypair()
-
-    console.log("Flow Create Account")
     const code = `
-    transaction(publicKeyHex: String) {
+    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+
+    transaction(name: String, publicKeyHex: String) {
       prepare(signer: AuthAccount) {
           let publicKey = publicKeyHex.decodeHex()
 
@@ -72,10 +95,24 @@ class flowService {
               hashAlgorithm: HashAlgorithm.SHA3_256,
               weight: 1000.0
           )
+
+          let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
+              name: name,
+              address: account.address
+          )
+
+          account.save(<- player, to: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+          let playerCap = account.link<&WonderArenaBattleField_BasicBeasts1.Player{WonderArenaBattleField_BasicBeasts1.PlayerPublic}>(
+              WonderArenaBattleField_BasicBeasts1.PlayerPublicPath, 
+              target: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+              ?? panic("link player failed")
+
+          WonderArenaBattleField_BasicBeasts1.register(playerCap: playerCap)
       }
     }
     `
     const txid = await signer.sendTransaction(code, (arg, t) => [
+      arg(name, t.String),
       arg(publicKeyHex, t.String)
     ])
 

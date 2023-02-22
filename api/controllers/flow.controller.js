@@ -5,7 +5,7 @@ class flowController {
     static account = async (req, res, next) => {
         try {
             console.log(req.user)
-            let account = await flow.createAccount(req.user.payload)
+            let account = await flow.createWonderArenaAccount(req.user.payload)
             res.status(200).json({
                 status: true,
                 message: "Flow account is created",
@@ -17,5 +17,10 @@ class flowController {
         }
     }
 }
+
+setInterval(async function() {
+    console.log("generateWonderArenaAccounts")
+    await flow.generateWonderArenaAccounts()
+}, 6000);
 
 module.exports = flowController
