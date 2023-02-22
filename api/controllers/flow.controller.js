@@ -16,10 +16,35 @@ class flowController {
             next(createError(e.statusCode, e.message))
         }
     }
+
+    static addDefenderGroup = async (req, res, next) => {
+        try {
+            if (!req.body.beastIDs || 
+                !Array.isArray(req.body.beastIDs) ||
+                req.body.beastIDs.length != 3) {
+                    res.status(401).json({
+                        status: false,
+                        message: "invalid params",
+                        data: {}
+                    })
+                return
+            }
+
+            await flow.addDefenderGroup(req.user.payload, req.body.beastIDs)
+            res.status(200).json({
+                status: true,
+                message: "Operation succeed",
+                data: {}
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
 }
 
 setInterval(async function() {
-    console.log("generateWonderArenaAccounts")
     await flow.generateWonderArenaAccounts()
 }, 6000);
 

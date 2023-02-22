@@ -14,7 +14,11 @@ router.post('/login', user.login)
 router.get('/', auth, user.all)
 
 // get/create flow account of user
-router.get('/flow/account', auth, flow.account)
+// router.get('/flow/account', auth, flow.account)
+
+router.post('/wonder_arena/add_defender_group', auth, flow.addDefenderGroup)
+
+
 
 // fight
 // router.post('/fight', auth, flow.fight)

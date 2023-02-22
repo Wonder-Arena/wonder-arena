@@ -22,6 +22,20 @@ class flowService {
     return signer
   }
 
+  static async getUserSigner(flowAccount) {
+    const FlowSigner = (await import('../utils/signer.mjs')).default
+    // TODO: encrypt private key
+    // TODO: multiple keys for concurrency
+    const signer = new FlowSigner(
+      flowAccount.address,
+      flowAccount.encryptedPrivateKey,
+      0,
+      {}
+    )
+
+    return signer 
+  }
+
   static generateKeypair() {
     const EC = require("elliptic").ec
     const ec = new EC("p256")
@@ -63,7 +77,7 @@ class flowService {
     })
 
     if (!user) {
-      throw createHttpError.NotFound('User not found')
+      throw createError.NotFound('User not found')
     }
 
     if (user.flowAccount) {
@@ -78,6 +92,7 @@ class flowService {
     const {privateKey: privateKey, publicKey: publicKeyHex} = this.generateKeypair()
     const code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+    import FungibleToken from 0x9a0766d93b6608b7
 
     transaction(name: String, publicKeyHex: String) {
       prepare(signer: AuthAccount) {
@@ -95,6 +110,15 @@ class flowService {
               hashAlgorithm: HashAlgorithm.SHA3_256,
               weight: 1000.0
           )
+
+          let signerVault <- signer
+            .borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
+            .withdraw(amount: 1.0)
+
+          account
+            .getCapability(/public/flowTokenReceiver)!
+            .borrow<&{FungibleToken.Receiver}>()!
+            .deposit(from: <-signerVault)
 
           let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
               name: name,
@@ -141,6 +165,54 @@ class flowService {
     }
 
     throw "Account generate failed"
+  }
+
+  static async addDefenderGroup(userData, beastIDs) {
+    const { name, email } = userData
+    console.log(userData)
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    let signer = await this.getUserSigner(user.flowAccount)
+    let code = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+
+    transaction(beastIDs: [UInt64]) {
+        let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
+
+        prepare(acct: AuthAccount) {
+            self.playerRef = acct.borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+                ?? panic("borrow player failed")
+        }
+
+        execute {
+            self.playerRef.addDefenderGroup(members: beastIDs)
+        }
+    }
+    `
+
+    const txid = await signer.sendTransaction(code, (arg, t) => [
+      arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
+    ])
+
+    if (txid) {
+      let tx = await fcl.tx(txid).onceSealed()
+      if (tx.status === 4 && tx.statusCode === 0) {
+        return
+      }
+    }
+
+    throw "Add defender group failed"
   }
 }
 
