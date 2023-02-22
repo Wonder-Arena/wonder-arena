@@ -208,15 +208,20 @@ class flowService {
     }
     `
 
-    const txid = await signer.sendTransaction(code, (arg, t) => [
-      arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
-    ])
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
+      ])
 
-    if (txid) {
-      let tx = await fcl.tx(txid).onceSealed()
-      if (tx.status === 4 && tx.statusCode === 0) {
-        return
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return
+        }
       }
+    } catch (e) {
+      console.log(e)
+      throw "Add defender group failed"
     }
 
     throw "Add defender group failed"
@@ -255,16 +260,22 @@ class flowService {
     }
     `
 
-    const txid = await signer.sendTransaction(code, (arg, t) => [
-      arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
-    ])
-
-    if (txid) {
-      let tx = await fcl.tx(txid).onceSealed()
-      if (tx.status === 4 && tx.statusCode === 0) {
-        return
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return
+        }
       }
+    } catch (e) {
+      console.log(e)
+      throw "remove defender group failed"
     }
+
 
     throw "remove defender group failed"
   }
