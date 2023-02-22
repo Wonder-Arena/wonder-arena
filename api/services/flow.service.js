@@ -41,7 +41,11 @@ class flowService {
     const ec = new EC("p256")
     const keypair = ec.genKeyPair()
 
-    const privateKey = keypair.getPrivate().toString('hex')
+    let privateKey = keypair.getPrivate().toString('hex')
+    while (privateKey.length != 64) {
+      privateKey = keypair.getPrivate().toString('hex')
+    }
+
     const publicKey = keypair.getPublic().encode('hex').substring(2)
     return {privateKey: privateKey, publicKey: publicKey}
   }
