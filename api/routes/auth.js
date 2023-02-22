@@ -9,9 +9,8 @@ router.post('/', user.register)
 // login
 router.post('/login', user.login)
 
-// all users
-// TODO: get one user
-router.get('/', auth, user.all)
+// get user info
+// router.get('/', auth, user.info)
 
 router.post('/wonder_arena/get_bbs', auth, flow.claimBBs)
 router.post('/wonder_arena/add_defender_group', auth, flow.addDefenderGroup)

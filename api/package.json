@@ -15,5 +15,6 @@
   },
   "devDependencies": {
     "prisma": "^4.10.1"
-  }
+  },
+  "license": "MIT"
 }
