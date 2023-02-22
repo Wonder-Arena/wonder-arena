@@ -262,6 +262,134 @@ class flowService {
 
     throw "remove defender group failed"
   }
+
+  static async fight(userData) {
+    const { name, email } = userData
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    if (user.claimedBBs) {
+      throw createError.UnprocessableEntity('already claimed')
+    }
+
+    let signer = await this.getAdminAccount()
+    let code = `
+    import NonFungibleToken from 0x631e88ae7f1d7c20
+    import BasicBeasts from 0xfa252d0aa22bf86a
+    
+    transaction(recipient: Address) {
+        let senderCollection: &BasicBeasts.Collection
+        let recipientCollection: &BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}
+    
+        prepare(acct: AuthAccount) {
+            self.senderCollection = acct.borrow<&BasicBeasts.Collection>(from: BasicBeasts.CollectionStoragePath)
+                ?? panic("borrow sender collection failed")
+    
+            self.recipientCollection = getAccount(recipient)
+                .getCapability(BasicBeasts.CollectionPublicPath)
+                .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
+                ?? panic("borrow recipient collection failed")
+        }
+    
+        execute {
+          let ids = self.senderCollection.getIDs()
+          assert(ids.length >= 3, message: "Basic Beasts are not enough")
+          let tokenIDs = [ids[0], ids[1], ids[2]]
+
+          for id in tokenIDs {
+              let beast <- self.senderCollection.withdraw(withdrawID: id)
+              self.recipientCollection.deposit(token: <- beast)
+          }
+        }
+    }
+    `
+
+    const txid = await signer.sendTransaction(code, (arg, t) => [
+      arg(user.flowAccount.address, t.Address)
+    ])
+
+    if (txid) {
+      let tx = await fcl.tx(txid).onceSealed()
+      if (tx.status === 4 && tx.statusCode === 0) {
+        return
+      }
+    }
+
+    throw "claim failed"
+  }
+
+  static async fight(userData, attackerIDs, defenderAddress) {
+    const { name, email } = userData
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    const defenderAccount = await prisma.flowAccount.findUnique({
+      where: { address: defenderAddress },
+      include: { user: true }
+    })
+
+    if (!defenderAccount.user) {
+      throw createError.NotFound('defender not found')
+    }
+
+    let signer = await this.getAdminAccount()
+    let code = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+
+    transaction(
+        attackerAddress: Address,
+        attackerIDs: [UInt64],
+        defenderAddress: Address
+    ) {
+        prepare(acct: AuthAccount) {}
+    
+        execute {
+            WonderArenaBattleField_BasicBeasts1.fight(
+                attackerAddress: attackerAddress,
+                attackerIDs: attackerIDs,
+                defenderAddress: defenderAddress
+            )
+        }
+    }
+    `
+
+    const txid = await signer.sendTransaction(code, (arg, t) => [
+      arg(user.flowAccount.address, t.Address),
+      arg(attackerIDs.map((id) => id.toString()), t.Array(t.UInt64)),
+      arg(defenderAddress, t.Address)
+    ])
+
+    if (txid) {
+      let tx = await fcl.tx(txid).onceSealed()
+      if (tx.status === 4 && tx.statusCode === 0) {
+        return
+      }
+    }
+
+    throw "fight failed"
+  }
 }
+
+
 
 module.exports = flowService

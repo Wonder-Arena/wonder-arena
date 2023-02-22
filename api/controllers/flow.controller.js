@@ -69,6 +69,21 @@ class flowController {
         }
     }
 
+    static claimBBs = async (req, res, next) => {
+        try {
+            await flow.claimBBs(req.user.payload)
+            res.status(200).json({
+                status: true,
+                message: "BBs claimed",
+                data: {}
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
     static fight = async (req, res, next) => {
         try {
             if (!req.body.attackerIDs || 
@@ -83,7 +98,7 @@ class flowController {
                 return
             }
 
-            await flow.fight(req.user.payload, req.body.attackerIDs, defenderAddress)
+            await flow.fight(req.user.payload, req.body.attackerIDs, req.body.defenderAddress)
             res.status(200).json({
                 status: true,
                 message: "Battle finished",

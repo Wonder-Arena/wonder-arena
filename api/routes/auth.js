@@ -13,6 +13,7 @@ router.post('/login', user.login)
 // TODO: get one user
 router.get('/', auth, user.all)
 
+router.post('/wonder_arena/get_bbs', auth, flow.claimBBs)
 router.post('/wonder_arena/add_defender_group', auth, flow.addDefenderGroup)
 router.post('/wonder_arena/remove_defender_group', auth, flow.removeDefenderGroup)
 router.post('/wonder_arena/fight', auth, flow.fight)

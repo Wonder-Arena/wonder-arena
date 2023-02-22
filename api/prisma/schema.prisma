@@ -24,5 +24,6 @@ model User {
     email String @unique
     name String @unique
     password String
+    claimedBBs Boolean @default(false)
     flowAccount FlowAccount?
 }
