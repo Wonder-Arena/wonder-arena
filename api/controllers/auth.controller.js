@@ -34,6 +34,20 @@ class authController {
         }
     }
 
+    static info = async (req, res, next) => {
+      try {
+        const user = await auth.info(req.params.name)
+        res.status(200).json({
+          status: true,
+          message: "",
+          data: user
+        })
+      } catch (e) {
+        console.log(e)
+        next(createError(e.statusCode, e.message))
+      }
+    }
+
     static all = async (req, res, next) => {
         try {
             const users = await auth.all();
@@ -42,9 +56,7 @@ class authController {
                 message: 'All users',
                 data: users
             })
-
-        }
-        catch (e) {
+        } catch (e) {
             next(createError(e.statusCode, e.message))
         }
     }

@@ -113,7 +113,11 @@ class flowController {
 }
 
 setInterval(async function() {
-    await flow.generateWonderArenaAccounts()
+    try {
+        await flow.generateWonderArenaAccounts()
+    } catch (e) {
+        console.log(e)
+    }
 }, 6000);
 
 module.exports = flowController
