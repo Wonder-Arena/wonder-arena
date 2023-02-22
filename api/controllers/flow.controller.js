@@ -33,7 +33,60 @@ class flowController {
             await flow.addDefenderGroup(req.user.payload, req.body.beastIDs)
             res.status(200).json({
                 status: true,
-                message: "Operation succeed",
+                message: "Defender group added",
+                data: {}
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
+    static removeDefenderGroup = async (req, res, next) => {
+        try {
+            if (!req.body.beastIDs || 
+                !Array.isArray(req.body.beastIDs) ||
+                req.body.beastIDs.length != 3) {
+                    res.status(401).json({
+                        status: false,
+                        message: "invalid params",
+                        data: {}
+                    })
+                return
+            }
+
+            await flow.removeDefenderGroup(req.user.payload, req.body.beastIDs)
+            res.status(200).json({
+                status: true,
+                message: "Defender group removed",
+                data: {}
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
+    static fight = async (req, res, next) => {
+        try {
+            if (!req.body.attackerIDs || 
+                !Array.isArray(req.body.attackerIDs) ||
+                req.body.attackerIDs.length != 3 ||
+                !req.body.defenderAddress) {
+                    res.status(401).json({
+                        status: false,
+                        message: "invalid params",
+                        data: {}
+                    })
+                return
+            }
+
+            await flow.fight(req.user.payload, req.body.attackerIDs, defenderAddress)
+            res.status(200).json({
+                status: true,
+                message: "Battle finished",
                 data: {}
             })
 

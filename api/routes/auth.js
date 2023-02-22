@@ -13,14 +13,8 @@ router.post('/login', user.login)
 // TODO: get one user
 router.get('/', auth, user.all)
 
-// get/create flow account of user
-// router.get('/flow/account', auth, flow.account)
-
 router.post('/wonder_arena/add_defender_group', auth, flow.addDefenderGroup)
-
-
-
-// fight
-// router.post('/fight', auth, flow.fight)
+router.post('/wonder_arena/remove_defender_group', auth, flow.removeDefenderGroup)
+router.post('/wonder_arena/fight', auth, flow.fight)
 
 module.exports = router

@@ -214,6 +214,54 @@ class flowService {
 
     throw "Add defender group failed"
   }
+
+  static async removeDefenderGroup(userData, beastIDs) {
+    const { name, email } = userData
+    console.log(userData)
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    let signer = await this.getUserSigner(user.flowAccount)
+    let code = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+
+    transaction(beastIDs: [UInt64]) {
+        let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
+    
+        prepare(acct: AuthAccount) {
+            self.playerRef = acct.borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+                ?? panic("borrow player failed")
+        }
+    
+        execute {
+            self.playerRef.removeDefenderGroup(members: beastIDs)
+        }
+    }
+    `
+
+    const txid = await signer.sendTransaction(code, (arg, t) => [
+      arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
+    ])
+
+    if (txid) {
+      let tx = await fcl.tx(txid).onceSealed()
+      if (tx.status === 4 && tx.statusCode === 0) {
+        return
+      }
+    }
+
+    throw "remove defender group failed"
+  }
 }
 
 module.exports = flowService
