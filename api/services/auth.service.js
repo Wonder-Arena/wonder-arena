@@ -1,4 +1,4 @@
-const { PrismaClient } = require('@prisma/client')
+const { PrismaClient, Prisma } = require('@prisma/client')
 const prisma = new PrismaClient()
 
 require('dotenv').config()
@@ -9,21 +9,24 @@ const createError = require('http-errors')
 class authService {
 
     static async register(data) {
-        const { name, email } = data;
-        const _user = await prisma.user.findUnique({
-          where: { email }
-        })
+        data.password = bcrypt.hashSync(data.password, 8)
 
-        if (_user) {
-            throw createError.NotFound('User is already registered')
+        try {
+          let user = await prisma.user.create({
+            data
+          })
+          data.accessToken = await jwt.signAccessToken(user);
+        } catch (e) {
+          if (e instanceof Prisma.PrismaClientKnownRequestError) {
+            // P2022: Unique constraint failed
+            // Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference#error-codes
+            if (e.code === 'P2002') {
+              throw {statusCode: 401, message: 'The user already exists'}
+            }
+          }
+          throw e
         }
 
-        data.password = bcrypt.hashSync(data.password, 8)
-        let user = await prisma.user.create({
-            data
-        })
-
-        data.accessToken = await jwt.signAccessToken(user);
         delete data.password
         
         return data
