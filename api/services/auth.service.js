@@ -38,6 +38,9 @@ class authService {
         const user = await prisma.user.findUnique({
             where: {
                 email
+            },
+            include: {
+              flowAccount: true
             }
         })
 
@@ -48,7 +51,14 @@ class authService {
         const checkPassword = bcrypt.compareSync(password, user.password)
         if (!checkPassword) throw createError.Unauthorized('Email address or password not valid')
 
+        if (user.flowAccount) {
+          delete user.flowAccount.id
+          delete user.flowAccount.encryptedPrivateKey
+          delete user.flowAccount.userId
+        }
+
         delete user.password
+        delete user.id
 
         const accessToken = await jwt.signAccessToken(user)
 
