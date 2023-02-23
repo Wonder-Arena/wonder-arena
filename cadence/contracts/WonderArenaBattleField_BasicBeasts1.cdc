@@ -146,6 +146,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     }
 
     pub struct ChallengeRecord {
+        pub let id: UInt64
 	    pub let winner: Address
 	    pub let attackerBeasts: [UInt64]
 	    pub let defenderBeasts: [UInt64]
@@ -154,6 +155,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         pub let defenderScoreChange: Int64
 
         init(
+            id: UInt64,
             winner: Address,
 	        attackerBeasts: [UInt64],
 	        defenderBeasts: [UInt64],
@@ -161,6 +163,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
             attackerScoreChange: Int64,
             defenderScoreChange: Int64
         ) {
+            self.id = id
             self.winner = winner
             self.attackerBeasts = attackerBeasts
             self.defenderBeasts = defenderBeasts
@@ -175,10 +178,10 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
     // The records in these to dictionaries should be the same, but
     // we make this so that it can be queried more easily
-    // {attacker: {defender: [ChallengeRecord]}}
-    pub let attackerChallenges: {Address: {Address: [ChallengeRecord]}}
-    // {defender: {attacker: [ChallengeRecord]}}
-    pub let defenderChallenges: {Address: {Address: [ChallengeRecord]}}
+    // {attacker: {defender: {UUID: ChallengeRecord}}}
+    pub let attackerChallenges: {Address: {Address: {UInt64: ChallengeRecord}}}
+    // {defender: {attacker: {UUID: ChallengeRecord}}}
+    pub let defenderChallenges: {Address: {Address: {UInt64: ChallengeRecord}}}
 
     pub fun createNewPlayer(name: String, address: Address): @Player {
         let player <- create WonderArenaBattleField_BasicBeasts1.Player(
@@ -257,7 +260,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         assert(attackerAddress != defenderAddress, message: "attacker and defender should not be the same")
         if let challenges = self.attackerChallenges[attackerAddress] {
             if let _challenges = challenges[defenderAddress] {
-                assert(UInt8(_challenges.length) < WonderArenaWorldRules_BasicBeasts1.maxChallengeTimes, message: "Has challenged for 3 times")
+                assert(UInt8(_challenges.keys.length) < WonderArenaWorldRules_BasicBeasts1.maxChallengeTimes, message: "Has challenged for 3 times")
             }
         }
 
@@ -559,6 +562,17 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         }
     }
 
+    pub resource EmptyResource {
+        init() {}
+    }
+
+    pub fun generateUUID(): UInt64 {
+        let r <- create EmptyResource()
+        let uuid = r.uuid
+        destroy r
+        return uuid
+    }
+
     pub fun recordWinner(
         winnerAddress: Address,
         attackerAddress: Address, 
@@ -569,8 +583,10 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     ) {
         let attackerScoreChange: Int64 = winnerAddress == attackerAddress ? 60 : -30
         let defenderScoreChange: Int64 = winnerAddress == attackerAddress ? -30 : 60
+        let recordUUID = self.generateUUID()
 
         let record = ChallengeRecord(
+            id: recordUUID,
             winner: winnerAddress,
             attackerBeasts: attackerBeasts,
             defenderBeasts: defenderBeasts,
@@ -606,9 +622,9 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
         var aRecords = attackerChallenges![defenderAddress]
         if aRecords == nil {
-            aRecords = []
+            aRecords = {}
         }
-        aRecords!.append(record)
+        aRecords!.insert(key: recordUUID, record)
         attackerChallenges!.insert(key: defenderAddress, aRecords!)
         self.attackerChallenges.insert(key: attackerAddress, attackerChallenges!)
 
@@ -619,9 +635,9 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
         var dRecords = defenderChallenges![attackerAddress]
         if dRecords == nil {
-            dRecords = []
+            dRecords = {}
         }
-        dRecords!.append(record)
+        dRecords!.insert(key: recordUUID, record)
         defenderChallenges!.insert(key: attackerAddress, dRecords!)
         self.defenderChallenges.insert(key: defenderAddress, defenderChallenges!)
 

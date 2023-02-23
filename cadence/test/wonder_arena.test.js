@@ -104,7 +104,6 @@ describe("Pawn", () => {
   })
 })
 
-
 describe("BattleField", () => {
   beforeEach(async () => {
     const basePath = path.resolve(__dirname, "..")
@@ -197,7 +196,7 @@ describe("BattleField", () => {
 
     let records = await getAttackerChallenges(alice, bob)
     console.log(records)
-    let record = records[0]
+    let record = Object.values(records)[0]
     expect(record.attackerBeasts).not.toEqual(record.defenderBeasts)
 
     let scores = await getScores([alice, bob])
