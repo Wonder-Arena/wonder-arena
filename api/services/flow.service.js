@@ -54,6 +54,7 @@ class flowService {
   static isGeneratingAccounts = false
 
   static async generateWonderArenaAccounts() {
+    console.log("is generate?", this.isGeneratingAccounts)
     if (this.isGeneratingAccounts) {
       return
     }
@@ -415,7 +416,5 @@ class flowService {
     throw "fight failed"
   }
 }
-
-
 
 module.exports = flowService
