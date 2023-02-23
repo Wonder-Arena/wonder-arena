@@ -136,7 +136,7 @@ pub contract WonderArenaPawn_BasicBeasts1 {
         }
     }
 
-    access(account) fun getPawn(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
+    pub fun getPawn(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
         let template = beast.getBeastTemplate()
         let name = template.name
         if name == "Moon" {

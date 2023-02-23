@@ -8,6 +8,11 @@ export const getRules = async () => {
   return result
 }
 
+export const getPawns = async (alice, beastIDs) => {
+  const scriptName = "get_pawns"
+  return await executeScript({ name: scriptName, args: [alice, beastIDs] })
+}
+
 // transactions
 
 export const updateGroupSize = async (signer, size) => {
