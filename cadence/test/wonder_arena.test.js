@@ -12,7 +12,6 @@ import {
 } from "./src/common";
 import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores } from "./src/wonder_arena";
 import { bb_createTemplate, bb_getBeastIDs, bb_mintBeast, bb_setupAccount } from "./src/basicbeasts";
-import { assert } from "console";
 
 jest.setTimeout(1000000)
 
@@ -23,6 +22,7 @@ const deployContracts = async () => {
   await deployByName(deployer, "WonderArenaWorldRules_BasicBeasts1")
   await deployByName(deployer, "WonderArenaPawn_BasicBeasts1")
   await deployByName(deployer, "WonderArenaBattleField_BasicBeasts1")
+  await deployByName(deployer, "WonderArenaReward_BasicBeasts1")
 }
 
 describe("Deployment", () => {
