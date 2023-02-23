@@ -9,59 +9,38 @@ using DapperLabs.Flow.Sdk.Unity;
 using UnityEngine;
 using System.Linq;
 using UnityEngine.UI;
+using UnityEngine.Networking;
 
 public class FlowInterfaceBB : MonoBehaviour
 {
-    #region Classes and NetworkManager
-
-    [System.Serializable]
-    public class GetPlayer
-    {
-        [System.Serializable]
-        public class Player
-        {
-            public bool status;
-            public string message;
-            public PlayerData data;
-        }   
-        
-        public class PlayerData
-        {
-
-        }
-    }
-
-    #endregion
-
-
     // Test addresses - Alice and Bob
     public string alicesAddress = "0x1801c3f618a511e6";
     public string bobsAddress = "0x771519260bbe1ee6";
 
-    public List<CadenceNumber> allPlayersBeastsIDs = new();
-    public List<CadenceComposite> allAvailableBeasts = new();
+    // Actual address;
+    public string userFlowAddress = null;
+
+    public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
+    public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
+    public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
 
     // FLOW account object - set via Login screen.
     [Header("FLOW Account")]
     public FlowControl.Account FLOW_ACCOUNT = null;
 
-    // The TextAssets containing Cadence scripts and transactions that will be used for the game
-    [Header("Scripts and Transactions")]
-    [SerializeField] TextAsset RegisterNewPlayerTxn;
-    [SerializeField] TextAsset AddDefenderGroupTxn;
-    [SerializeField] TextAsset RemoveDefenderGroupTxn;
-    [SerializeField] TextAsset Fight_OnlyForAdminTxn;
-
     // Cadence scripts to get the data for Beasts
     [Header("Beasts Scripts")]
-    [SerializeField] TextAsset GetAllBeastsTxn;
     [SerializeField] TextAsset GetAllPlayersTxn;
     [SerializeField] TextAsset GetBeastsIdsTxn;
     [SerializeField] TextAsset GetChallengeRecordsTxn;
     [SerializeField] TextAsset GetDefenderGroupsTxn;
     [SerializeField] TextAsset GetPlayerTxn;
-    [SerializeField] TextAsset GetBeastByIdTxn;
+    [SerializeField] TextAsset GetPawnsTxn;
+
+    [Header("URLs")]
+    [SerializeField] string endpointPATH = "https://wonder-arena-production.up.railway.app";
+    [SerializeField] string getPlayerPath = "/auth/players/";
 
     private static FlowInterfaceBB m_instance = null;
     public static FlowInterfaceBB Instance
@@ -92,7 +71,7 @@ public class FlowInterfaceBB : MonoBehaviour
     private IEnumerator Start()
     {
         //*****************//
-        // Change it Later //
+        // Change it Later // or no....
         //*****************//
         foreach (var account in FlowControl.Data.Accounts)
         {
@@ -102,19 +81,52 @@ public class FlowInterfaceBB : MonoBehaviour
             }
         }
 
-        isScriptsCompleted = true;
+        userFlowAddress = GameManager.Instance.userFlowAddress;
 
-        //StartCoroutine(GetPawns());
-        StartCoroutine(GetAllBeastsIDs());
-        //StartCoroutine(GetDefenderGroups());
+        if (PlayerPrefs.HasKey("Username"))
+        {
+            string username = PlayerPrefs.GetString("Username");
+            string urlPath = endpointPATH + getPlayerPath + username;
 
-        yield return null;
+            yield return StartCoroutine(GetAllPlayers());
+            yield return StartCoroutine(GetAllBeastsIDs());
+            yield return StartCoroutine(GetAllPlayerPawns());
+
+            //yield return StartCoroutine(GetDefenderGroups());
+
+            isScriptsCompleted = true;
+        }
+        else
+        {
+            Debug.LogError("User is not registred!");
+        }
+    }
+
+    // Getting all players
+    private IEnumerator GetAllPlayers()
+    {
+        Task<FlowScriptResponse> getAllPLayers = FLOW_ACCOUNT.ExecuteScript(GetAllPlayersTxn.text);
+
+        yield return new WaitUntil(() => getAllPLayers.IsCompleted);
+
+        if (getAllPLayers.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getAllPLayers.Result.Error.Message}");
+            yield break;
+        }
+
+        CadenceBase[] allPLayers = (getAllPLayers.Result.Value as CadenceArray).Value;
+
+        foreach (CadenceComposite player in allPLayers)
+        {
+            allPlayers_ListCadenceComposite.Add(player);
+        }
     }
 
     // Executing script to get all Beasts IDs that user has and adding them to allPlayersBeastsIDs list
     private IEnumerator GetAllBeastsIDs()
     {
-        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetBeastsIdsTxn.text, new CadenceAddress(alicesAddress));
+        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetBeastsIdsTxn.text, new CadenceAddress(userFlowAddress));
 
         yield return new WaitUntil(() => getBeastsIDs.IsCompleted);
 
@@ -124,20 +136,14 @@ public class FlowInterfaceBB : MonoBehaviour
             yield break;
         }
 
-        isScriptsCompleted = true;
-
-        CadenceBase[] allBeastsIDs = (getBeastsIDs.Result.Value as CadenceArray).Value;
-
-        foreach (CadenceNumber beastID in allBeastsIDs)
-        {
-            allPlayersBeastsIDs.Add(beastID);
-        }
+        playerAllBeastsIDs_CadenceBaseArray = (getBeastsIDs.Result.Value as CadenceArray).Value;
     }
 
-    private IEnumerator GetPawns()
+    private IEnumerator GetAllPlayerPawns()
     {
         // Executing script to get all Pawns from account
-        Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetAllBeastsTxn.text, new CadenceAddress(bobsAddress));
+        Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text, 
+            new CadenceAddress(userFlowAddress), new CadenceArray(playerAllBeastsIDs_CadenceBaseArray));
 
         yield return new WaitUntil(() => getPawns.IsCompleted);
 
@@ -147,74 +153,12 @@ public class FlowInterfaceBB : MonoBehaviour
             yield break;
         }
 
-        isScriptsCompleted = true;
-
         CadenceBase[] allPawns = (getPawns.Result.Value as CadenceArray).Value;
 
-        // Adding all beasts to List of all beasts that user has
+        // Adding all pawns to List of all pawns that user has
         foreach (CadenceComposite pawn in allPawns)
         {
-            allAvailableBeasts.Add(pawn);
-        }
-    }
-
-    private IEnumerator GetDefenderGroups()
-    {
-        Task<FlowScriptResponse> getDefenderGroups = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text, new CadenceAddress(alicesAddress));
-
-        yield return new WaitUntil(() => getDefenderGroups.IsCompleted);
-
-        if (getDefenderGroups.Result.Error != null)
-        {
-            Debug.LogError($"Error:  {getDefenderGroups.Result.Error.Message}");
-            yield break;
-        }
-
-        CadenceBase[] allDefenderGroups = (getDefenderGroups.Result.Value as CadenceArray).Value;
-
-        foreach (CadenceArray defenderGroup in allDefenderGroups)
-        {
-            foreach (CadenceNumber defenderBeastId in defenderGroup.Value)
-            {
-                StartCoroutine(GetBeastById(defenderBeastId));
-            }
-        }
-    }
-
-    private IEnumerator GetBeastById(CadenceNumber idOfBeast)
-    {
-        Task<FlowScriptResponse> getBeastById = FLOW_ACCOUNT.ExecuteScript(GetBeastByIdTxn.text, 
-            new CadenceAddress(alicesAddress), idOfBeast);
-
-        yield return new WaitUntil(() => getBeastById.IsCompleted);
-
-        if (getBeastById.Result.Error != null)
-        {
-            Debug.LogError($"Error:  {getBeastById.Result.Error.Message}");
-            yield break;
-        }
-
-        CadenceComposite beastById = (getBeastById.Result.Value as CadenceComposite);
-        
-        foreach (CadenceCompositeField beastField in beastById.Value.Fields)
-        {
-            switch (beastField.Name)
-            {
-                case ("beastTemplate"):
-                    foreach (CadenceCompositeField beastTemplateField in (beastField.Value as CadenceComposite).Value.Fields)
-                    {
-                        if (beastTemplateField.Name == "name")
-                        {
-                            
-                        }
-
-                        if (beastTemplateField.Name == "skin")
-                        {
-                            
-                        }
-                    }
-                    break;            
-            }
+            playerAllPawns_ListCadenceComposite.Add(pawn);
         }
     }
 }

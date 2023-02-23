@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 
 public class GameManager : MonoBehaviour
 {
+    public string userFlowAddress = null;
+
     public static GameManager Instance { get; private set; }
     private void Awake()
     {
@@ -20,24 +22,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    //public List<GameObject> GetAttackerComp()
-    //{
-    //    if (HaveAttackerComp)
-    //    {
-
-    //    }
-    //}
-
     public bool HaveAttackerComp()
     {
-        foreach (GameObject unit in CharacterManager.Instance.listOfAllSelectedUnits)
-        {
-            if (unit == null)
-            {
-                return false;
-            }
-        }
-
         return true;
     }
 }

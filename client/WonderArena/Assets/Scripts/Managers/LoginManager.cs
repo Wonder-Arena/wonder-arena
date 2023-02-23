@@ -72,6 +72,13 @@ public class LoginManager : MonoBehaviour
             public string name;
             public bool claimedBBs;
             public string accessToken;
+            public FlowAccount flowAccount;
+        }
+
+        [System.Serializable]
+        public class FlowAccount
+        {
+            public string address;
         }
     }
 
@@ -144,13 +151,13 @@ public class LoginManager : MonoBehaviour
 
         if (registerResponse.status == true)
         {
-            PlayerPrefs.SetString("AccessToken", registerResponse.data.accessToken);
+            errorField.text = "";
             PlayerPrefs.SetString("Email", registerResponse.data.email);
+            PlayerPrefs.SetString("Username", registerResponse.data.name);
             PlayerPrefs.Save();
             loginObject.SetActive(true);
             registrationObject.SetActive(false);
-            OnLoginEnable();
-            
+            OnLoginEnable();         
         }
         else
         {
@@ -180,9 +187,9 @@ public class LoginManager : MonoBehaviour
         if (loginResponse.status == true)
         {
             errorField.text = "";
-            PlayerPrefs.SetString("AccessToken", loginResponse.data.accessToken);
             PlayerPrefs.SetString("Email", loginResponse.data.email);
-            PlayerPrefs.Save();
+            PlayerPrefs.SetString("Username", loginResponse.data.name);
+            GameManager.Instance.userFlowAddress = loginResponse.data.flowAccount.address;
             loginObject.SetActive(false);
             registrationObject.SetActive(false);
             LevelManager.Instance.LoadScene("MainMenu");
@@ -220,16 +227,15 @@ public class LoginManager : MonoBehaviour
             errorField.text = "Please, write email";
         }
         else
-        {
-            errorField.text = "";
+        {        
             UserInputData user = JsonUtility.FromJson<UserInputData>(RegisterTxn.text);
 
             user.name = _name;
             user.email = _email;
             user.password = _password;
 
+            PlayerPrefs.DeleteAll();
             PlayerPrefs.SetString("Password", _password);
-            PlayerPrefs.Save();
 
             string newJson = JsonUtility.ToJson(user);
             string path = endpointPATH + registerPATH;
@@ -257,13 +263,11 @@ public class LoginManager : MonoBehaviour
         user.email = _email;
         user.password = _password;
 
+        PlayerPrefs.DeleteAll();
         PlayerPrefs.SetString("Password", _password);
-        PlayerPrefs.Save();
 
         string newJson = JsonUtility.ToJson(user);
         string path = endpointPATH + loginPATH;
-
-        Debug.Log(newJson);
 
         StartCoroutine(LoginPost(path, newJson));
     }

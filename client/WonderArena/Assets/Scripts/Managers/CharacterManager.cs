@@ -21,8 +21,6 @@ public class CharacterManager : MonoBehaviour
     GameObject ui_CharaterSelection;
     [SerializeField]
     GameObject ui_SelectedUnits;
-    //[SerializeField]
-    //GameObject flowInterfaceReferenceObject;
     FlowInterfaceBB flowInterface;
     [SerializeField]
     List<GameObject> allBeastsPrefabs;
@@ -75,7 +73,7 @@ public class CharacterManager : MonoBehaviour
     public void SetAllAvailableBeasts()
     {
         string beastID = null;
-        List<CadenceComposite> copy_allBeasts = new(flowInterface.allAvailableBeasts);
+        List<CadenceComposite> copy_allBeasts = new(/*flowInterface.playerAllBeastsIDs_CadenceBaseArray*/);
         foreach (CadenceComposite beast in copy_allBeasts)
         {
             foreach (CadenceCompositeField beastField in beast.Value.Fields)
