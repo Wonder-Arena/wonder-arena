@@ -52,7 +52,7 @@ pub contract WonderArenaWorldRules_BasicBeasts1 {
 
     init() {
         self.groupSize = 3
-        self.maxGroupNumber = 10
+        self.maxGroupNumber = 4
         self.maxChallengeTimes = 3
 
         let currentBlock = getCurrentBlock()
