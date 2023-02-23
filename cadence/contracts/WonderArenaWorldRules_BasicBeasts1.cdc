@@ -10,9 +10,9 @@ pub contract WonderArenaWorldRules_BasicBeasts1 {
     pub event MaxGroupNumberUpdated(number: UInt8)
     pub event MaxPlayerNumberUpdated(number: UInt32)
 
-    pub let groupSize: UInt8
-    pub let maxGroupNumber: UInt8
-    pub let maxPlayerNumber: UInt32
+    pub var groupSize: UInt8
+    pub var maxGroupNumber: UInt8
+    pub var maxPlayerNumber: UInt32
 
     pub resource Admin {
 
