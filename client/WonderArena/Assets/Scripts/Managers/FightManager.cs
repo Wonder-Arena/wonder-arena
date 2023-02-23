@@ -65,17 +65,17 @@ public class FightManager : MonoBehaviour
                     {
                         foreach (CadenceCompositeField _eventField in _event.Value.Fields)
                         {
-                            Debug.Log(_eventField.Name);
+                            Debug.Log(_eventField.Name + _eventField.Value);
                             switch (_eventField.Name)
                             {
                                 case "byBeastID":
                                     if (_eventField.Value as CadenceVoid != null)
                                     {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
+                                        Debug.Log((_eventField.Value));
                                     }
                                     else
                                     {
-                                        Debug.Log(_eventField.Name + (_eventField.Value as CadenceNumber).Value);
+                                        Debug.Log((_eventField.Value));
                                     }
                                     break;
                                 case "withSkill":
@@ -129,6 +129,10 @@ public class FightManager : MonoBehaviour
                             }
                         }
                     }
+                }
+                if (recordField.Name == "winner")
+                {
+                    Debug.Log((recordField.Value as CadenceAddress).Value);
                 }
             }
         }

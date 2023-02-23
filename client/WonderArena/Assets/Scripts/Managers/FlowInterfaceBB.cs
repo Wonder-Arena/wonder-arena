@@ -156,7 +156,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     private IEnumerator GetFightsRecords()
     {
-        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text, 
+        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text,
             new CadenceAddress("0xa3431c6f7988dd2a"), new CadenceAddress("0xac9971e96adacb3f"));
 
         yield return new WaitUntil(() => getBeastsIDs.IsCompleted);
@@ -170,83 +170,5 @@ public class FlowInterfaceBB : MonoBehaviour
 
         Debug.Log("got all records");
         challengeRecords = (getBeastsIDs.Result.Value as CadenceArray).Value;
-
-        foreach (CadenceComposite record in challengeRecords)
-        {
-            foreach (CadenceCompositeField recordField in record.Value.Fields)
-            {
-                if (recordField.Name == "events")
-                {
-                    foreach (CadenceComposite _event in (recordField.Value as CadenceArray).Value)
-                    {
-                        foreach (CadenceCompositeField _eventField in _event.Value.Fields)
-                        {
-                            Debug.Log(_eventField.Name);
-                            switch (_eventField.Name)
-                            {
-                                case "byBeastID":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    else
-                                    {
-                                        Debug.Log(_eventField.Name + (_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "withSkill":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceString).Value);
-                                    }
-                                    break;
-                                case "byStatus":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "targetBeastIDs":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceArray).Value);
-                                    }
-                                    break;
-                                case "hitTheTarget":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceBool).Value);
-                                    }
-                                    break;
-                                case "effect":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "damage":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "targetSkipped":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceBool).Value);
-                                    }
-                                    break;
-                                case "targetDefeated":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceBool).Value);
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 }
