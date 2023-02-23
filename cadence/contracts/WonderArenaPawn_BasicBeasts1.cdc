@@ -154,10 +154,10 @@ pub contract WonderArenaPawn_BasicBeasts1 {
     pub fun pawnMoon(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
         let skill = PawnSkill(
             name: "Mega Volt Crash",
-            value: 100,
+            value: 90,
             effect: PawnEffect.ToParalysis,
             effectProb: 50, // 50%
-            manaRequired: 80
+            manaRequired: 50
         )
 
         let attack = PawnAttack(
@@ -169,11 +169,11 @@ pub contract WonderArenaPawn_BasicBeasts1 {
         let pawn = Pawn(
             nft: beast,
             type: PawnType.Electric,
-            hp: 100,
+            hp: 70,
             agility: 30,
             speed: 10,
             attack: attack,
-            defense: 10,
+            defense: 5,
             accuracy: 95, // 95%
             status: PawnStatus.Normal,
             mana: 0,
@@ -186,10 +186,10 @@ pub contract WonderArenaPawn_BasicBeasts1 {
     pub fun pawnSaber(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
         let skill = PawnSkill(
             name: "Supersonic Wave",
-            value: 100,
+            value: 50,
             effect: PawnEffect.ToParalysis,
             effectProb: 50, // 50%
-            manaRequired: 80
+            manaRequired: 60
         )
 
         let attack = PawnAttack(
@@ -201,11 +201,11 @@ pub contract WonderArenaPawn_BasicBeasts1 {
         let pawn = Pawn(
             nft: beast,
             type: PawnType.Water,
-            hp: 110,
+            hp: 70,
             agility: 30,
             speed: 10,
             attack: attack,
-            defense: 10,
+            defense: 15,
             accuracy: 95, // 95%
             status: PawnStatus.Normal,
             mana: 0,
@@ -221,7 +221,7 @@ pub contract WonderArenaPawn_BasicBeasts1 {
             value: 100,
             effect: PawnEffect.ToParalysis,
             effectProb: 50, // 50%
-            manaRequired: 80
+            manaRequired: 60
         )
 
         let attack = PawnAttack(
@@ -233,7 +233,7 @@ pub contract WonderArenaPawn_BasicBeasts1 {
         let pawn = Pawn(
             nft: beast,
             type: PawnType.Grass,
-            hp: 140,
+            hp: 80,
             agility: 30,
             speed: 30,
             attack: attack,
@@ -250,10 +250,10 @@ pub contract WonderArenaPawn_BasicBeasts1 {
     pub fun pawnAzazel(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
         let skill = PawnSkill(
             name: "Phantom Force",
-            value: 100,
+            value: 50,
             effect: PawnEffect.ToParalysis,
-            effectProb: 50, // 50%
-            manaRequired: 80
+            effectProb: 80, // 50%
+            manaRequired: 30
         )
 
         let attack = PawnAttack(
@@ -265,7 +265,7 @@ pub contract WonderArenaPawn_BasicBeasts1 {
         let pawn = Pawn(
             nft: beast,
             type: PawnType.Fire,
-            hp: 90,
+            hp: 60,
             agility: 30,
             speed: 15,
             attack: attack,

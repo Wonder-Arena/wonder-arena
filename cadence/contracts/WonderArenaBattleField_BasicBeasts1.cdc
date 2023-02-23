@@ -17,6 +17,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     pub event PlayerRegistered(name: String, address: Address)
     pub event PlayerUnregistered(name: String, address: Address)
     pub event DefenderGroupAdded(owner: Address, name: String, beasts: [UInt64])
+    pub event DefenderGroupUpdated(owner: Address, name: String, beasts: [UInt64])
     pub event DefenderGroupRemoved(owner: Address, name: String, beasts: [UInt64])
     pub event ChallengeHappened(winner: Address, attacker: Address, attackerBeasts: [UInt64], defender: Address, defenderBeasts: [UInt64])
 
@@ -120,12 +121,23 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                     panic("beast is not exist in player's collection")
                 }
             }
-            self.defenderGroups[group.getID()] = group
-            emit DefenderGroupAdded(owner: self.address, name: group.name, beasts: group.beastIDs)
+
+            let isAlreadyExists = self.defenderGroups[group.name] != nil
+            self.defenderGroups[group.name] = group
+
+            // Put th assert here to make sure the group can be kind of `edit`
+            let groups = self.getDefenderGroups()
+            assert(UInt8(groups.length) < WonderArenaWorldRules_BasicBeasts1.maxGroupNumber, message: "Exceed max group number")
+
+            if isAlreadyExists {
+                emit DefenderGroupUpdated(owner: self.address, name: group.name, beasts: group.beastIDs)
+            } else {
+                emit DefenderGroupAdded(owner: self.address, name: group.name, beasts: group.beastIDs)
+            }
         }
 
-        pub fun removeDefenderGroup(groupID: String) {
-            if let group = self.defenderGroups.remove(key: groupID) {
+        pub fun removeDefenderGroup(name: String) {
+            if let group = self.defenderGroups.remove(key: name) {
                 emit DefenderGroupRemoved(owner: self.address, name: group.name, beasts: group.beastIDs)
             }
         }
@@ -150,7 +162,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
             defenderScoreChange: Int64
         ) {
             self.winner = winner
-            self.attackerBeasts = defenderBeasts
+            self.attackerBeasts = attackerBeasts
             self.defenderBeasts = defenderBeasts
             self.events = events
             self.attackerScoreChange = attackerScoreChange
