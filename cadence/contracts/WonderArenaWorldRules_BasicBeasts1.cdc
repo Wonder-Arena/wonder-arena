@@ -8,11 +8,9 @@ pub contract WonderArenaWorldRules_BasicBeasts1 {
 
     pub event GroupSizeUpdated(size: UInt8)
     pub event MaxGroupNumberUpdated(number: UInt8)
-    pub event MaxPlayerNumberUpdated(number: UInt32)
 
     pub var groupSize: UInt8
     pub var maxGroupNumber: UInt8
-    pub var maxPlayerNumber: UInt32
 
     pub resource Admin {
 
@@ -25,17 +23,11 @@ pub contract WonderArenaWorldRules_BasicBeasts1 {
             emit MaxGroupNumberUpdated(number: number)
             WonderArenaWorldRules_BasicBeasts1.maxGroupNumber = number
         }
-
-        pub fun setMaxPlayerNumber(_ number: UInt32) {
-            emit MaxPlayerNumberUpdated(number: number)
-            WonderArenaWorldRules_BasicBeasts1.maxPlayerNumber = number
-        }
     }
 
     init() {
         self.groupSize = 3
         self.maxGroupNumber = 10
-        self.maxPlayerNumber = 500
 
         self.AdminStoragePath = /storage/WonderArenaWorldRules_Admin_BasicBeasts1
         self.AdminPublicPath = /public/WonderArenaWorldRules_Admin_BasicBeasts1
