@@ -22,6 +22,7 @@ const deployContracts = async () => {
   await deployBasicBeastsContracts(deployer)
   await deployByName(deployer, "WonderArenaWorldRules_BasicBeasts1")
   await deployByName(deployer, "WonderArenaPawn_BasicBeasts1")
+  await deployByName(deployer, "WonderArenaBattleField_BasicBeasts1")
 }
 
 describe("Deployment", () => {
