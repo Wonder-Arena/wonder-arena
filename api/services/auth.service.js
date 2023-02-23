@@ -24,7 +24,7 @@ class authService {
         })
 
         data.accessToken = await jwt.signAccessToken(user);
-        delete user.password
+        delete data.password
         
         return data
     }

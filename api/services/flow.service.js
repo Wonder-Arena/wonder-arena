@@ -12,11 +12,13 @@ class flowService {
 
     const FlowSigner = (await import('../utils/signer.mjs')).default
     // TODO: encrypt private key
-    // TODO: multiple keys for concurrency
+    const keys = (process.env.ADMIN_ENCRYPTED_PRIVATE_KEYS).split(",")
+    const keyIndex = Math.floor(Math.random() * keys.length)
+    const key = keys[keyIndex]
     const signer = new FlowSigner(
       process.env.ADMIN_ADDRESS, 
-      process.env.ADMIN_ENCRYPTED_PRIVATE_KEY,
-      process.env.ADMIN_KEY_INDEX,
+      key,
+      keyIndex,
       {}
     )
     return signer
@@ -25,7 +27,6 @@ class flowService {
   static async getUserSigner(flowAccount) {
     const FlowSigner = (await import('../utils/signer.mjs')).default
     // TODO: encrypt private key
-    // TODO: multiple keys for concurrency
     const signer = new FlowSigner(
       flowAccount.address,
       flowAccount.encryptedPrivateKey,
