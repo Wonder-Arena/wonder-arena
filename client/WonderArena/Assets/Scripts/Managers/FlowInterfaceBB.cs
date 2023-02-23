@@ -12,6 +12,28 @@ using UnityEngine.UI;
 
 public class FlowInterfaceBB : MonoBehaviour
 {
+    #region Classes and NetworkManager
+
+    [System.Serializable]
+    public class GetPlayer
+    {
+        [System.Serializable]
+        public class Player
+        {
+            public bool status;
+            public string message;
+            public PlayerData data;
+        }   
+        
+        public class PlayerData
+        {
+
+        }
+    }
+
+    #endregion
+
+
     // Test addresses - Alice and Bob
     public string alicesAddress = "0x1801c3f618a511e6";
     public string bobsAddress = "0x771519260bbe1ee6";

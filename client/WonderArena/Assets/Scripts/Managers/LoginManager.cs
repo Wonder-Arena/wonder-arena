@@ -84,12 +84,25 @@ public class LoginManager : MonoBehaviour
     }
     #endregion
 
+    [Header("All UIs necceseries")]
+    [SerializeField] GameObject registrationObject;
+    [SerializeField] GameObject loginObject;
+    [SerializeField] TMP_Text errorField;
+    [SerializeField] GameObject videoStartingScreen;
+    [SerializeField] GameObject nonVideoStartingScreen;
+    [SerializeField] GameObject loginButtons;
+
     //Serialized Fields from front end
-    [Header("Input Fields")]
-    [SerializeField] TMP_InputField usernameField;
-    [SerializeField] TMP_InputField emailField;
-    [SerializeField] TMP_InputField passwordField;
+    [Header("Input Fields for Registration")]
+    [SerializeField] TMP_InputField usernameRegistrationField;
+    [SerializeField] TMP_InputField emailRegistrationField;
+    [SerializeField] TMP_InputField passwordRegistrationField;
     [SerializeField] TMP_InputField confirmPasswordField;
+
+    [Header("Input Fields for Login")]
+    //[SerializeField] TMP_InputField usernameLoginField;
+    [SerializeField] TMP_InputField emailLoginField;
+    [SerializeField] TMP_InputField passwordLoginField;
 
     [Header("Json Files")]
     [SerializeField] TextAsset RegisterTxn;
@@ -102,14 +115,19 @@ public class LoginManager : MonoBehaviour
 
     private void Awake()
     {
-        usernameField = usernameField.GetComponent<TMP_InputField>();
-        emailField = emailField.GetComponent<TMP_InputField>();
-        passwordField = passwordField.GetComponent<TMP_InputField>();
+        usernameRegistrationField = usernameRegistrationField.GetComponent<TMP_InputField>();
+        emailRegistrationField = emailRegistrationField.GetComponent<TMP_InputField>();
+        passwordRegistrationField = passwordRegistrationField.GetComponent<TMP_InputField>();
         confirmPasswordField = confirmPasswordField.GetComponent<TMP_InputField>();
+
+        emailLoginField = emailLoginField.GetComponent<TMP_InputField>();
+        passwordLoginField = passwordLoginField.GetComponent<TMP_InputField>();
+
+        errorField = errorField.GetComponent<TMP_Text>();
     }
 
 
-    // Registrating user
+    // Registrating new user
     private IEnumerator Register(string url, string bodyJsonString)
     {
         var request = new UnityWebRequest(url, "POST");
@@ -120,50 +138,151 @@ public class LoginManager : MonoBehaviour
         yield return request.SendWebRequest();
 
         Debug.Log("Status Code: " + request.responseCode);
+        Debug.Log(request.downloadHandler.text);
 
         Registration.RegisterResponse registerResponse = JsonUtility.FromJson<Registration.RegisterResponse>(request.downloadHandler.text);
 
         if (registerResponse.status == true)
         {
-            Debug.Log(registerResponse.data.accessToken);
+            PlayerPrefs.SetString("AccessToken", registerResponse.data.accessToken);
+            PlayerPrefs.SetString("Email", registerResponse.data.email);
+            PlayerPrefs.Save();
+            loginObject.SetActive(true);
+            registrationObject.SetActive(false);
+            OnLoginEnable();
+            
         }
         else
         {
-            Debug.Log(registerResponse.message);
+            errorField.text = registerResponse.message;
         }
+
+        request.disposeUploadHandlerOnDispose = true;
+        request.disposeDownloadHandlerOnDispose = true;
+    }
+
+
+    // Login User
+    private IEnumerator LoginPost(string url, string bodyJsonString)
+    {
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        yield return request.SendWebRequest();
+
+        Debug.Log("Status Code: " + request.responseCode);
+        Debug.Log(request.downloadHandler.text);
+
+        Login.LoginResponse loginResponse = JsonUtility.FromJson<Login.LoginResponse>(request.downloadHandler.text);
+
+        if (loginResponse.status == true)
+        {
+            errorField.text = "";
+            PlayerPrefs.SetString("AccessToken", loginResponse.data.accessToken);
+            PlayerPrefs.SetString("Email", loginResponse.data.email);
+            PlayerPrefs.Save();
+            loginObject.SetActive(false);
+            registrationObject.SetActive(false);
+            LevelManager.Instance.LoadScene("MainMenu");
+        }
+        else
+        {
+            errorField.text = loginResponse.message;
+        }
+
+        request.disposeUploadHandlerOnDispose = true;
+        request.disposeDownloadHandlerOnDispose = true;
     }
 
     public void OnRegisterButtonClicked()
     {
-        string _name = usernameField.text;
-        string _email = emailField.text;
-        string _password = passwordField.text;
+        string _name = usernameRegistrationField.text;
+        string _email = emailRegistrationField.text;
+        string _password = passwordRegistrationField.text;
         string _confirmPassword = confirmPasswordField.text;
 
-        if (_name.Length == 0 || _email.Length == 0 || _password.Length == 0)
+        if (_name.Length < 3)
         {
-            Debug.Log("Too short!");
+            errorField.text = "Username is too short!";
+        }
+        else if (_password.Length < 8)
+        {
+            errorField.text = "Password is too short!";
         }
         else if (_password != _confirmPassword)
         {
-            Debug.Log("Passwords are not the same!");
+            errorField.text = "Passwords are not the same!";
         }
         else if (!IsEmail(_email))
         {
-            Debug.Log("Please, write email");
+            errorField.text = "Please, write email";
         }
         else
         {
+            errorField.text = "";
             UserInputData user = JsonUtility.FromJson<UserInputData>(RegisterTxn.text);
 
             user.name = _name;
             user.email = _email;
             user.password = _password;
 
-            string newJson = JsonUtility.ToJson(user);
+            PlayerPrefs.SetString("Password", _password);
+            PlayerPrefs.Save();
 
-            StartCoroutine(Register(endpointPATH + registerPATH, newJson));
+            string newJson = JsonUtility.ToJson(user);
+            string path = endpointPATH + registerPATH;
+
+            StartCoroutine(Register(path, newJson));
         }
+    }
+
+    public void OnLoginEnable()
+    {
+        if (PlayerPrefs.HasKey("Email"))
+        {
+            emailLoginField.text = PlayerPrefs.GetString("Email");
+            passwordLoginField.text = PlayerPrefs.GetString("Password");
+        }
+    }
+
+    public void OnLoginButtonClicked()
+    {
+        string _email = emailLoginField.text;
+        string _password = passwordLoginField.text;
+
+        UserInputData user = JsonUtility.FromJson<UserInputData>(LoginTxn.text);
+
+        user.email = _email;
+        user.password = _password;
+
+        PlayerPrefs.SetString("Password", _password);
+        PlayerPrefs.Save();
+
+        string newJson = JsonUtility.ToJson(user);
+        string path = endpointPATH + loginPATH;
+
+        Debug.Log(newJson);
+
+        StartCoroutine(LoginPost(path, newJson));
+    }
+
+
+    // For enabling fields
+    public void OnLoginClicked()
+    {      
+        loginObject.SetActive(true);
+        registrationObject.SetActive(false);
+        loginButtons.SetActive(false);
+        OnLoginEnable();
+    }
+
+    public void OnRegisterClicked()
+    {
+        loginObject.SetActive(false);
+        registrationObject.SetActive(true);
+        loginButtons.SetActive(false);
     }
 
     #region EmailCheck
