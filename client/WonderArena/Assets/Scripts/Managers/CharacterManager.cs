@@ -11,11 +11,8 @@ using UnityEngine.UI;
 
 public class CharacterManager : MonoBehaviour
 {
-    public static CharacterManager Instance { get; private set; }
-
-    public List<CadenceNumber> listOfBeastsIDs = new();
-
-    public List<GameObject> listOfAllSelectedUnits = new(3);
+    public List<GameObject> listOfAttackerGroup = new(3);
+    public bool haveAttackercomp; 
 
     [SerializeField]
     GameObject ui_CharaterSelection;
@@ -28,18 +25,6 @@ public class CharacterManager : MonoBehaviour
 
     private void Awake()
     {
-        // Make our Instance to be the only one and for all scenes
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-        //flowInterface = flowInterfaceReferenceObject.GetComponent<FlowInterfaceBB>();
         flowInterface = FlowInterfaceBB.Instance.GetComponent<FlowInterfaceBB>();
     }
 
@@ -65,32 +50,52 @@ public class CharacterManager : MonoBehaviour
         // Filling list of Selected Beasts with nulls
         for (int i = 0; i < 3; i++)
         {
-            listOfAllSelectedUnits.Add(null);
+            listOfAttackerGroup.Add(null);
         }
     }
 
     // Setting all of out Beasts from Blockchain to UI to let player choose them
     public void SetAllAvailableBeasts()
     {
-        string beastID = null;
-        List<CadenceComposite> copy_allBeasts = new(/*flowInterface.playerAllBeastsIDs_CadenceBaseArray*/);
-        foreach (CadenceComposite beast in copy_allBeasts)
+        List<CadenceComposite> copy_allPawns = new(flowInterface.playerAllPawns_ListCadenceComposite);
+        foreach (CadenceComposite pawn in copy_allPawns)
         {
-            foreach (CadenceCompositeField beastField in beast.Value.Fields)
+            string nameOfPawn = null;
+            string pawnID = null;
+            foreach (CadenceCompositeField pawnField in pawn.Value.Fields)
             {
-                switch (beastField.Name)
+                switch (pawnField.Name)
                 {
-                    case "id":
-                        beastID = (beastField.Value as CadenceNumber).Value;
-                        break;
-                    case "name":
-                        string nameOfBeast = (beastField.Value as CadenceString).Value;
-                        foreach (GameObject selectionBeast in allBeastsPrefabs)
+                    case "nft":
+                        foreach (CadenceCompositeField nftField in (pawnField.Value as CadenceComposite).Value.Fields)
                         {
-                            if (selectionBeast.name == nameOfBeast)
+                            switch (nftField.Name)
                             {
-                                GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
-                                newSelectionBeast.name = $"{selectionBeast.name}_{beastID}";
+                                case "id":
+                                    pawnID = (nftField.Value as CadenceNumber).Value;
+                                    break;
+                                case "beastTemplate":
+                                    foreach (CadenceCompositeField beastTemplateField in (nftField.Value as CadenceComposite).Value.Fields)
+                                    {
+                                        switch (beastTemplateField.Name)
+                                        {
+                                            case "name":
+                                                nameOfPawn += (beastTemplateField.Value as CadenceString).Value;
+                                                break;
+                                            case "skin":
+                                                nameOfPawn += (beastTemplateField.Value as CadenceString).Value;
+                                                foreach (GameObject selectionBeast in allBeastsPrefabs)
+                                                {
+                                                    if (selectionBeast.name == nameOfPawn)
+                                                    {
+                                                        GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
+                                                        newSelectionBeast.name = $"{selectionBeast.name}_{pawnID}";
+                                                    }
+                                                }
+                                                break;
+                                        }
+                                    }
+                                    break;
                             }
                         }
                         break;
@@ -109,16 +114,16 @@ public class CharacterManager : MonoBehaviour
         isSelectedCheck = !unitChildren.gameObject.activeInHierarchy;
         unitChildren.gameObject.SetActive(isSelectedCheck);
 
-        for (int i = 0; i < listOfAllSelectedUnits.Count; i++)
+        for (int i = 0; i < listOfAttackerGroup.Count; i++)
         {
-            if (isSelectedCheck && listOfAllSelectedUnits[i] == null)
+            if (isSelectedCheck && listOfAttackerGroup[i] == null)
             {
-                listOfAllSelectedUnits[i] = unit;
+                listOfAttackerGroup[i] = unit;
                 break;
             }
-            if (!isSelectedCheck && listOfAllSelectedUnits[i] != null && listOfAllSelectedUnits[i].name == unit.name)
+            if (!isSelectedCheck && listOfAttackerGroup[i] != null && listOfAttackerGroup[i].name == unit.name)
             {
-                listOfAllSelectedUnits[i] = null;
+                listOfAttackerGroup[i] = null;
             }
         }
 
@@ -130,21 +135,44 @@ public class CharacterManager : MonoBehaviour
                 Destroy(childInChild.gameObject);
             }
         }
-        for (int i = 0; i < listOfAllSelectedUnits.Count; i++)
+        for (int i = 0; i < listOfAttackerGroup.Count; i++)
         {
-            if (listOfAllSelectedUnits[i] != null)
+            if (listOfAttackerGroup[i] != null)
             {
-                GameObject newSelectedUnit = Instantiate(listOfAllSelectedUnits[i], ui_SelectedUnits.transform.GetChild(i));
-                newSelectedUnit.transform.localScale /= 1.5f;
-                newSelectedUnit.name = listOfAllSelectedUnits[i].name;
+                GameObject newSelectedUnit = Instantiate(listOfAttackerGroup[i], ui_SelectedUnits.transform.GetChild(i));
+                newSelectedUnit.name = listOfAttackerGroup[i].name;
                 Destroy(newSelectedUnit.transform.GetChild(1).gameObject);
             }
         }
-        SendSelectedUnitsToBlockchain();
     }
 
-    public void SendSelectedUnitsToBlockchain()
+    public void StartFight()
     {
-        // Sending all our Units to Blockchain
+        haveAttackercomp = true;
+        for (int i = 0; i < listOfAttackerGroup.Count; i++)
+        {
+            if (listOfAttackerGroup[i] == null)
+            {
+                haveAttackercomp = false;
+                break;
+            }
+        }
+
+        if (haveAttackercomp)
+        {
+            for (int i = 0; i < listOfAttackerGroup.Count; i++)
+            {
+                if (listOfAttackerGroup[i] != null)
+                {
+                    GameManager.Instance.attackerComp.Add(listOfAttackerGroup[i].name);
+                }
+            }
+            LevelManager.Instance.LoadScene("FightScene");
+        }
+        else
+        {
+            Debug.Log("Select your comp");
+        }
+        
     }
 }

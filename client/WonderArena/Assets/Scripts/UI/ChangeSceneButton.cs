@@ -24,7 +24,6 @@ public class ChangeSceneButton : MonoBehaviour
     public void ChangeSceneToChallenge()
     {
         string sceneName;
-        Debug.Log(CharacterManager.Instance.listOfAllSelectedUnits[0]);
         if (GameManager.Instance.HaveAttackerComp())
         {
             Debug.Log("Have Attacker Comp");

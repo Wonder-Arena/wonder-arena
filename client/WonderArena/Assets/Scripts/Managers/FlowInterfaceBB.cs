@@ -7,9 +7,6 @@ using DapperLabs.Flow.Sdk.DataObjects;
 using DapperLabs.Flow.Sdk.DevWallet;
 using DapperLabs.Flow.Sdk.Unity;
 using UnityEngine;
-using System.Linq;
-using UnityEngine.UI;
-using UnityEngine.Networking;
 
 public class FlowInterfaceBB : MonoBehaviour
 {
@@ -20,6 +17,7 @@ public class FlowInterfaceBB : MonoBehaviour
     // Actual address;
     public string userFlowAddress = null;
 
+    public CadenceBase[] challengeRecords;
     public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
@@ -37,10 +35,6 @@ public class FlowInterfaceBB : MonoBehaviour
     [SerializeField] TextAsset GetDefenderGroupsTxn;
     [SerializeField] TextAsset GetPlayerTxn;
     [SerializeField] TextAsset GetPawnsTxn;
-
-    [Header("URLs")]
-    [SerializeField] string endpointPATH = "https://wonder-arena-production.up.railway.app";
-    [SerializeField] string getPlayerPath = "/auth/players/";
 
     private static FlowInterfaceBB m_instance = null;
     public static FlowInterfaceBB Instance
@@ -85,12 +79,10 @@ public class FlowInterfaceBB : MonoBehaviour
 
         if (PlayerPrefs.HasKey("Username"))
         {
-            string username = PlayerPrefs.GetString("Username");
-            string urlPath = endpointPATH + getPlayerPath + username;
-
             yield return StartCoroutine(GetAllPlayers());
             yield return StartCoroutine(GetAllBeastsIDs());
             yield return StartCoroutine(GetAllPlayerPawns());
+            yield return StartCoroutine(GetFightsRecords());
 
             //yield return StartCoroutine(GetDefenderGroups());
 
@@ -159,6 +151,102 @@ public class FlowInterfaceBB : MonoBehaviour
         foreach (CadenceComposite pawn in allPawns)
         {
             playerAllPawns_ListCadenceComposite.Add(pawn);
+        }
+    }
+
+    private IEnumerator GetFightsRecords()
+    {
+        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text, 
+            new CadenceAddress("0xa3431c6f7988dd2a"), new CadenceAddress("0xac9971e96adacb3f"));
+
+        yield return new WaitUntil(() => getBeastsIDs.IsCompleted);
+
+        if (getBeastsIDs.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getBeastsIDs.Result.Error.Message}");
+            yield break;
+        }
+
+
+        Debug.Log("got all records");
+        challengeRecords = (getBeastsIDs.Result.Value as CadenceArray).Value;
+
+        foreach (CadenceComposite record in challengeRecords)
+        {
+            foreach (CadenceCompositeField recordField in record.Value.Fields)
+            {
+                if (recordField.Name == "events")
+                {
+                    foreach (CadenceComposite _event in (recordField.Value as CadenceArray).Value)
+                    {
+                        foreach (CadenceCompositeField _eventField in _event.Value.Fields)
+                        {
+                            Debug.Log(_eventField.Name);
+                            switch (_eventField.Name)
+                            {
+                                case "byBeastID":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
+                                    }
+                                    else
+                                    {
+                                        Debug.Log(_eventField.Name + (_eventField.Value as CadenceNumber).Value);
+                                    }
+                                    break;
+                                case "withSkill":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceString).Value);
+                                    }
+                                    break;
+                                case "byStatus":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
+                                    }
+                                    break;
+                                case "targetBeastIDs":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceArray).Value);
+                                    }
+                                    break;
+                                case "hitTheTarget":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceBool).Value);
+                                    }
+                                    break;
+                                case "effect":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
+                                    }
+                                    break;
+                                case "damage":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
+                                    }
+                                    break;
+                                case "targetSkipped":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceBool).Value);
+                                    }
+                                    break;
+                                case "targetDefeated":
+                                    if (_eventField.Value as CadenceVoid != null)
+                                    {
+                                        Debug.Log((_eventField.Value as CadenceBool).Value);
+                                    }
+                                    break;
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

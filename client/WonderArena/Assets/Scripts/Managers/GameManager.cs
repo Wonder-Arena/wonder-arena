@@ -6,6 +6,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public string userFlowAddress = null;
+    public List<string> attackerComp = new();
 
     public static GameManager Instance { get; private set; }
     private void Awake()
