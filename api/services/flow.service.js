@@ -407,6 +407,10 @@ class flowService {
       throw createError.NotFound('defender not found')
     }
 
+    if (defenderAccount.user.id == user.id) {
+      throw createError.UnprocessableEntity('attacker and defender should not be the same')
+    }
+
     let script = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
