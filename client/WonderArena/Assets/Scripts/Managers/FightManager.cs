@@ -35,7 +35,7 @@ public class FightManager : MonoBehaviour
         }
         attackerCompNames = new(GameManager.Instance.attackerComp);
         SetAllPawns();
-        SimulateFight();
+        StartCoroutine(SimulateFight());
     }
 
     private void SetAllPawns()
@@ -60,12 +60,40 @@ public class FightManager : MonoBehaviour
         }
     }
 
-    private void SimulateFight()
+    private void SetDefendersPawns()
+    {
+        Debug.Log("Start Setting defenders");
+        List<string> defenderCompNames = new(GameManager.Instance.lastDefenderNamesOfPawns);
+        for (int i = 0; i < defenderCompNames.Count; i++)
+        {
+            GameObject newDefenderObject = null;
+            string defenderNameAndSkinWithoutId = defenderCompNames[i].Split("_")[0] + "_" + defenderCompNames[i].Split("_")[1];
+            string defenderHp = defenderCompNames[i].Split("_")[2];
+            string defenderId = defenderCompNames[i].Split("_")[3];
+            for (int j = 0; j < allPawnsPrefabs.Count; j++)
+            {
+                if (allPawnsPrefabs[j].name == defenderNameAndSkinWithoutId)
+                {
+                    newDefenderObject = allPawnsPrefabs[j];
+                    break;
+                }
+            }
+            GameObject defenderObjectOnField = Instantiate(newDefenderObject, defendersList[i].transform);
+            defenderObjectOnField.name = $"{defenderNameAndSkinWithoutId}_{defenderHp}_{defenderId}";
+
+        }
+    }
+
+    private IEnumerator SimulateFight()
     {
         string id = (record.CompositeFieldAs<CadenceNumber>("id").Value);
         string winner = (record.CompositeFieldAs<CadenceAddress>("winner").Value);
-        CadenceBase[] attackers = (record.CompositeFieldAs<CadenceArray>("attackerBeasts").Value);
         CadenceBase[] defenders = (record.CompositeFieldAs<CadenceArray>("defenderBeasts").Value);
+
+        yield return StartCoroutine(FlowInterfaceBB.Instance.GetDefenderPawnsNames(defenders));
+
+        SetDefendersPawns();
+
         CadenceBase[] events = (record.CompositeFieldAs<CadenceArray>("events").Value);
         foreach (CadenceComposite _event in events)
         {

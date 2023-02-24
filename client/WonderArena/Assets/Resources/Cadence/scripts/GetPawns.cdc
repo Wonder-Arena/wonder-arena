@@ -1,4 +1,4 @@
-import WonderArenaPawn_BasicBeasts1 from 0xbca26f5091cd39ec
+import WonderArenaPawn_BasicBeasts1 from 0x2432e062f9f14295
 import BasicBeasts from 0xfa252d0aa22bf86a
 
 pub fun main(address: Address, beastIDs: [UInt64]): [WonderArenaPawn_BasicBeasts1.Pawn] {
@@ -15,3 +15,4 @@ pub fun main(address: Address, beastIDs: [UInt64]): [WonderArenaPawn_BasicBeasts
     }
     return res
 }
+ 

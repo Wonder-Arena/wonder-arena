@@ -1,5 +1,5 @@
 // import WonderArenaBattleField_BasicBeasts1 from "../../contracts/WonderArenaBattleField_BasicBeasts1.cdc"
-import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+import WonderArenaBattleField_BasicBeasts1 from 0x2432e062f9f14295
 
 pub fun main(): [&{WonderArenaBattleField_BasicBeasts1.PlayerPublic}] {
     let playerCaps = WonderArenaBattleField_BasicBeasts1.players.values
@@ -12,3 +12,4 @@ pub fun main(): [&{WonderArenaBattleField_BasicBeasts1.PlayerPublic}] {
     }
     return res
 }
+ 

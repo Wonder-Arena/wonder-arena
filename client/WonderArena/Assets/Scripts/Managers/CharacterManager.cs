@@ -13,16 +13,50 @@ using UnityEngine.UI;
 
 public class CharacterManager : MonoBehaviour
 {
+    public bool isFightDone;
+
+    [System.Serializable]
+    public class Fight
+    {
+        [System.Serializable]
+        public class Body
+        {
+            public List<int> attackerIDs;
+            public string defenderAddress;
+        }
+
+        [System.Serializable]
+        public class Response
+        {
+            public bool status;
+            public string message;
+            public ResponseData data;
+        }
+
+        [System.Serializable]
+        public class ResponseData
+        {
+            public string attacker;
+            public string defender;
+            public string challengeUUID;
+        }
+    }
+
     public List<GameObject> listOfAttackerGroup = new(3);
     public bool haveAttackerComp;
+    public bool madeANewComp;
 
     [SerializeField]
     GameObject ui_CharaterSelection;
     [SerializeField]
     GameObject ui_SelectedUnits;
-    FlowInterfaceBB flowInterface;
+    [SerializeField]
+    TextAsset FightTxn;
+
+
     [SerializeField]
     List<GameObject> allBeastsPrefabs;
+    FlowInterfaceBB flowInterface;
 
 
     private void Awake()
@@ -32,7 +66,7 @@ public class CharacterManager : MonoBehaviour
 
     private IEnumerator Start()
     {
-        listOfAttackerGroup = new(3);
+        madeANewComp = false;
         // Waiting for all scripts to be done before trying to get Beasts
         bool completed = false;
         while (!completed)
@@ -122,7 +156,12 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
-    public void StartFight()
+    public void OnConfirmClicked()
+    {
+        StartCoroutine(StartFight());
+    }
+
+    private IEnumerator StartFight()
     {
         haveAttackerComp = true;
         for (int i = 0; i < listOfAttackerGroup.Count; i++)
@@ -136,19 +175,75 @@ public class CharacterManager : MonoBehaviour
 
         if (haveAttackerComp)
         {
+            List<int> attackerCompIntId = new();
             for (int i = 0; i < listOfAttackerGroup.Count; i++)
             {
                 if (listOfAttackerGroup[i] != null)
                 {
                     GameManager.Instance.attackerComp.Add(listOfAttackerGroup[i].name);
+                    attackerCompIntId.Add(int.Parse(listOfAttackerGroup[i].name.Split("_")[3]));
                 }
             }
-            LevelManager.Instance.LoadScene("FightScene");
+
+            Fight.Body fightBody = JsonUtility.FromJson<Fight.Body>(FightTxn.text);
+
+            fightBody.attackerIDs = attackerCompIntId;
+            fightBody.defenderAddress = "0x9f1194fd9fa8e77d";
+
+            string newJson = JsonUtility.ToJson(fightBody);
+
+            yield return StartCoroutine(GetFightRecord("https://wonder-arena-production.up.railway.app/auth/wonder_arena/fight",
+                newJson, GameManager.Instance.userAccessToken));
+
+            if (madeANewComp == true)
+            {
+                LevelManager.Instance.LoadScene("FightScene");
+            }
         }
         else
         {
             Debug.Log("Select your comp");
+        } 
+    }
+
+    private IEnumerator GetFightRecord(string url, string bodyJsonString, string accessToken)
+    {
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", $"Bearer {accessToken}");
+        yield return request.SendWebRequest();
+
+        while (!request.isDone)
+        {
+            int dots = ((int)(Time.time * 2.0f) % 4);
+            Debug.Log("Making new team" + new string('.', dots));
+            yield return null;
         }
-        
+
+        Debug.Log("Status Code: " + request.responseCode);
+        Debug.Log(request.downloadHandler.text);
+
+        Fight.Response response = JsonUtility.FromJson<Fight.Response>(request.downloadHandler.text);
+
+        if (response.status == true)
+        {
+            Debug.Log(response.message);
+            madeANewComp = true;
+            GameManager.Instance.lastDefenderAddress = response.data.defender;
+            GameManager.Instance.lastFightRecord = response.data.challengeUUID;     
+            yield return StartCoroutine(flowInterface.GetFightsRecords());
+        }
+        else
+        {
+            Debug.Log(response.message);
+        }
+
+        isFightDone = true;
+
+        request.disposeUploadHandlerOnDispose = true;
+        request.disposeDownloadHandlerOnDispose = true;
     }
 }

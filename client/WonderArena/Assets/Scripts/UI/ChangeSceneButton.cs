@@ -27,7 +27,7 @@ public class ChangeSceneButton : MonoBehaviour
         if (GameManager.Instance.HaveAttackerComp())
         {
             Debug.Log("Have Attacker Comp");
-            sceneName = "";
+            sceneName = "TeamMakingAttacking";
         }
         else
         {

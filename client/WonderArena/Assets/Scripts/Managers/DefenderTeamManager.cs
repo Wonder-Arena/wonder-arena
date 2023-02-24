@@ -41,6 +41,7 @@ public class DefenderTeamManager : MonoBehaviour
 
     public List<GameObject> listOfDefenderGroup = new(3);
     public bool haveDefenderComp;
+    public bool madeANewComp;
 
     [SerializeField]
     GameObject ui_CharaterSelection;
@@ -65,6 +66,7 @@ public class DefenderTeamManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+        madeANewComp = false;
         haveDefenderComp = false;
         listOfDefenderGroup = new(3);
         // Waiting for all scripts to be done before trying to get Beasts
@@ -189,7 +191,10 @@ public class DefenderTeamManager : MonoBehaviour
             StartCoroutine(AddDefenderTeam("https://wonder-arena-production.up.railway.app/auth/wonder_arena/add_defender_group", 
                 newJson, GameManager.Instance.userAccessToken));
 
-            //LevelManager.Instance.LoadScene("DefendTeam");
+            if (madeANewComp == true)
+            {
+                LevelManager.Instance.LoadScene("DefendTeam");
+            }
         }
         else
         {
@@ -208,6 +213,13 @@ public class DefenderTeamManager : MonoBehaviour
         request.SetRequestHeader("Authorization", $"Bearer {accessToken}");
         yield return request.SendWebRequest();
 
+        while (!request.isDone)
+        {
+            int dots = ((int)(Time.time * 2.0f) % 4);
+            Debug.Log("Making new team" + new string('.', dots));
+            yield return null;
+        }
+
         Debug.Log("Status Code: " + request.responseCode);
         Debug.Log(request.downloadHandler.text);
 
@@ -215,6 +227,7 @@ public class DefenderTeamManager : MonoBehaviour
 
         if (response.status == true)
         {
+            madeANewComp = true;
             Debug.Log(response.message);
         }
         else

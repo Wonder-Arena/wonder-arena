@@ -1059,6 +1059,18 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4518713473765688875, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
+      propertyPath: teamNameField
+      value: 
+      objectReference: {fileID: 550139899}
+    - target: {fileID: 4518713473765688875, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
+      propertyPath: ui_SelectedUnits
+      value: 
+      objectReference: {fileID: 824567837}
+    - target: {fileID: 4518713473765688875, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
+      propertyPath: ui_CharaterSelection
+      value: 
+      objectReference: {fileID: 999931482}
     - target: {fileID: 7360459377855429315, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
       propertyPath: m_RootOrder
       value: 8
@@ -1109,6 +1121,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
+--- !u!114 &470540678 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4518713473765688875, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
+  m_PrefabInstance: {fileID: 470540677}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b9d7d5229c098a4486b3766a620b98d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &550139897
 GameObject:
   m_ObjectHideFlags: 0
@@ -1331,7 +1354,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 470540678}
         m_TargetAssemblyTypeName: DefenderTeamManager, Assembly-CSharp
         m_MethodName: ConfirmDefenderTeam
         m_Mode: 1
