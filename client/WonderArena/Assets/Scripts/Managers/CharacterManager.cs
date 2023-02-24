@@ -60,45 +60,18 @@ public class CharacterManager : MonoBehaviour
         List<CadenceComposite> copy_allPawns = new(flowInterface.playerAllPawns_ListCadenceComposite);
         foreach (CadenceComposite pawn in copy_allPawns)
         {
-            string nameOfPawn = null;
-            string pawnID = null;
-            foreach (CadenceCompositeField pawnField in pawn.Value.Fields)
+            string hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;          
+            CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
+            string nftId = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+            CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
+            string nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            nameOfPawn += "_"+beastTemplate.CompositeFieldAs<CadenceString>("skin").Value; 
+            foreach (GameObject selectionBeast in allBeastsPrefabs)
             {
-                switch (pawnField.Name)
+                if (selectionBeast.name == nameOfPawn)
                 {
-                    case "nft":
-                        foreach (CadenceCompositeField nftField in (pawnField.Value as CadenceComposite).Value.Fields)
-                        {
-                            switch (nftField.Name)
-                            {
-                                case "id":
-                                    pawnID = (nftField.Value as CadenceNumber).Value;
-                                    break;
-                                case "beastTemplate":
-                                    foreach (CadenceCompositeField beastTemplateField in (nftField.Value as CadenceComposite).Value.Fields)
-                                    {
-                                        switch (beastTemplateField.Name)
-                                        {
-                                            case "name":
-                                                nameOfPawn += (beastTemplateField.Value as CadenceString).Value;
-                                                break;
-                                            case "skin":
-                                                nameOfPawn += (beastTemplateField.Value as CadenceString).Value;
-                                                foreach (GameObject selectionBeast in allBeastsPrefabs)
-                                                {
-                                                    if (selectionBeast.name == nameOfPawn)
-                                                    {
-                                                        GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
-                                                        newSelectionBeast.name = $"{selectionBeast.name}_{pawnID}";
-                                                    }
-                                                }
-                                                break;
-                                        }
-                                    }
-                                    break;
-                            }
-                        }
-                        break;
+                    GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
+                    newSelectionBeast.name = $"{selectionBeast.name}_{hpOfPawn}_{nftId}";
                 }
             }
         }

@@ -13,128 +13,119 @@ public class FightManager : MonoBehaviour
     public List<string> attackerCompNames = new();
     public List<CadenceComposite> allPlayerPawns = new();
     public List<CadenceComposite> allAttackerPawns = new();
-    public CadenceBase[] challengeRecords;
+    public CadenceComposite record;
 
     [SerializeField]
     List<GameObject> allPawnsPrefabs;
+    [SerializeField]
+    List<GameObject> attackersList;
+    [SerializeField]
+    List<GameObject> defendersList;
 
     private void Start()
     {
-        challengeRecords = FlowInterfaceBB.Instance.challengeRecords;
+        record = FlowInterfaceBB.Instance.challengeRecords;
         attackerCompNames = new(GameManager.Instance.attackerComp);
-        allPlayerPawns = new(FlowInterfaceBB.Instance.playerAllPawns_ListCadenceComposite);
+        SetAllPawns();
         SimulateFight();
     }
 
     private void SetAllPawns()
     {
-        foreach (string attacker in attackerCompNames)
+        for (int i = 0; i < attackerCompNames.Count; i++)
         {
-            string attackerId = attacker.Split("_")[1];
-            foreach (CadenceComposite pawn in allPlayerPawns)
+            GameObject newAttackerObject = null;
+            string attackerNameAndSkinWithoutId = attackerCompNames[i].Split("_")[0] + "_" + attackerCompNames[i].Split("_")[1];
+            string attackerHp = attackerCompNames[i].Split("_")[2];
+            string attackerId = attackerCompNames[i].Split("_")[3];
+            for (int j = 0; j < allPawnsPrefabs.Count; j++)
             {
-                foreach (CadenceCompositeField pawnField in pawn.Value.Fields)
+                if (allPawnsPrefabs[j].name == attackerNameAndSkinWithoutId)
                 {
-                    if (pawnField.Name == "nft")
-                    {
-                        foreach (CadenceCompositeField nftField in (pawnField.Value as CadenceComposite).Value.Fields)
-                        {
-                            if (nftField.Name == "id")
-                            {
-                                if (attackerId == (nftField.Value as CadenceNumber).Value)
-                                {
-                                    allAttackerPawns.Add(pawn);
-                                }
-                            }
-                        }
-                    }
+                    newAttackerObject = allPawnsPrefabs[j];
+                    break;
                 }
             }
+            GameObject attackerObjectOnField = Instantiate(newAttackerObject, attackersList[i].transform);
+            attackerObjectOnField.name = $"{attackerNameAndSkinWithoutId}_{attackerHp}_{attackerId}";
+
         }
     }
 
     private void SimulateFight()
     {
-        foreach (CadenceComposite record in challengeRecords)
+        string id = (record.CompositeFieldAs<CadenceNumber>("id").Value);
+        string winner = (record.CompositeFieldAs<CadenceAddress>("winner").Value);
+        CadenceBase[] attackers = (record.CompositeFieldAs<CadenceArray>("attackerBeasts").Value);
+        CadenceBase[] defenders = (record.CompositeFieldAs<CadenceArray>("defenderBeasts").Value);
+        CadenceBase[] events = (record.CompositeFieldAs<CadenceArray>("events").Value);
+        foreach (CadenceComposite _event in events)
         {
-            foreach (CadenceCompositeField recordField in record.Value.Fields)
+            CadenceOptional byBeastId = _event.CompositeFieldAs<CadenceOptional>("byBeastID");
+            CadenceOptional withSkill = _event.CompositeFieldAs<CadenceOptional>("withSkill");
+            CadenceOptional byStatus = _event.CompositeFieldAs<CadenceOptional>("byStatus");
+            CadenceBase[] targetBeastIDs = _event.CompositeFieldAs<CadenceArray>("targetBeastIDs").Value;
+            bool hitTheTarget = _event.CompositeFieldAs<CadenceBool>("hitTheTarget").Value;
+            CadenceOptional effect = _event.CompositeFieldAs<CadenceOptional>("effect");
+            CadenceOptional damage = _event.CompositeFieldAs<CadenceOptional>("damage");
+            bool targetSkipped = _event.CompositeFieldAs<CadenceBool>("targetSkipped").Value;
+            bool targetDefeated = _event.CompositeFieldAs<CadenceBool>("targetDefeated").Value;
+
+            SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, hitTheTarget, effect, damage, targetSkipped, targetDefeated);
+        }
+    }
+
+    private void SimulateEvent(CadenceOptional byBeastId, CadenceOptional withSkill, CadenceOptional byStatus,
+        CadenceBase[] targetBeastIDs, bool hitTheTarget, CadenceOptional effect, CadenceOptional damage,
+        bool targetSkipped, bool targetDefeated)
+    {
+        GameObject byBeastObject = null;
+        string skill = null;
+        if (!IsOptionalNull(byBeastId))
+        {
+            byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
+        }
+        if (!IsOptionalNull(withSkill))
+        {
+
+        }
+        else
+        {
+            skill = "Default";
+        }
+    }
+
+    private GameObject GetObjectById(string id)
+    {
+        foreach (GameObject child in attackersList)
+        {
+            GameObject attacker = child.transform.GetChild(0).gameObject;
+            string attackerId = attacker.name.Split("_")[3];
+            if (attackerId == id)
             {
-                if (recordField.Name == "events")
-                {
-                    foreach (CadenceComposite _event in (recordField.Value as CadenceArray).Value)
-                    {
-                        foreach (CadenceCompositeField _eventField in _event.Value.Fields)
-                        {
-                            Debug.Log(_eventField.Name + _eventField.Value);
-                            switch (_eventField.Name)
-                            {
-                                case "byBeastID":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value));
-                                    }
-                                    else
-                                    {
-                                        Debug.Log((_eventField.Value));
-                                    }
-                                    break;
-                                case "withSkill":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceString).Value);
-                                    }
-                                    break;
-                                case "byStatus":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "targetBeastIDs":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceArray).Value);
-                                    }
-                                    break;
-                                case "hitTheTarget":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceBool).Value);
-                                    }
-                                    break;
-                                case "effect":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "damage":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceNumber).Value);
-                                    }
-                                    break;
-                                case "targetSkipped":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceBool).Value);
-                                    }
-                                    break;
-                                case "targetDefeated":
-                                    if (_eventField.Value as CadenceVoid != null)
-                                    {
-                                        Debug.Log((_eventField.Value as CadenceBool).Value);
-                                    }
-                                    break;
-                            }
-                        }
-                    }
-                }
-                if (recordField.Name == "winner")
-                {
-                    Debug.Log((recordField.Value as CadenceAddress).Value);
-                }
+                return attacker;
             }
+        }
+        return null;
+    }
+
+    private bool IsOptionalNull(CadenceOptional cadenceOptional)
+    {
+        if (cadenceOptional.Value == null)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    private class Pawns
+    {
+        private class Effects
+        {
+
         }
     }
 }

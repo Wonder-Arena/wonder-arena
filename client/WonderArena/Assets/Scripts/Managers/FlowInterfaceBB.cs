@@ -17,7 +17,7 @@ public class FlowInterfaceBB : MonoBehaviour
     // Actual address;
     public string userFlowAddress = null;
 
-    public CadenceBase[] challengeRecords;
+    public CadenceComposite challengeRecords;
     public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
@@ -76,6 +76,7 @@ public class FlowInterfaceBB : MonoBehaviour
         }
 
         userFlowAddress = GameManager.Instance.userFlowAddress;
+        userFlowAddress = "0x2edad002a7c6a41d";
 
         if (PlayerPrefs.HasKey("Username"))
         {
@@ -156,19 +157,27 @@ public class FlowInterfaceBB : MonoBehaviour
 
     private IEnumerator GetFightsRecords()
     {
-        Task<FlowScriptResponse> getBeastsIDs = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text,
-            new CadenceAddress("0xa3431c6f7988dd2a"), new CadenceAddress("0xac9971e96adacb3f"));
+        Task<FlowScriptResponse> getChallengeRecords = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text,
+            new CadenceAddress("0x2edad002a7c6a41d"), new CadenceAddress("0x2c105ca4d4e260b1"), new CadenceNumber(CadenceNumberType.UInt64, "133415704"));
 
-        yield return new WaitUntil(() => getBeastsIDs.IsCompleted);
+        yield return new WaitUntil(() => getChallengeRecords.IsCompleted);
 
-        if (getBeastsIDs.Result.Error != null)
+        if (getChallengeRecords.Result.Error != null)
         {
-            Debug.LogError($"Error:  {getBeastsIDs.Result.Error.Message}");
+            Debug.LogError($"Error:  {getChallengeRecords.Result.Error.Message}");
             yield break;
         }
 
+        //challengeRecords = (getChallengeRecords.Result.Value as CadenceComposite);
+        CadenceOptional challengeRecord = (getChallengeRecords.Result.Value as CadenceOptional);
 
-        Debug.Log("got all records");
-        challengeRecords = (getBeastsIDs.Result.Value as CadenceArray).Value;
+        if (challengeRecord.Value != null)
+        {
+            CadenceComposite challengeComposite = challengeRecord.Value as CadenceComposite;
+            foreach (CadenceCompositeField field in challengeComposite.Value.Fields)
+            {
+                Debug.Log(field.Name);
+            }
+        }   
     }
 }
