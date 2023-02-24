@@ -24,7 +24,15 @@ public class FightManager : MonoBehaviour
 
     private void Start()
     {
-        record = FlowInterfaceBB.Instance.challengeRecords;
+        if (FlowInterfaceBB.Instance.challengeRecords.Value != null)
+        {
+            record = (FlowInterfaceBB.Instance.challengeRecords.Value as CadenceComposite);
+        }
+        else
+        {
+            record = null;
+            Debug.Log("There's no such Battle Record");
+        }
         attackerCompNames = new(GameManager.Instance.attackerComp);
         SetAllPawns();
         SimulateFight();
@@ -80,18 +88,44 @@ public class FightManager : MonoBehaviour
         bool targetSkipped, bool targetDefeated)
     {
         GameObject byBeastObject = null;
-        string skill = null;
+        string actualSkill = null;
+
+        List<GameObject> targetBeastObjects = new();
+
+
+        string actualDamage = null;
+        
         if (!IsOptionalNull(byBeastId))
         {
             byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
         }
+        foreach (CadenceNumber targetId in targetBeastIDs)
+        {
+            targetBeastObjects.Add(GetObjectById(targetId.Value));
+        }    
         if (!IsOptionalNull(withSkill))
         {
-
+            actualSkill = (withSkill.Value as CadenceString).Value;
         }
         else
         {
-            skill = "Default";
+            actualSkill = "Default";
+        }
+ 
+        // Damaging all the targets by damage value
+        if (!IsOptionalNull(damage))
+        {
+            actualDamage = (damage.Value as CadenceNumber).Value;
+        }
+        foreach (GameObject target in targetBeastObjects)
+        {
+            string hpOfTarget = target.name.Split("_")[2];
+            int.TryParse(hpOfTarget, out int hpInt);
+            int.TryParse(actualDamage, out int actualDamageInt);
+            int newHpOfTarget = hpInt - actualDamageInt;
+            string newtargetName = target.name.Split("_")[0] + "_" 
+                + target.name.Split("_")[1] + "_" + newHpOfTarget.ToString() + "_" + target.name.Split("_")[2];
+            target.name = newtargetName;
         }
     }
 

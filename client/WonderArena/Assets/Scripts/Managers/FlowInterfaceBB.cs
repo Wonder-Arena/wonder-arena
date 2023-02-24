@@ -17,7 +17,7 @@ public class FlowInterfaceBB : MonoBehaviour
     // Actual address;
     public string userFlowAddress = null;
 
-    public CadenceComposite challengeRecords;
+    public CadenceOptional challengeRecords;
     public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
@@ -76,7 +76,6 @@ public class FlowInterfaceBB : MonoBehaviour
         }
 
         userFlowAddress = GameManager.Instance.userFlowAddress;
-        userFlowAddress = "0x2edad002a7c6a41d";
 
         if (PlayerPrefs.HasKey("Username"))
         {
@@ -158,7 +157,7 @@ public class FlowInterfaceBB : MonoBehaviour
     private IEnumerator GetFightsRecords()
     {
         Task<FlowScriptResponse> getChallengeRecords = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text,
-            new CadenceAddress("0x2edad002a7c6a41d"), new CadenceAddress("0x2c105ca4d4e260b1"), new CadenceNumber(CadenceNumberType.UInt64, "133415704"));
+            new CadenceAddress("0x9f1194fd9fa8e77d"), new CadenceAddress("0x66087a8adbd393ea"), new CadenceNumber(CadenceNumberType.UInt64, "133415704"));
 
         yield return new WaitUntil(() => getChallengeRecords.IsCompleted);
 
@@ -169,15 +168,6 @@ public class FlowInterfaceBB : MonoBehaviour
         }
 
         //challengeRecords = (getChallengeRecords.Result.Value as CadenceComposite);
-        CadenceOptional challengeRecord = (getChallengeRecords.Result.Value as CadenceOptional);
-
-        if (challengeRecord.Value != null)
-        {
-            CadenceComposite challengeComposite = challengeRecord.Value as CadenceComposite;
-            foreach (CadenceCompositeField field in challengeComposite.Value.Fields)
-            {
-                Debug.Log(field.Name);
-            }
-        }   
+        challengeRecords = (getChallengeRecords.Result.Value as CadenceOptional);
     }
 }

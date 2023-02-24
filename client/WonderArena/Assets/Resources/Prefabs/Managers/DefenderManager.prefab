@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &7360459377855429317
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7360459377855429315}
+  - component: {fileID: 4518713473765688875}
+  m_Layer: 0
+  m_Name: DefenderManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7360459377855429315
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7360459377855429317}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4518713473765688875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7360459377855429317}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b9d7d5229c098a4486b3766a620b98d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  listOfDefenderGroup: []
+  haveDefenderComp: 0
+  ui_CharaterSelection: {fileID: 0}
+  ui_SelectedUnits: {fileID: 0}
+  teamNameField: {fileID: 0}
+  allBeastsPrefabs:
+  - {fileID: 8956028077105517844, guid: 14294e1cfebc36d4eb42191cb3b8d252, type: 3}
+  - {fileID: 8956028077105517844, guid: d6e1fb63b0a3f6c47953f6c510b16c38, type: 3}
+  - {fileID: 8956028077105517844, guid: a380939820588cc49a14c4fa9281c284, type: 3}
+  - {fileID: 8956028077105517844, guid: aeb825518e8c7604886707ddaa1a4b83, type: 3}
+  - {fileID: 8956028077105517844, guid: d478ebd17a1742c4aad1aa8c9dc025aa, type: 3}
+  AddDefenderGroupTxn: {fileID: 4900000, guid: 42800554e83002348b1f7fdd8d6375c7, type: 3}

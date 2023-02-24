@@ -189,6 +189,7 @@ public class LoginManager : MonoBehaviour
             errorField.text = "";
             PlayerPrefs.SetString("Email", loginResponse.data.email);
             PlayerPrefs.SetString("Username", loginResponse.data.name);
+            GameManager.Instance.userAccessToken = loginResponse.data.accessToken;
             GameManager.Instance.userFlowAddress = loginResponse.data.flowAccount.address;
             loginObject.SetActive(false);
             registrationObject.SetActive(false);

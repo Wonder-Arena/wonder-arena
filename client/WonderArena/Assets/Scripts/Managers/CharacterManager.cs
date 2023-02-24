@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using System.Threading.Tasks;
 using DapperLabs.Flow.Sdk;
 using DapperLabs.Flow.Sdk.Cadence;
@@ -7,12 +8,13 @@ using DapperLabs.Flow.Sdk.DataObjects;
 using DapperLabs.Flow.Sdk.DevWallet;
 using DapperLabs.Flow.Sdk.Unity;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class CharacterManager : MonoBehaviour
 {
     public List<GameObject> listOfAttackerGroup = new(3);
-    public bool haveAttackercomp; 
+    public bool haveAttackerComp;
 
     [SerializeField]
     GameObject ui_CharaterSelection;
@@ -30,6 +32,7 @@ public class CharacterManager : MonoBehaviour
 
     private IEnumerator Start()
     {
+        listOfAttackerGroup = new(3);
         // Waiting for all scripts to be done before trying to get Beasts
         bool completed = false;
         while (!completed)
@@ -121,17 +124,17 @@ public class CharacterManager : MonoBehaviour
 
     public void StartFight()
     {
-        haveAttackercomp = true;
+        haveAttackerComp = true;
         for (int i = 0; i < listOfAttackerGroup.Count; i++)
         {
             if (listOfAttackerGroup[i] == null)
             {
-                haveAttackercomp = false;
+                haveAttackerComp = false;
                 break;
             }
         }
 
-        if (haveAttackercomp)
+        if (haveAttackerComp)
         {
             for (int i = 0; i < listOfAttackerGroup.Count; i++)
             {
