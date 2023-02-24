@@ -18,7 +18,7 @@ class flowController {
 
     static addDefenderGroup = async (req, res, next) => {
         try {
-            if (!req.body.beastIDs || 
+            if (!req.body.groupName || !req.body.beastIDs || 
                 !Array.isArray(req.body.beastIDs) ||
                 req.body.beastIDs.length != 3) {
                     res.status(401).json({
@@ -29,7 +29,7 @@ class flowController {
                 return
             }
 
-            await flow.addDefenderGroup(req.user.payload, req.body.beastIDs)
+            await flow.addDefenderGroup(req.user.payload, req.body.groupName, req.body.beastIDs)
             res.status(200).json({
                 status: true,
                 message: "Defender group added",
@@ -44,18 +44,16 @@ class flowController {
 
     static removeDefenderGroup = async (req, res, next) => {
         try {
-            if (!req.body.beastIDs || 
-                !Array.isArray(req.body.beastIDs) ||
-                req.body.beastIDs.length != 3) {
-                    res.status(401).json({
-                        status: false,
-                        message: "invalid params",
-                        data: {}
-                    })
+            if (!req.body.groupName) {
+                res.status(401).json({
+                    status: false,
+                    message: "invalid params",
+                    data: {}
+                })
                 return
             }
 
-            await flow.removeDefenderGroup(req.user.payload, req.body.beastIDs)
+            await flow.removeDefenderGroup(req.user.payload, req.body.groupName)
             res.status(200).json({
                 status: true,
                 message: "Defender group removed",
@@ -97,11 +95,11 @@ class flowController {
                 return
             }
 
-            await flow.fight(req.user.payload, req.body.attackerIDs, req.body.defenderAddress)
+            const data = await flow.fight(req.user.payload, req.body.attackerIDs, req.body.defenderAddress)
             res.status(200).json({
                 status: true,
                 message: "Battle finished",
-                data: {}
+                data: data
             })
 
         } catch (e) {

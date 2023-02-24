@@ -61,6 +61,13 @@
                 "testnet": "0x2432e062f9f14295",
                 "mainnet": "0x39b144ab4d348e2b"
             }
+        },
+        "WonderArenaReward_BasicBeasts1": {
+            "source": "./cadence/contracts/WonderArenaReward_BasicBeasts1.cdc",
+            "aliases": {
+                "testnet": "0x2432e062f9f14295",
+                "mainnet": "0x39b144ab4d348e2b"
+            }
         }
     },
 	"networks": {
@@ -84,7 +91,9 @@
         "testnet": {
             "admin": [
                 "WonderArenaWorldRules_BasicBeasts1",
-                "WonderArenaPawn_BasicBeasts1"
+                "WonderArenaPawn_BasicBeasts1",
+                "WonderArenaBattleField_BasicBeasts1",
+                "WonderArenaReward_BasicBeasts1"
             ]
         }
     }

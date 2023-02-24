@@ -1,5 +1,5 @@
 import WonderArenaBattleField_BasicBeasts1 from "./WonderArenaBattleField_BasicBeasts1.cdc"
-import NonFungibleToken from "../core/NonFungibleToken.cdc"
+import NonFungibleToken from "./core/NonFungibleToken.cdc"
 import BasicBeasts from "./basicbeasts/BasicBeasts.cdc"
 
 pub contract WonderArenaReward_BasicBeasts1 {
