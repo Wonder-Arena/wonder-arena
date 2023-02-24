@@ -10,7 +10,7 @@ pub contract WonderArenaReward_BasicBeasts1 {
 
     pub event ContractInitialized()
 
-    pub event RewardCreated(rewardID: UInt64, name: String, scoreThreshold: Int64)
+    pub event RewardCreated(host: Address, rewardID: UInt64, name: String, scoreThreshold: Int64)
     pub event RewardClaimed(rewardID: UInt64, name: String, claimer: Address, scoreThreshold: Int64, score: Int64, beastID: UInt64)
     pub event RewardDisabled(rewardID: UInt64, name: String)
     pub event RewardEnabled(rewardID: UInt64, name: String)
@@ -21,47 +21,60 @@ pub contract WonderArenaReward_BasicBeasts1 {
         pub var scoreThreshold: Int64
         pub fun claim(player: &WonderArenaBattleField_BasicBeasts1.Player)
         pub var isEnabled: Bool
+        pub let host: Address
+        pub var claimedCount: UInt64
+        pub fun getAvailableRewards(): UInt64
     }
 
     pub resource Reward: IRewardPublic {
         pub let name: String
         pub let description: String
-        pub let collection: @BasicBeasts.Collection
+        pub let collection: @NonFungibleToken.Collection
         pub var scoreThreshold: Int64
         pub var isEnabled: Bool
+        pub let host: Address
+        pub var claimedCount: UInt64
 
         init(
             name: String,
             description: String,
-            collection: @BasicBeasts.Collection,
-            scoreThreshold: Int64
+            collection: @NonFungibleToken.Collection,
+            scoreThreshold: Int64,
+            isEnabled: Bool,
+            host: Address
         ) {
             self.name = name
             self.description = description
             self.collection <- collection
             self.scoreThreshold = scoreThreshold
-            self.isEnabled = false
+            self.isEnabled = isEnabled
+            self.host = host
+            self.claimedCount = 0
         }
 
         pub fun claim(player: &WonderArenaBattleField_BasicBeasts1.Player) {
             assert(self.isEnabled, message: "Not available")
+            let beastIDs = self.collection.getIDs()
+            assert(beastIDs.length > 0, message: "Reward NFTs not enough")
 
             let address = player.address
             let score = WonderArenaBattleField_BasicBeasts1.scores[address] ?? 0
-            if score >= self.scoreThreshold {
-                let beastIDs = self.collection.getIDs()
-                assert(beastIDs.length > 0, message: "Reward NFTs not enough")
+            assert(score >= self.scoreThreshold, message: "Score is not enough")
 
-                let collectionRef = getAccount(address)
-                    .getCapability(BasicBeasts.CollectionPublicPath)
-                    .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
-                    ?? panic("Could not borrow player's BasicBeast collection")
+            let collectionRef = getAccount(address)
+                .getCapability(BasicBeasts.CollectionPublicPath)
+                .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
+                ?? panic("Could not borrow player's BasicBeast collection")
 
-                let beast <- self.collection.withdraw(withdrawID: beastIDs[0])
-                let beastID = beast.id
-                collectionRef.deposit(token: <- beast)
-                emit RewardClaimed(rewardID: self.uuid, name: self.name, claimer: address, scoreThreshold: self.scoreThreshold, score: score, beastID: beastID)
-            }
+            let beast <- self.collection.withdraw(withdrawID: beastIDs[0])
+            let beastID = beast.id
+            collectionRef.deposit(token: <- beast)
+            self.claimedCount = self.claimedCount + 1
+            emit RewardClaimed(rewardID: self.uuid, name: self.name, claimer: address, scoreThreshold: self.scoreThreshold, score: score, beastID: beastID)
+        }
+
+        pub fun getAvailableRewards(): UInt64 {
+            return UInt64(self.collection.getIDs().length)
         }
 
         pub fun deposit(token: @BasicBeasts.NFT) {
@@ -105,19 +118,22 @@ pub contract WonderArenaReward_BasicBeasts1 {
         pub fun createReward(
             name: String,
             description: String,
-            collection: @BasicBeasts.Collection,
-            scoreThreshold: Int64
+            collection: @NonFungibleToken.Collection,
+            scoreThreshold: Int64,
+            isEnabled: Bool
         ): UInt64 {
             let reward <- create Reward(
                 name: name,
                 description: description,
                 collection: <- collection,
-                scoreThreshold: scoreThreshold
+                scoreThreshold: scoreThreshold,
+                isEnabled: isEnabled,
+                host: self.owner!.address
             )
 
             let rewardID = reward.uuid
             self.rewards[rewardID] <-! reward
-            emit RewardCreated(rewardID: rewardID, name: name, scoreThreshold: scoreThreshold)
+            emit RewardCreated(host: self.owner!.address, rewardID: rewardID, name: name, scoreThreshold: scoreThreshold)
             return rewardID
         }
 

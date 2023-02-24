@@ -1,0 +1,38 @@
+import WonderArenaReward_BasicBeasts1 from "./WonderArenaReward_BasicBeasts1.cdc"
+import BasicBeasts from "../contracts/basicbeasts/BasicBeasts.cdc"
+
+transaction(
+    name: String,
+    description: String,
+    beastIDs: [UInt64],
+    scoreThreshold: Int64,
+    isEnabled: Bool
+) {
+    let rewardCollectionRef: &WonderArenaReward_BasicBeasts1.RewardCollection
+    let beastCollectionRef: &BasicBeasts.Collection
+    prepare(acct: AuthAccount) {
+        self.rewardCollectionRef = acct
+            .borrow<&WonderArenaReward_BasicBeasts1.RewardCollection>(from: WonderArenaReward_BasicBeasts1.RewardCollectionStoragePath)
+            ?? panic("Borrow reward collection failed")
+
+        self.beastCollectionRef = acct
+            .borrow<&BasicBeasts.Collection>(from: BasicBeasts.CollectionStoragePath)
+            ?? panic("Borrow beasts collection failed")
+    }
+
+    execute {
+        let rewards <- BasicBeasts.createEmptyCollection()
+        for id in beastIDs {
+            let beast <- self.beastCollectionRef.withdraw(withdrawID: id)
+            rewards.deposit(token: <- beast)
+        }
+
+        self.rewardCollectionRef.createReward(
+            name: name,
+            description: description,
+            collection: <- rewards,
+            scoreThreshold: scoreThreshold,
+            isEnabled: isEnabled
+        )
+    }
+}

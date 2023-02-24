@@ -32,9 +32,14 @@ export const getRules = async () => {
   return result
 }
 
-export const getPawns = async (alice, beastIDs) => {
+export const getPawns = async (account, beastIDs) => {
   const scriptName = "get_pawns"
-  return await executeScript({ name: scriptName, args: [alice, beastIDs] })
+  return await executeScript({ name: scriptName, args: [account, beastIDs] })
+}
+
+export const getRewards = async (account) => {
+  const scriptName = "get_rewards"
+  return await executeScript({ name: scriptName, args: [account] })
 }
 
 // transactions
@@ -91,6 +96,30 @@ export const fight = async (signer, attackerAddress, attackerIDs, defenderAddres
   const signers = [signer]
   const txName = "fight"
   const args = [attackerAddress, attackerIDs, defenderAddress]
+
+  return await sendTransaction({ name: txName, signers: signers, args: args, limit: 9999 }) 
+}
+
+export const setupRewardCollection = async (signer) => {
+  const signers = [signer]
+  const txName = "setup_reward_collection"
+  const args = []
+
+  return await sendTransaction({ name: txName, signers: signers, args: args, limit: 9999 }) 
+}
+
+export const createReward = async (signer, name, description, beastIDs, scoreThreshold, isEnabled) => {
+  const signers = [signer]
+  const txName = "create_reward"
+  const args = [name, description, beastIDs, scoreThreshold, isEnabled]
+
+  return await sendTransaction({ name: txName, signers: signers, args: args, limit: 9999 }) 
+}
+
+export const claimReward = async (signer, host, rewardID) => {
+  const signers = [signer]
+  const txName = "claim_reward"
+  const args = [host, rewardID]
 
   return await sendTransaction({ name: txName, signers: signers, args: args, limit: 9999 }) 
 }
