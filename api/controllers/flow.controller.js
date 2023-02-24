@@ -103,6 +103,20 @@ class flowController {
         }
     }
 
+    static claimReward = async (req, res, next) => {
+        try {
+            await flow.claimReward(req.user.payload)
+            res.status(200).json({
+                status: true,
+                message: ""
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
     static accountLink = async (req, res, next) => {
         try {
             if (!req.body.parentAddress || !utils.isValidFlowAddress(req.body.parentAddress)) {

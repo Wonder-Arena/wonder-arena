@@ -1,4 +1,4 @@
-import WonderArenaReward_BasicBeasts1 from 0x2432e062f9f14295
+import WonderArenaRewards_BasicBeasts1 from 0x2432e062f9f14295
 
 pub struct Reward {
     pub let name: String
@@ -31,8 +31,8 @@ pub struct Reward {
 pub fun main(): Reward  {
     let account = getAccount(0x2432e062f9f14295)
     let rewardCollection = account
-        .getCapability(WonderArenaReward_BasicBeasts1.RewardCollectionPublicPath)
-        .borrow<&{WonderArenaReward_BasicBeasts1.IRewardCollectionPublic}>()
+        .getCapability(WonderArenaRewards_BasicBeasts1.RewardCollectionPublicPath)
+        .borrow<&{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}>()
         ?? panic("Could not borrow reward collection")
 
     let reward = rewardCollection.getAllRewards().values[0]

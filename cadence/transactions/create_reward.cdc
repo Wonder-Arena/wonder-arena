@@ -1,6 +1,7 @@
-import WonderArenaReward_BasicBeasts1 from "../contracts/WonderArenaReward_BasicBeasts1.cdc"
+import WonderArenaRewards_BasicBeasts1 from "../contracts/WonderArenaRewards_BasicBeasts1.cdc"
 import BasicBeasts from "../contracts/basicbeasts/BasicBeasts.cdc"
-
+// 
+// flow transactions send ./cadence/transactions/create_reward.cdc 'For Best Trainers' 'Basic Beasts for you, the best trainers!' '[133176753, 133176718, 133176728, 133176813, 133176573, 133176478]' 60 true --signer=admin --network=testnet
 transaction(
     name: String,
     description: String,
@@ -8,11 +9,11 @@ transaction(
     scoreThreshold: Int64,
     isEnabled: Bool
 ) {
-    let rewardCollectionRef: &WonderArenaReward_BasicBeasts1.RewardCollection
+    let rewardCollectionRef: &WonderArenaRewards_BasicBeasts1.RewardCollection
     let beastCollectionRef: &BasicBeasts.Collection
     prepare(acct: AuthAccount) {
         self.rewardCollectionRef = acct
-            .borrow<&WonderArenaReward_BasicBeasts1.RewardCollection>(from: WonderArenaReward_BasicBeasts1.RewardCollectionStoragePath)
+            .borrow<&WonderArenaRewards_BasicBeasts1.RewardCollection>(from: WonderArenaRewards_BasicBeasts1.RewardCollectionStoragePath)
             ?? panic("Borrow reward collection failed")
 
         self.beastCollectionRef = acct
