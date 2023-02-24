@@ -219,6 +219,31 @@ class flowService {
       throw createError.NotFound('flow account not found')
     }
 
+    let script = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+
+    pub fun main(address: Address): UInt64 {
+        if let playerCap = WonderArenaBattleField_BasicBeasts1.players[address] {
+            if let player = playerCap.borrow() {
+                return UInt64(player.getDefenderGroups().length)
+            }
+        }
+        return 0
+    }
+    `
+    .replace(WonderArenaPath, WonderArenaAddress) 
+
+    const groupNumber = await fcl.query({
+      cadence: script,
+      args: (arg, t) => [
+        arg(user.flowAccount.address, t.Address)
+      ]
+    })
+
+    if (groupNumber >= 4) {
+      throw createError.UnprocessableEntity("Can only have 4 groups at most")
+    }
+
     let signer = await this.getUserSigner(user.flowAccount)
     let code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
