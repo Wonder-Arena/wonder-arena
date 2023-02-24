@@ -1,15 +1,36 @@
-// import WonderArenaBattleField_BasicBeasts1 from "../../contracts/WonderArenaBattleField_BasicBeasts1.cdc"
 import WonderArenaBattleField_BasicBeasts1 from 0x2432e062f9f14295
 
-pub fun main(): [&{WonderArenaBattleField_BasicBeasts1.PlayerPublic}] {
-    let playerCaps = WonderArenaBattleField_BasicBeasts1.players.values
+pub struct Player {
+    pub let name: String
+    pub let address: Address
+    pub let score: Int64
 
-    let res: [&{WonderArenaBattleField_BasicBeasts1.PlayerPublic}] = []
-    for cap in playerCaps {
-        if let player = cap.borrow() {
-            res.append(player)
+    init(
+        name: String,
+        address: Address,
+        score: Int64
+    ) {
+        self.name = name
+        self.address = address
+        self.score = score
+    }
+}
+
+pub fun main(): {Address: Player} {
+    let scores = WonderArenaBattleField_BasicBeasts1.scores
+    let res: {Address: Player} = {}
+    for address in scores.keys {
+        if let playerCap = WonderArenaBattleField_BasicBeasts1.players[address] {
+            if let _player = playerCap.borrow() {
+                let score = scores[address]!
+                let player = Player(
+                    name: _player.name,
+                    address: address,
+                    score: score
+                )
+                res[address] = player
+            }
         }
     }
     return res
 }
- 

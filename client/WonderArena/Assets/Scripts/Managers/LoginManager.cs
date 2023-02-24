@@ -91,6 +91,7 @@ public class LoginManager : MonoBehaviour
     }
     #endregion
 
+    #region Variables
     [Header("All UIs necceseries")]
     [SerializeField] GameObject registrationObject;
     [SerializeField] GameObject loginObject;
@@ -119,6 +120,7 @@ public class LoginManager : MonoBehaviour
     [SerializeField] string endpointPATH = "https://wonder-arena-production.up.railway.app";
     [SerializeField] string registerPATH = "/auth";
     [SerializeField] string loginPATH = "/auth/login";
+    #endregion
 
     private void Awake()
     {

@@ -193,6 +193,14 @@ public class DefenderTeamManager : MonoBehaviour
 
             if (madeANewComp == true)
             {
+                if (GameManager.Instance.userDefenderGroups.ContainsKey(_teamName))
+                {
+                    GameManager.Instance.userDefenderGroups[_teamName] = listOfDefenderGroup;
+                }
+                else
+                {
+                    GameManager.Instance.userDefenderGroups.Add(_teamName, listOfDefenderGroup);
+                }
                 LevelManager.Instance.LoadScene("DefendTeam");
             }
         }

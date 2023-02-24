@@ -19,6 +19,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     public CadenceOptional challengeRecords;
     public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
+    public List<CadenceDictionaryItem> allPlayers_ListDictionaryItems = new();
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
@@ -76,13 +77,22 @@ public class FlowInterfaceBB : MonoBehaviour
             }
         }
 
+        while (GameManager.Instance.userFlowAddress == null)
+        {
+            int dots = ((int)(Time.time * 2.0f) % 4);
+            Debug.Log("Registrating Flow Account" + new string('.', dots));
+            StartCoroutine(GameManager.Instance.GetPlayer());
+            yield return null;
+        }
+
+        StartCoroutine(GameManager.Instance.ClaimBBs());
+
         userFlowAddress = GameManager.Instance.userFlowAddress;
 
         if (PlayerPrefs.HasKey("Username"))
         {
-            StartCoroutine(GetAllPlayers());
-            StartCoroutine(GetUserDefenderGroups());
-            yield return StartCoroutine(GetAllBeastsIDs());
+            yield return StartCoroutine(GetAllPlayers());
+            //yield return StartCoroutine(GetAllBeastsIDs());
 
             isScriptsCompleted = true;
         }
@@ -106,11 +116,11 @@ public class FlowInterfaceBB : MonoBehaviour
             yield break;
         }
         
-        CadenceBase[] allPLayers = (getAllPLayers.Result.Value as CadenceArray).Value;
+        CadenceDictionary allPLayers = (getAllPLayers.Result.Value as CadenceDictionary);
 
-        foreach (CadenceComposite player in allPLayers)
+        foreach (CadenceDictionaryItem player in allPLayers.Value)
         {
-            allPlayers_ListCadenceComposite.Add(player);
+            allPlayers_ListDictionaryItems.Add(player);
         }
     }
 
@@ -193,55 +203,63 @@ public class FlowInterfaceBB : MonoBehaviour
         }
     }
 
-    public IEnumerator GetUserDefenderGroups()
-    {
-        GameManager.Instance.allUserDefendersGroup = new();
-        // Executing script to get all Defenders Id from account
-        Task<FlowScriptResponse> getDefendersIds = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text,
-            new CadenceAddress(userFlowAddress));
+    //public IEnumerator GetUserDefenderGroups()
+    //{
+    //    GameManager.Instance.allUserDefendersGroup = new();
+    //    // Executing script to get all Defenders Id from account
+    //    Task<FlowScriptResponse> getDefendersIds = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text,
+    //        new CadenceAddress(userFlowAddress));
 
-        yield return new WaitUntil(() => getDefendersIds.IsCompleted);
+    //    yield return new WaitUntil(() => getDefendersIds.IsCompleted);
 
-        if (getDefendersIds.Result.Error != null)
-        {
-            Debug.LogError($"Error:  {getDefendersIds.Result.Error.Message}");
-            yield break;
-        }
+    //    if (getDefendersIds.Result.Error != null)
+    //    {
+    //        Debug.LogError($"Error:  {getDefendersIds.Result.Error.Message}");
+    //        yield break;
+    //    }
 
-        CadenceBase[] allDefendersIds = (getDefendersIds.Result.Value as CadenceArray).Value;
+    //    CadenceBase[] allDefendersIds = (getDefendersIds.Result.Value as CadenceArray).Value;
 
-        // Executing script to get all defenders from account
-        Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text,
-            new CadenceAddress(userFlowAddress), new CadenceArray(allDefendersIds));
+    //    int index = 0;
+    //    foreach (CadenceComposite defenderGroup in allDefendersIds)
+    //    {
+    //        string name = defenderGroup.CompositeFieldAs<CadenceString>("name").Value;
+    //        CadenceBase[] beastIDs = defenderGroup.CompositeFieldAs<CadenceArray>("beastIDs").Value;
 
-        yield return new WaitUntil(() => getPawns.IsCompleted);
+    //        // Executing script to get all defenders from account
+    //        Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text,
+    //            new CadenceAddress(userFlowAddress), new CadenceArray(beastIDs));
 
-        if (getPawns.Result.Error != null)
-        {
-            Debug.LogError($"Error:  {getPawns.Result.Error.Message}");
-            yield break;
-        }
+    //        yield return new WaitUntil(() => getPawns.IsCompleted);
 
-        CadenceBase[] allPawns = (getPawns.Result.Value as CadenceArray).Value;
+    //        if (getPawns.Result.Error != null)
+    //        {
+    //            Debug.LogError($"Error:  {getPawns.Result.Error.Message}");
+    //            yield break;
+    //        }
 
-        // Adding all pawns to List of all pawns that user has
-        foreach (CadenceComposite pawn in allPawns)
-        {
-            string nameOfPawn = null;
-            string idOfPawn = null;
-            string hpOfPawn = null;
-            hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
-            CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
-            idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
-            CadenceComposite beastTemplate = pawn.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+    //        CadenceBase[] allPawns = (getPawns.Result.Value as CadenceArray).Value;
 
-            nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn;
+    //        // Adding all pawns to List of all pawns that user has
+    //        foreach (CadenceComposite pawn in allPawns)
+    //        {
+    //            string nameOfPawn = null;
+    //            string idOfPawn = null;
+    //            string hpOfPawn = null;
+    //            hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+    //            CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
+    //            idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+    //            CadenceComposite beastTemplate = pawn.CompositeFieldAs<CadenceComposite>("beastTemplate");
+    //            nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+    //            nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
 
-            GameManager.Instance.allUserDefendersGroup.Add(nameOfPawn);
-        }
-    }
+    //            nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn;
+
+    //            GameManager.Instance.allUserDefendersGroup[index].Add(nameOfPawn);
+    //        }
+    //        index += 1;
+    //    }
+    //}
 
     public IEnumerator GetFightsRecords()
     {
