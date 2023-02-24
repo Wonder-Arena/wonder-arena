@@ -10,7 +10,7 @@ import {
   getAdmin,
   deployBasicBeastsContracts,
 } from "./src/common";
-import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores } from "./src/wonder_arena";
+import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward, getAttackRecords } from "./src/wonder_arena";
 import { bb_createTemplate, bb_getBeastIDs, bb_mintBeast, bb_setupAccount } from "./src/basicbeasts";
 
 jest.setTimeout(1000000)
@@ -194,7 +194,7 @@ describe("BattleField", () => {
     let [, error] = await fight(admin, alice, attackers, bob)
     expect(error).toBeNull()
 
-    let records = await getAttackerChallenges(alice, bob)
+    let records = await getAttackRecords(alice, bob)
     console.log(records)
     let record = Object.values(records)[0]
     expect(record.attackerBeasts).not.toEqual(record.defenderBeasts)
@@ -202,8 +202,63 @@ describe("BattleField", () => {
     let scores = await getScores([alice, bob])
     let negativeValues = Object.values(scores).map((v) => parseInt(v)).filter((v) => v < 0)
     expect(negativeValues.length).toBe(0)
+
+    await adminCreateReward()
+    const [rewards, ] = await getRewards(admin)
+    const rewardID = Object.keys(rewards)[0]
+    let winner = alice
+    let loser = bob
+    let aliceScore = parseInt(scores[alice])
+    if (aliceScore < 30) {
+      winner = bob
+      loser = alice
+    }
+
+    const [, claimError] = await claimReward(winner, admin, rewardID)
+    expect(claimError).toBeNull()
+
+    const [, claimError2] = await claimReward(loser, admin, rewardID)
+    expect(claimError2).not.toBeNull()
+
+    const [rewards2, ] = await getRewards(admin)
+    const reward = rewards2[rewardID]
+    expect(reward.claimedCount).toBe('1')
   })
 })
+
+describe("Reward", () => {
+  beforeEach(async () => {
+    const basePath = path.resolve(__dirname, "..")
+    await init(basePath)
+    await emulator.start()
+    await new Promise(r => setTimeout(r, 2000));
+    return await deployContracts()
+  })
+
+  afterEach(async () => {
+    await emulator.stop();
+    return await new Promise(r => setTimeout(r, 2000));
+  })
+
+  it("Create Reward", async () => {
+    const admin = await getAdmin()
+    await setupAdmin()
+    await setupAlice()
+
+    const beastIDs = await bb_getBeastIDs(admin)
+    const [, error] = await createReward(admin, "Reward", "", beastIDs, "30", true)
+    expect(error).toBeNull()
+
+    const [rewards, error2] = await getRewards(admin)
+    expect(error2).toBeNull()
+  })
+})
+
+const adminCreateReward = async () => {
+  const admin = await getAdmin()
+  const beastIDs = await bb_getBeastIDs(admin)
+  await createReward(admin, "Reward", "", beastIDs, "30", true) 
+}
 
 const setupAdmin = async () => {
   const admin = await getAdmin()
@@ -213,6 +268,11 @@ const setupAdmin = async () => {
   await bb_createTemplate(admin, "Saber", "2", "Water")
   await bb_createTemplate(admin, "Shen", "3", "Grass")
   await bb_createTemplate(admin, "Azazel", "4", "Fire")
+
+  await setupRewardCollection(admin)
+  await bb_mintBeast(admin, "1", admin)
+  await bb_mintBeast(admin, "2", admin)
+  await bb_mintBeast(admin, "3", admin)
 }
 
 const setupAlice = async () => {

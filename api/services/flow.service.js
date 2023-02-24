@@ -3,18 +3,33 @@ const utils = require('../utils/flow')
 const { PrismaClient } = require('@prisma/client')
 const createError = require('http-errors')
 const prisma = new PrismaClient()
+const CryptoJS = require("crypto-js");
 
 require('dotenv').config()
 utils.switchToTestnet()
 
-class flowService {
-  static async getAdminAccount() {
+const WonderArenaPath = "0xWonderArena"
+const WonderArenaAddress = process.env.ADMIN_ADDRESS
 
+class flowService {
+  static encryptPrivateKey(key) {
+    const secret = process.env.SECRET_PASSPHRASE
+    const encrypted = CryptoJS.AES.encrypt(key, secret).toString()
+    return encrypted
+  }
+
+  static decryptPrivateKey(encrypted) {
+    const secret = process.env.SECRET_PASSPHRASE
+    const decrypted= CryptoJS.AES.decrypt(encrypted, secret).toString(CryptoJS.enc.Utf8)
+    return decrypted
+  }
+
+  static async getAdminAccount() {
     const FlowSigner = (await import('../utils/signer.mjs')).default
-    // TODO: encrypt private key
     const keys = (process.env.ADMIN_ENCRYPTED_PRIVATE_KEYS).split(",")
     const keyIndex = Math.floor(Math.random() * keys.length)
-    const key = keys[keyIndex]
+    const key = this.decryptPrivateKey(keys[keyIndex])
+
     const signer = new FlowSigner(
       process.env.ADMIN_ADDRESS, 
       key,
@@ -26,10 +41,9 @@ class flowService {
 
   static async getUserSigner(flowAccount) {
     const FlowSigner = (await import('../utils/signer.mjs')).default
-    // TODO: encrypt private key
     const signer = new FlowSigner(
       flowAccount.address,
-      flowAccount.encryptedPrivateKey,
+      this.decryptPrivateKey(flowAccount.encryptedPrivateKey),
       0,
       {}
     )
@@ -54,8 +68,8 @@ class flowService {
   static isGeneratingAccounts = false
 
   static async generateWonderArenaAccounts() {
-    console.log("is generate?", this.isGeneratingAccounts)
     if (this.isGeneratingAccounts) {
+      console.log("is generating address?", this.isGeneratingAccounts)
       return
     }
 
@@ -97,38 +111,32 @@ class flowService {
 
     const {privateKey: privateKey, publicKey: publicKeyHex} = this.generateKeypair()
     const code = `
-    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
     import FungibleToken from 0x9a0766d93b6608b7
     import NonFungibleToken from 0x631e88ae7f1d7c20
     import MetadataViews from 0x631e88ae7f1d7c20
     import BasicBeasts from 0xfa252d0aa22bf86a
+    import ChildAccount from 0x1b655847a90e644a
     
     transaction(name: String, publicKeyHex: String) {
         prepare(signer: AuthAccount) {
-            let publicKey = publicKeyHex.decodeHex()
-    
-            let key = PublicKey(
-                publicKey: publicKey,
-                signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
+            let creatorRef = signer.borrow<&ChildAccount.ChildAccountCreator>(
+                from: ChildAccount.ChildAccountCreatorStoragePath
+            ) ?? panic("Problem getting a ChildAccountCreator reference!")
+
+            let info = ChildAccount.ChildAccountInfo(
+                name: name,
+                description: "WonderArena account for ".concat(name),
+                clientIconURL: MetadataViews.HTTPFile(url: ""),
+                clienExternalURL: MetadataViews.ExternalURL(""),
+                originatingPublicKey: publicKeyHex
             )
-    
-            let account = AuthAccount(payer: signer)
-    
-            account.keys.add(
-                publicKey: key,
-                hashAlgorithm: HashAlgorithm.SHA3_256,
-                weight: 1000.0
+
+            let account: AuthAccount = creatorRef.createChildAccount(
+                signer: signer,
+                initialFundingAmount: 1.0,
+                childAccountInfo: info
             )
-    
-            // Add some FLOW
-            let signerVault <- signer
-                .borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
-                .withdraw(amount: 1.0)
-    
-            account
-                .getCapability(/public/flowTokenReceiver)!
-                .borrow<&{FungibleToken.Receiver}>()!
-                .deposit(from: <-signerVault)
     
             // setup WonderArena player
             let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
@@ -141,8 +149,12 @@ class flowService {
                 WonderArenaBattleField_BasicBeasts1.PlayerPublicPath, 
                 target: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
                 ?? panic("link player failed")
+
+            let adminRef = signer
+                .borrow<&WonderArenaBattleField_BasicBeasts1.Admin>(from: WonderArenaBattleField_BasicBeasts1.AdminStoragePath)
+                ?? panic("borrow battle field admin failed")
     
-            WonderArenaBattleField_BasicBeasts1.register(playerCap: playerCap)
+            adminRef.register(playerCap: playerCap)
     
             // setup BasicBeasts collection
             account.save(<-BasicBeasts.createEmptyCollection(), to: BasicBeasts.CollectionStoragePath)
@@ -151,37 +163,42 @@ class flowService {
         }
     }
     `
-    const txid = await signer.sendTransaction(code, (arg, t) => [
-      arg(name, t.String),
-      arg(publicKeyHex, t.String)
-    ])
+    .replace(WonderArenaPath, WonderArenaAddress) 
 
-    if (txid) {
-      let tx = await fcl.tx(txid).onceSealed()
-      let event = tx.events.find((e) => e.type == 'flow.AccountCreated')
-      if (!event) {
-        throw "Account generate failed"
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(name, t.String),
+        arg(publicKeyHex, t.String)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        let event = tx.events.find((e) => e.type == 'flow.AccountCreated')
+        if (!event) {
+          throw {statusCode: 500, message: "Account generation failed"}
+        }
+        const address = event.data.address
+        let flowAccount = await prisma.flowAccount.create({
+            data: {
+              address: address,
+              encryptedPrivateKey: this.encryptPrivateKey(privateKey),
+              userId: user.id
+            }
+          })
+  
+        delete flowAccount.id
+        delete flowAccount.encryptedPrivateKey
+        delete flowAccount.userId
+      
+        return flowAccount
       }
-      const address = event.data.address
-      let flowAccount = await prisma.flowAccount.create({
-          data: {
-            address: address,
-            encryptedPrivateKey: privateKey,
-            userId: user.id
-          }
-        })
-
-      delete flowAccount.id
-      delete flowAccount.encryptedPrivateKey
-      delete flowAccount.userId
-    
-      return flowAccount
+      throw "send transaction failed"
+    } catch (e) {
+      throw {statusCode: 500, message: `Account generation failed ${e}`}
     }
-
-    throw "Account generate failed"
   }
 
-  static async addDefenderGroup(userData, beastIDs) {
+  static async addDefenderGroup(userData, groupName, beastIDs) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
@@ -196,26 +213,57 @@ class flowService {
       throw createError.NotFound('flow account not found')
     }
 
-    let signer = await this.getUserSigner(user.flowAccount)
-    let code = `
-    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+    let script = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
-    transaction(beastIDs: [UInt64]) {
-        let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
-
-        prepare(acct: AuthAccount) {
-            self.playerRef = acct.borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
-                ?? panic("borrow player failed")
+    pub fun main(address: Address): UInt64 {
+        if let playerCap = WonderArenaBattleField_BasicBeasts1.players[address] {
+            if let player = playerCap.borrow() {
+                return UInt64(player.getDefenderGroups().length)
+            }
         }
-
-        execute {
-            self.playerRef.addDefenderGroup(members: beastIDs)
-        }
+        return 0
     }
     `
+    .replace(WonderArenaPath, WonderArenaAddress) 
+
+    const groupNumber = await fcl.query({
+      cadence: script,
+      args: (arg, t) => [
+        arg(user.flowAccount.address, t.Address)
+      ]
+    })
+
+    if (groupNumber >= 4) {
+      throw createError.UnprocessableEntity("Can only have 4 groups at most")
+    }
+
+    let signer = await this.getUserSigner(user.flowAccount)
+    let code = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+
+    transaction(name: String, beastIDs: [UInt64]) {
+      let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
+  
+      prepare(acct: AuthAccount) {
+          self.playerRef = acct.borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+              ?? panic("borrow player failed")
+      }
+  
+      execute {
+          let group = WonderArenaBattleField_BasicBeasts1.BeastGroup(
+              name: name,
+              beastIDs: beastIDs
+          )
+          self.playerRef.addDefenderGroup(group: group)
+      }
+    }
+    `
+    .replace(WonderArenaPath, WonderArenaAddress) 
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(groupName, t.String),
         arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
       ])
 
@@ -225,15 +273,13 @@ class flowService {
           return
         }
       }
+      throw "send transaction failed"
     } catch (e) {
-      console.log(e)
-      throw "Add defender group failed"
+      throw {statusCode: 500, message: `Add defender group failed ${e}`}
     }
-
-    throw "Add defender group failed"
   }
 
-  static async removeDefenderGroup(userData, beastIDs) {
+  static async removeDefenderGroup(userData, groupName) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
@@ -250,25 +296,26 @@ class flowService {
 
     let signer = await this.getUserSigner(user.flowAccount)
     let code = `
-    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
-    transaction(beastIDs: [UInt64]) {
-        let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
-    
-        prepare(acct: AuthAccount) {
-            self.playerRef = acct.borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
-                ?? panic("borrow player failed")
-        }
-    
-        execute {
-            self.playerRef.removeDefenderGroup(members: beastIDs)
-        }
+    transaction(name: String) {
+      let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
+  
+      prepare(acct: AuthAccount) {
+          self.playerRef = acct.borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+              ?? panic("borrow player failed")
+      }
+  
+      execute {
+          self.playerRef.removeDefenderGroup(name: name)
+      }
     }
     `
+    .replace(WonderArenaPath, WonderArenaAddress) 
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
-        arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
+        arg(groupName, t.String)
       ])
   
       if (txid) {
@@ -277,13 +324,10 @@ class flowService {
           return
         }
       }
+      throw "send transaction failed"
     } catch (e) {
-      console.log(e)
-      throw "remove defender group failed"
+      throw {statusCode: 500, message: `remove defender group failed ${e}`}
     }
-
-
-    throw "remove defender group failed"
   }
 
   static async claimBBs(userData) {
@@ -336,23 +380,26 @@ class flowService {
         }
     }
     `
-
-    const txid = await signer.sendTransaction(code, (arg, t) => [
-      arg(user.flowAccount.address, t.Address)
-    ])
-
-    if (txid) {
-      let tx = await fcl.tx(txid).onceSealed()
-      if (tx.status === 4 && tx.statusCode === 0) {
-        let updatedUser = await prisma.user.update({
-          where: { email },
-          data: { claimedBBs: true }
-        }) 
-        return updatedUser
+    
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(user.flowAccount.address, t.Address)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          let updatedUser = await prisma.user.update({
+            where: { email },
+            data: { claimedBBs: true }
+          }) 
+          return updatedUser
+        }
       }
+      throw "send transaction failed"
+    } catch (e) {
+      throw {statusCode: 500, message: `Claim BasicBeasts failed ${e}`}
     }
-
-    throw "claim failed"
   }
 
   static async fight(userData, attackerIDs, defenderAddress) {
@@ -379,9 +426,39 @@ class flowService {
       throw createError.NotFound('defender not found')
     }
 
+    if (defenderAccount.user.id == user.id) {
+      throw createError.UnprocessableEntity('attacker and defender should not be the same')
+    }
+
+    let script = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+
+    pub fun main(attacker: Address, defender: Address): UInt64 {
+        if let records = WonderArenaBattleField_BasicBeasts1.attackerChallenges[attacker] {
+            if let innerRecords = records[defender] {
+                return UInt64(innerRecords.keys.length)
+            }
+        }
+        return 0
+    }
+    `
+    .replace(WonderArenaPath, WonderArenaAddress) 
+
+    const challengeTimes = await fcl.query({
+      cadence: script,
+      args: (arg, t) => [
+        arg(user.flowAccount.address, t.Address),
+        arg(defenderAddress, t.Address)
+      ]
+    })
+
+    if (challengeTimes >= 3) {
+      throw {statusCode: 422, message: "Can only challenge a player for 3 times at most"}
+    }
+
     let signer = await this.getAdminAccount()
     let code = `
-    import WonderArenaBattleField_BasicBeasts1 from 0xbca26f5091cd39ec
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
     transaction(
         attackerAddress: Address,
@@ -391,29 +468,104 @@ class flowService {
         prepare(acct: AuthAccount) {}
     
         execute {
+            let attackerGroup = WonderArenaBattleField_BasicBeasts1.BeastGroup(
+                name: "AttackerGroup",
+                beastIDs: attackerIDs
+            )
+    
             WonderArenaBattleField_BasicBeasts1.fight(
                 attackerAddress: attackerAddress,
-                attackerIDs: attackerIDs,
+                attackerGroup: attackerGroup,
                 defenderAddress: defenderAddress
             )
         }
     }
     `
+    .replace(WonderArenaPath, WonderArenaAddress) 
 
-    const txid = await signer.sendTransaction(code, (arg, t) => [
-      arg(user.flowAccount.address, t.Address),
-      arg(attackerIDs.map((id) => id.toString()), t.Array(t.UInt64)),
-      arg(defenderAddress, t.Address)
-    ])
-
-    if (txid) {
-      let tx = await fcl.tx(txid).onceSealed()
-      if (tx.status === 4 && tx.statusCode === 0) {
-        return
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(user.flowAccount.address, t.Address),
+        arg(attackerIDs.map((id) => id.toString()), t.Array(t.UInt64)),
+        arg(defenderAddress, t.Address)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          let event = tx.events.find((e) => e.type.includes('ChallengeHappened'))
+          if (!event) {
+            throw "Fight failed"
+          }
+          return {attacker: user.flowAccount.address, defender: defenderAddress, challengeUUID: event.data.uuid}
+        }
       }
+      throw "send transaction failed"
+    } catch (e) {
+      throw {statusCode: 500, message: `Fight failed ${e}`}
+    }
+  }
+
+  static async accountLink(userData, parentAddress) {
+    const { name, email } = userData
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
     }
 
-    throw "fight failed"
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    try {
+      const accountInfo = await fcl.send([ fcl.getAccount(fcl.sansPrefix(parentAddress)) ])
+    } catch (e) {
+      throw createError.NotFound('parent address not found on the blockchain')
+    }
+
+    let signer = await this.getUserSigner(user.flowAccount)
+    let code = `
+    import ChildAccount from 0x1b655847a90e644a
+
+    /// Signing account publishes a Capability to its AuthAccount for
+    /// the specified parentAddress to claim
+    ///
+    transaction(parentAddress: Address) {
+    
+        let authAccountCap: Capability<&AuthAccount>
+    
+        prepare(signer: AuthAccount) {
+            // Get the AuthAccount Capability, linking if necessary
+            if !signer.getCapability<&AuthAccount>(ChildAccount.AuthAccountCapabilityPath).check() {
+                self.authAccountCap = signer.linkAccount(ChildAccount.AuthAccountCapabilityPath)!
+            } else {
+                self.authAccountCap = signer.getCapability<&AuthAccount>(ChildAccount.AuthAccountCapabilityPath)
+            }
+            // Publish for the specified Address
+            signer.inbox.publish(self.authAccountCap!, name: "AuthAccountCapability", recipient: parentAddress)
+        }
+    }
+    `
+
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(parentAddress, t.Address)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return
+        }
+      }
+      throw "send transaction failed"
+    } catch (e) {
+      throw createError.InternalServerError(`account linking failed ${e}`)
+    }
   }
 }
 

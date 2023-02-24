@@ -34,6 +34,13 @@
                 "mainnet": "0x1d7e57aa55817448"
             } 
         },
+        "ChildAccount": {
+            "source": "./cadence/contracts/core/ChildAccount.cdc",
+            "aliases": {
+                "testnet": "0x1b655847a90e644a",
+                "mainnet": "0x1d7e57aa55817448"
+            } 
+        },
         "BasicBeasts": {
             "source": "./cadence/contracts/basicbeasts/BasicBeasts.cdc",
             "aliases": {
@@ -61,6 +68,13 @@
                 "testnet": "0x2432e062f9f14295",
                 "mainnet": "0x39b144ab4d348e2b"
             }
+        },
+        "WonderArenaReward_BasicBeasts1": {
+            "source": "./cadence/contracts/WonderArenaReward_BasicBeasts1.cdc",
+            "aliases": {
+                "testnet": "0x2432e062f9f14295",
+                "mainnet": "0x39b144ab4d348e2b"
+            }
         }
     },
 	"networks": {
@@ -84,7 +98,9 @@
         "testnet": {
             "admin": [
                 "WonderArenaWorldRules_BasicBeasts1",
-                "WonderArenaPawn_BasicBeasts1"
+                "WonderArenaPawn_BasicBeasts1",
+                "WonderArenaBattleField_BasicBeasts1",
+                "WonderArenaReward_BasicBeasts1"
             ]
         }
     }

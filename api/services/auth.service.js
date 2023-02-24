@@ -21,7 +21,7 @@ class authService {
             // P2022: Unique constraint failed
             // Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference#error-codes
             if (e.code === 'P2002') {
-              throw {statusCode: 401, message: 'The user already exists'}
+              throw {statusCode: 422, message: 'The email or username already registered'}
             }
           }
           throw e

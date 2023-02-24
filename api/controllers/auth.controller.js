@@ -16,7 +16,7 @@ class authController {
         try {
             const { name, email, password } = req.body
             if (!name || !email || !password || !this.validateEmail(email)) {
-              throw {statusCode: 401, message: "invalid params"}
+              throw {statusCode: 422, message: "invalid params"}
             }
 
             const user = await auth.register(req.body)

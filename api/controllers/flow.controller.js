@@ -1,5 +1,6 @@
 const flow = require('../services/flow.service')
 const createError = require('http-errors');
+const utils = require('../utils/flow')
 
 class flowController {
     static account = async (req, res, next) => {
@@ -18,22 +19,20 @@ class flowController {
 
     static addDefenderGroup = async (req, res, next) => {
         try {
-            if (!req.body.beastIDs || 
+            if (!req.body.groupName || !req.body.beastIDs || 
                 !Array.isArray(req.body.beastIDs) ||
                 req.body.beastIDs.length != 3) {
-                    res.status(401).json({
+                    res.status(422).json({
                         status: false,
-                        message: "invalid params",
-                        data: {}
+                        message: "invalid params"
                     })
                 return
             }
 
-            await flow.addDefenderGroup(req.user.payload, req.body.beastIDs)
+            await flow.addDefenderGroup(req.user.payload, req.body.groupName, req.body.beastIDs)
             res.status(200).json({
                 status: true,
-                message: "Defender group added",
-                data: {}
+                message: "Defender group added"
             })
 
         } catch (e) {
@@ -44,22 +43,18 @@ class flowController {
 
     static removeDefenderGroup = async (req, res, next) => {
         try {
-            if (!req.body.beastIDs || 
-                !Array.isArray(req.body.beastIDs) ||
-                req.body.beastIDs.length != 3) {
-                    res.status(401).json({
-                        status: false,
-                        message: "invalid params",
-                        data: {}
-                    })
+            if (!req.body.groupName) {
+                res.status(422).json({
+                    status: false,
+                    message: "invalid params"
+                })
                 return
             }
 
-            await flow.removeDefenderGroup(req.user.payload, req.body.beastIDs)
+            await flow.removeDefenderGroup(req.user.payload, req.body.groupName)
             res.status(200).json({
                 status: true,
-                message: "Defender group removed",
-                data: {}
+                message: "Defender group removed"
             })
 
         } catch (e) {
@@ -73,8 +68,7 @@ class flowController {
             await flow.claimBBs(req.user.payload)
             res.status(200).json({
                 status: true,
-                message: "BBs claimed",
-                data: {}
+                message: "BBs claimed"
             })
 
         } catch (e) {
@@ -89,19 +83,40 @@ class flowController {
                 !Array.isArray(req.body.attackerIDs) ||
                 req.body.attackerIDs.length != 3 ||
                 !req.body.defenderAddress) {
-                    res.status(401).json({
+                    res.status(422).json({
                         status: false,
-                        message: "invalid params",
-                        data: {}
+                        message: "invalid params"
                     })
                 return
             }
 
-            await flow.fight(req.user.payload, req.body.attackerIDs, req.body.defenderAddress)
+            const data = await flow.fight(req.user.payload, req.body.attackerIDs, req.body.defenderAddress)
             res.status(200).json({
                 status: true,
                 message: "Battle finished",
-                data: {}
+                data: data
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
+    static accountLink = async (req, res, next) => {
+        try {
+            if (!req.body.parentAddress || !utils.isValidFlowAddress(req.body.parentAddress)) {
+                res.status(422).json({
+                    status: false,
+                    message: "invalid params"
+                })
+                return
+            }
+
+            await flow.accountLink(req.user.payload, req.body.parentAddress)
+            res.status(200).json({
+                status: true,
+                message: ""
             })
 
         } catch (e) {

@@ -19,7 +19,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     pub event DefenderGroupAdded(owner: Address, name: String, beasts: [UInt64])
     pub event DefenderGroupUpdated(owner: Address, name: String, beasts: [UInt64])
     pub event DefenderGroupRemoved(owner: Address, name: String, beasts: [UInt64])
-    pub event ChallengeHappened(winner: Address, attacker: Address, attackerBeasts: [UInt64], defender: Address, defenderBeasts: [UInt64])
+    pub event ChallengeHappened(uuid: UInt64, winner: Address, attacker: Address, attackerBeasts: [UInt64], defender: Address, defenderBeasts: [UInt64])
 
     pub struct BattleEvent {
         // Who trigger this event
@@ -127,7 +127,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
             // Put th assert here to make sure the group can be kind of `edit`
             let groups = self.getDefenderGroups()
-            assert(UInt8(groups.length) < WonderArenaWorldRules_BasicBeasts1.maxGroupNumber, message: "Exceed max group number")
+            assert(UInt8(groups.length) <= WonderArenaWorldRules_BasicBeasts1.maxGroupNumber, message: "Exceed max group number")
 
             if isAlreadyExists {
                 emit DefenderGroupUpdated(owner: self.address, name: group.name, beasts: group.beastIDs)
@@ -642,6 +642,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         self.defenderChallenges.insert(key: defenderAddress, defenderChallenges!)
 
         emit ChallengeHappened(
+            uuid: recordUUID,
             winner: winnerAddress, 
             attacker: attackerAddress, 
             attackerBeasts: attackerBeasts, 
