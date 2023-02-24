@@ -505,6 +505,68 @@ class flowService {
       throw {statusCode: 500, message: `Fight failed ${e}`}
     }
   }
+
+  static async accountLink(userData, parentAddress) {
+    const { name, email } = userData
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    try {
+      const accountInfo = await fcl.send([ fcl.getAccount(fcl.sansPrefix(parentAddress)) ])
+    } catch (e) {
+      throw createError.NotFound('parent address not found on the blockchain')
+    }
+
+    let signer = await this.getUserSigner(user.flowAccount)
+    let code = `
+    import ChildAccount from 0x1b655847a90e644a
+
+    /// Signing account publishes a Capability to its AuthAccount for
+    /// the specified parentAddress to claim
+    ///
+    transaction(parentAddress: Address) {
+    
+        let authAccountCap: Capability<&AuthAccount>
+    
+        prepare(signer: AuthAccount) {
+            // Get the AuthAccount Capability, linking if necessary
+            if !signer.getCapability<&AuthAccount>(ChildAccount.AuthAccountCapabilityPath).check() {
+                self.authAccountCap = signer.linkAccount(ChildAccount.AuthAccountCapabilityPath)!
+            } else {
+                self.authAccountCap = signer.getCapability<&AuthAccount>(ChildAccount.AuthAccountCapabilityPath)
+            }
+            // Publish for the specified Address
+            signer.inbox.publish(self.authAccountCap!, name: "AuthAccountCapability", recipient: parentAddress)
+        }
+    }
+    `
+
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(parentAddress, t.Address)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return
+        }
+      }
+      throw "send transaction failed"
+    } catch (e) {
+      throw createError.InternalServerError(`account linking failed ${e}`)
+    }
+  }
 }
 
 module.exports = flowService

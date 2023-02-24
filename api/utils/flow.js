@@ -17,6 +17,16 @@ class flowHelper {
       .put("accessNode.api", "https://rest-testnet.onflow.org")
       .put("0xWonderArena", "0x2432e062f9f14295")
   }
+
+  static isValidFlowAddress = (address) => {
+    if (!address.startsWith("0x") || address.length != 18) {
+      return false
+    }
+  
+    const bytes = Buffer.from(address.replace("0x", ""), "hex")
+    if (bytes.length != 8) { return false }
+    return true
+  }
 }
 
 module.exports = flowHelper
