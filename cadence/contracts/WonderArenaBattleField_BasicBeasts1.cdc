@@ -127,7 +127,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
             // Put th assert here to make sure the group can be kind of `edit`
             let groups = self.getDefenderGroups()
-            assert(UInt8(groups.length) < WonderArenaWorldRules_BasicBeasts1.maxGroupNumber, message: "Exceed max group number")
+            assert(UInt8(groups.length) <= WonderArenaWorldRules_BasicBeasts1.maxGroupNumber, message: "Exceed max group number")
 
             if isAlreadyExists {
                 emit DefenderGroupUpdated(owner: self.address, name: group.name, beasts: group.beastIDs)

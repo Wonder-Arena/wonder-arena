@@ -116,33 +116,27 @@ class flowService {
     import NonFungibleToken from 0x631e88ae7f1d7c20
     import MetadataViews from 0x631e88ae7f1d7c20
     import BasicBeasts from 0xfa252d0aa22bf86a
+    import ChildAccount from 0x1b655847a90e644a
     
     transaction(name: String, publicKeyHex: String) {
         prepare(signer: AuthAccount) {
-            let publicKey = publicKeyHex.decodeHex()
-    
-            let key = PublicKey(
-                publicKey: publicKey,
-                signatureAlgorithm: SignatureAlgorithm.ECDSA_P256
+            let creatorRef = signer.borrow<&ChildAccount.ChildAccountCreator>(
+                from: ChildAccount.ChildAccountCreatorStoragePath
+            ) ?? panic("Problem getting a ChildAccountCreator reference!")
+
+            let info = ChildAccount.ChildAccountInfo(
+                name: name,
+                description: "WonderArena account for ".concat(name),
+                clientIconURL: MetadataViews.HTTPFile(url: ""),
+                clienExternalURL: MetadataViews.ExternalURL(""),
+                originatingPublicKey: publicKeyHex
             )
-    
-            let account = AuthAccount(payer: signer)
-    
-            account.keys.add(
-                publicKey: key,
-                hashAlgorithm: HashAlgorithm.SHA3_256,
-                weight: 1000.0
+
+            let account: AuthAccount = creatorRef.createChildAccount(
+                signer: signer,
+                initialFundingAmount: 1.0,
+                childAccountInfo: info
             )
-    
-            // Add some FLOW
-            let signerVault <- signer
-                .borrow<&{FungibleToken.Provider}>(from: /storage/flowTokenVault)!
-                .withdraw(amount: 1.0)
-    
-            account
-                .getCapability(/public/flowTokenReceiver)!
-                .borrow<&{FungibleToken.Receiver}>()!
-                .deposit(from: <-signerVault)
     
             // setup WonderArena player
             let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
