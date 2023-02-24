@@ -1,4 +1,4 @@
-import WonderArenaReward_BasicBeasts1 from "./WonderArenaReward_BasicBeasts1.cdc"
+import WonderArenaReward_BasicBeasts1 from "../contracts/WonderArenaReward_BasicBeasts1.cdc"
 
 pub fun hasRewardCollection(_ address: Address): Bool {
   return getAccount(address)

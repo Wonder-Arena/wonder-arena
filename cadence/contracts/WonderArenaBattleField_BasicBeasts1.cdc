@@ -173,15 +173,15 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         }
     }
 
-    pub let scores: {Address: Int64}
+    pub var scores: {Address: Int64}
     pub let players: {Address: Capability<&Player{PlayerPublic}>}
 
     // The records in these to dictionaries should be the same, but
     // we make this so that it can be queried more easily
     // {attacker: {defender: {UUID: ChallengeRecord}}}
-    pub let attackerChallenges: {Address: {Address: {UInt64: ChallengeRecord}}}
+    pub var attackerChallenges: {Address: {Address: {UInt64: ChallengeRecord}}}
     // {defender: {attacker: {UUID: ChallengeRecord}}}
-    pub let defenderChallenges: {Address: {Address: {UInt64: ChallengeRecord}}}
+    pub var defenderChallenges: {Address: {Address: {UInt64: ChallengeRecord}}}
 
     pub fun createNewPlayer(name: String, address: Address): @Player {
         let player <- create WonderArenaBattleField_BasicBeasts1.Player(
@@ -205,6 +205,12 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         pub fun unregister(player: &Player) {
             WonderArenaBattleField_BasicBeasts1.players.remove(key: player.address)
             emit PlayerUnregistered(name: player.name, address: player.address)
+        }
+
+        pub fun cleanChallenges() {
+            WonderArenaBattleField_BasicBeasts1.attackerChallenges = {}
+            WonderArenaBattleField_BasicBeasts1.defenderChallenges = {}
+            WonderArenaBattleField_BasicBeasts1.scores = {}
         }
     }
 
