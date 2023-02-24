@@ -10,7 +10,7 @@ import {
   getAdmin,
   deployBasicBeastsContracts,
 } from "./src/common";
-import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward } from "./src/wonder_arena";
+import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward, getAttackRecords } from "./src/wonder_arena";
 import { bb_createTemplate, bb_getBeastIDs, bb_mintBeast, bb_setupAccount } from "./src/basicbeasts";
 
 jest.setTimeout(1000000)
@@ -194,7 +194,7 @@ describe("BattleField", () => {
     let [, error] = await fight(admin, alice, attackers, bob)
     expect(error).toBeNull()
 
-    let records = await getAttackerChallenges(alice, bob)
+    let records = await getAttackRecords(alice, bob)
     console.log(records)
     let record = Object.values(records)[0]
     expect(record.attackerBeasts).not.toEqual(record.defenderBeasts)

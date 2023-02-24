@@ -20,8 +20,8 @@ export const getScores = async (addresses) => {
   return result
 }
 
-export const getAttackerChallenges = async (attacker, defender) => {
-  const scriptName = "get_attacker_challenges"
+export const getAttackRecords = async (attacker, defender) => {
+  const scriptName = "get_attack_records"
   const [result, err] = await shallResolve(executeScript({ name: scriptName, args: [attacker, defender] }))
   return result
 }
