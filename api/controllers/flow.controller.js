@@ -21,7 +21,7 @@ class flowController {
             if (!req.body.groupName || !req.body.beastIDs || 
                 !Array.isArray(req.body.beastIDs) ||
                 req.body.beastIDs.length != 3) {
-                    res.status(401).json({
+                    res.status(422).json({
                         status: false,
                         message: "invalid params",
                         data: {}
@@ -45,7 +45,7 @@ class flowController {
     static removeDefenderGroup = async (req, res, next) => {
         try {
             if (!req.body.groupName) {
-                res.status(401).json({
+                res.status(422).json({
                     status: false,
                     message: "invalid params",
                     data: {}
@@ -87,7 +87,7 @@ class flowController {
                 !Array.isArray(req.body.attackerIDs) ||
                 req.body.attackerIDs.length != 3 ||
                 !req.body.defenderAddress) {
-                    res.status(401).json({
+                    res.status(422).json({
                         status: false,
                         message: "invalid params",
                         data: {}

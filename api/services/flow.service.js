@@ -410,15 +410,28 @@ class flowService {
     let script = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
-    // return { DefenderAddress: {RecordUUID: Record} }
-    pub fun main(attacker: Address): {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} {
+    pub fun main(attacker: Address, defender: Address): UInt64 {
         if let records = WonderArenaBattleField_BasicBeasts1.attackerChallenges[attacker] {
-            return records
+            if let innerRecords = records[defender] {
+                return UInt64(innerRecords.keys.length)
+            }
         }
-        return {}
+        return 0
     }
     `
     .replace(WonderArenaPath, WonderArenaAddress) 
+
+    const challengeTimes = await fcl.query({
+      cadence: script,
+      args: (arg, t) => [
+        arg(user.flowAccount.address, t.Address),
+        arg(defenderAddress, t.Address)
+      ]
+    })
+
+    if (challengeTimes >= 3) {
+      throw {statusCode: 422, message: "Can only challenge a player for 3 times at most"}
+    }
 
     let signer = await this.getAdminAccount()
     let code = `
