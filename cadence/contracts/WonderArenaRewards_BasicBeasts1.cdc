@@ -2,7 +2,7 @@ import WonderArenaBattleField_BasicBeasts1 from "./WonderArenaBattleField_BasicB
 import NonFungibleToken from "./core/NonFungibleToken.cdc"
 import BasicBeasts from "./basicbeasts/BasicBeasts.cdc"
 
-pub contract WonderArenaReward_BasicBeasts1 {
+pub contract WonderArenaRewards_BasicBeasts1 {
 
     pub let RewardCollectionStoragePath: StoragePath
     pub let RewardCollectionPublicPath: PublicPath
@@ -23,6 +23,7 @@ pub contract WonderArenaReward_BasicBeasts1 {
         pub var isEnabled: Bool
         pub let host: Address
         pub var claimedCount: UInt64
+        pub let claimed: {Address: Bool}
         pub fun getAvailableRewards(): UInt64
     }
 
@@ -34,6 +35,7 @@ pub contract WonderArenaReward_BasicBeasts1 {
         pub var isEnabled: Bool
         pub let host: Address
         pub var claimedCount: UInt64
+        pub let claimed: {Address: Bool}
 
         init(
             name: String,
@@ -50,6 +52,7 @@ pub contract WonderArenaReward_BasicBeasts1 {
             self.isEnabled = isEnabled
             self.host = host
             self.claimedCount = 0
+            self.claimed = {}
         }
 
         pub fun claim(player: &WonderArenaBattleField_BasicBeasts1.Player) {
@@ -58,6 +61,7 @@ pub contract WonderArenaReward_BasicBeasts1 {
             assert(beastIDs.length > 0, message: "Reward NFTs not enough")
 
             let address = player.address
+            assert(self.claimed[address] == nil, message: "Already claimed")
             let score = WonderArenaBattleField_BasicBeasts1.scores[address] ?? 0
             assert(score >= self.scoreThreshold, message: "Score is not enough")
 
@@ -70,6 +74,7 @@ pub contract WonderArenaReward_BasicBeasts1 {
             let beastID = beast.id
             collectionRef.deposit(token: <- beast)
             self.claimedCount = self.claimedCount + 1
+            self.claimed[address] = true
             emit RewardClaimed(rewardID: self.uuid, name: self.name, claimer: address, scoreThreshold: self.scoreThreshold, score: score, beastID: beastID)
         }
 
@@ -169,9 +174,9 @@ pub contract WonderArenaReward_BasicBeasts1 {
     }
 
     init() {
-        self.RewardCollectionStoragePath = /storage/WonderArenaRewardCollection_BasicBeast1
-        self.RewardCollectionPublicPath = /public/WonderArenaRewardCollection_BasicBeast1
-        self.RewardCollectionPrivatePath = /private/WonderArenaRewardCollection_BasicBeast1
+        self.RewardCollectionStoragePath = /storage/WonderArenaRewardsCollection_BasicBeast1
+        self.RewardCollectionPublicPath = /public/WonderArenaRewardsCollection_BasicBeast1
+        self.RewardCollectionPrivatePath = /private/WonderArenaRewardsCollection_BasicBeast1
 
         emit ContractInitialized()
     }

@@ -506,6 +506,107 @@ class flowService {
     }
   }
 
+  static async claimReward(userData) {
+    const { name, email } = userData
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    let script = `
+    import WonderArenaRewards_BasicBeasts1 from 0xWonderArena
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+
+    pub fun main(host: Address, rewardID: UInt64, claimer: Address): Bool {
+        if let rewardCollectionRef = getAccount(host)
+            .getCapability(WonderArenaRewards_BasicBeasts1.RewardCollectionPublicPath)
+            .borrow<&{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}>() {
+
+            if let reward = rewardCollectionRef.borrowPublicReward(id: rewardID) {
+                if let score = WonderArenaBattleField_BasicBeasts1.scores[claimer] {
+                    return (score >= reward.scoreThreshold) && (reward.claimed[claimer] == nil)
+                }
+            }
+        }
+
+        return false
+    }
+    `
+    .replace(WonderArenaPath, WonderArenaAddress)
+
+    // Hardcoded
+    const rewardID = '133445141'
+    const isEligible = await fcl.query({
+      cadence: script,
+      args: (arg, t) => [
+        arg(WonderArenaAddress, t.Address),
+        arg(rewardID, t.UInt64),
+        arg(user.flowAccount.address, t.Address)
+      ]
+    })
+
+    if (!isEligible) {
+      throw createError.UnprocessableEntity("not eligible or already claimed")
+    }
+
+    let signer = await this.getUserSigner(user.flowAccount)
+    let code = `
+    import WonderArenaRewards_BasicBeasts1 from 0xWonderArena
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+
+    transaction(
+        host: Address,
+        rewardID: UInt64
+    ) {
+        let rewardCollectionRef: &{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}
+        let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
+        prepare(acct: AuthAccount) {
+            self.rewardCollectionRef = getAccount(host)
+                .getCapability(WonderArenaRewards_BasicBeasts1.RewardCollectionPublicPath)
+                .borrow<&{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}>()
+                ?? panic("Borrow reward collection failed")
+
+            self.playerRef = acct
+                .borrow<&WonderArenaBattleField_BasicBeasts1.Player>(from: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+                ?? panic("Borrow player failed")
+        }
+
+        execute {
+            let reward = self.rewardCollectionRef.borrowPublicReward(id: rewardID)
+                ?? panic("Borrow reward failed")
+
+            reward.claim(player: self.playerRef)
+        }
+    }
+    `
+    .replace(WonderArenaPath, WonderArenaAddress)
+
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(WonderArenaAddress, t.Address),
+        arg(rewardID, t.UInt64)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return
+        }
+      }
+      throw "send transaction failed"
+    } catch (e) {
+      throw createError.InternalServerError(`claim reward failed ${e}`)
+    }
+  }
+
   static async accountLink(userData, parentAddress) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({

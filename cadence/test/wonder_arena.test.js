@@ -22,7 +22,7 @@ const deployContracts = async () => {
   await deployByName(deployer, "WonderArenaWorldRules_BasicBeasts1")
   await deployByName(deployer, "WonderArenaPawn_BasicBeasts1")
   await deployByName(deployer, "WonderArenaBattleField_BasicBeasts1")
-  await deployByName(deployer, "WonderArenaReward_BasicBeasts1")
+  await deployByName(deployer, "WonderArenaRewards_BasicBeasts1")
 }
 
 describe("Deployment", () => {
@@ -199,8 +199,8 @@ describe("BattleField", () => {
     let record = Object.values(records)[0]
     expect(record.attackerBeasts).not.toEqual(record.defenderBeasts)
 
-    let scores = await getScores([alice, bob])
-    let negativeValues = Object.values(scores).map((v) => parseInt(v)).filter((v) => v < 0)
+    let scores = await getScores()
+    let negativeValues = Object.values(scores).map((v) => parseInt(v.score)).filter((v) => v < 0)
     expect(negativeValues.length).toBe(0)
 
     await adminCreateReward()
@@ -208,7 +208,7 @@ describe("BattleField", () => {
     const rewardID = Object.keys(rewards)[0]
     let winner = alice
     let loser = bob
-    let aliceScore = parseInt(scores[alice])
+    let aliceScore = parseInt(scores[alice].score)
     if (aliceScore < 30) {
       winner = bob
       loser = alice

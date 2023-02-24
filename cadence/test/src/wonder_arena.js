@@ -14,9 +14,9 @@ export const getPlayers = async () => {
   return result
 }
 
-export const getScores = async (addresses) => {
+export const getScores = async () => {
   const scriptName = "get_scores"
-  const [result, err] = await shallResolve(executeScript({ name: scriptName, args: [addresses] }))
+  const [result, err] = await shallResolve(executeScript({ name: scriptName, args: [] }))
   return result
 }
 
