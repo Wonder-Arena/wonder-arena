@@ -14,8 +14,8 @@ export const getPlayers = async () => {
   return result
 }
 
-export const getScores = async () => {
-  const scriptName = "get_scores"
+export const getPlayersWithScore = async () => {
+  const scriptName = "get_players_with_score"
   const [result, err] = await shallResolve(executeScript({ name: scriptName, args: [] }))
   return result
 }
@@ -120,6 +120,14 @@ export const claimReward = async (signer, host, rewardID) => {
   const signers = [signer]
   const txName = "claim_reward"
   const args = [host, rewardID]
+
+  return await sendTransaction({ name: txName, signers: signers, args: args, limit: 9999 }) 
+}
+
+export const setPawnTemplates = async (signer) => {
+  const signers = [signer]
+  const txName = "set_pawn_templates"
+  const args = []
 
   return await sendTransaction({ name: txName, signers: signers, args: args, limit: 9999 }) 
 }

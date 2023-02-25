@@ -303,15 +303,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
         let defenderGroups = defenderPlayer.getDefenderGroups()
         if defenderGroups.length == 0 {
-            self.recordWinner(
-                winnerAddress: attackerAddress,
-                attackerAddress: attackerAddress,
-                attackerBeasts: attackerIDs,
-                defenderAddress: defenderAddress,
-                defenderBeasts: [],
-                events: [],
-            )
-            return
+            panic("Defender have 0 defender group")
         } 
 
         let rand = unsafeRandom()
@@ -487,7 +479,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
                             let effectRand = unsafeRandom() % 100
                             var effect: WonderArenaPawn_BasicBeasts1.PawnEffect? = nil
-                            if effectRand < pawn.attack.effectProb {
+                            if effectRand < pawn.attack.effectProb && pawn.attack.effect != WonderArenaPawn_BasicBeasts1.PawnEffect.None {
                                 effect = pawn.attack.effect
                                 let event = BattleEvent(
                                     byBeastID: pawn.nft.id,

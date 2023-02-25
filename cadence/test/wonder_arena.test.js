@@ -10,7 +10,7 @@ import {
   getAdmin,
   deployBasicBeastsContracts,
 } from "./src/common";
-import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward, getAttackRecords } from "./src/wonder_arena";
+import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward, getAttackRecords, setPawnTemplates, getPlayersWithScore } from "./src/wonder_arena";
 import { bb_createTemplate, bb_getBeastIDs, bb_mintBeast, bb_setupAccount } from "./src/basicbeasts";
 
 jest.setTimeout(1000000)
@@ -81,7 +81,11 @@ describe("Pawn", () => {
     await init(basePath)
     await emulator.start()
     await new Promise(r => setTimeout(r, 2000));
-    return await deployContracts()
+    await deployContracts()
+    const admin = await getAdmin()
+    const [result, error] = await setPawnTemplates(admin)
+    expect(error).toBeNull()
+    return
   })
 
   afterEach(async () => {
@@ -110,7 +114,9 @@ describe("BattleField", () => {
     await init(basePath)
     await emulator.start()
     await new Promise(r => setTimeout(r, 2000));
-    return await deployContracts()
+    await deployContracts()
+    const admin = await getAdmin()
+    return await setPawnTemplates(admin)
   })
 
   afterEach(async () => {
@@ -190,6 +196,8 @@ describe("BattleField", () => {
 
     const aliceBeastIDs = await bb_getBeastIDs(alice)
     const attackers = [aliceBeastIDs[0], aliceBeastIDs[1], aliceBeastIDs[2]]
+    const [, error3] = await addDefenderGroup(alice, "AliceGroup1", attackers) 
+    expect(error3).toBeNull()
 
     let [, error] = await fight(admin, alice, attackers, bob)
     expect(error).toBeNull()
@@ -199,8 +207,8 @@ describe("BattleField", () => {
     let record = Object.values(records)[0]
     expect(record.attackerBeasts).not.toEqual(record.defenderBeasts)
 
-    let scores = await getScores()
-    let negativeValues = Object.values(scores).map((v) => parseInt(v.score)).filter((v) => v < 0)
+    let players = await getPlayersWithScore()
+    let negativeValues = Object.values(players).map((v) => parseInt(v.score)).filter((v) => v < 0)
     expect(negativeValues.length).toBe(0)
 
     await adminCreateReward()
@@ -208,7 +216,7 @@ describe("BattleField", () => {
     const rewardID = Object.keys(rewards)[0]
     let winner = alice
     let loser = bob
-    let aliceScore = parseInt(scores[alice].score)
+    let aliceScore = parseInt(players[alice].score)
     if (aliceScore < 30) {
       winner = bob
       loser = alice
@@ -232,7 +240,9 @@ describe("Reward", () => {
     await init(basePath)
     await emulator.start()
     await new Promise(r => setTimeout(r, 2000));
-    return await deployContracts()
+    await deployContracts()
+    const admin = await getAdmin()
+    return await setPawnTemplates(admin)
   })
 
   afterEach(async () => {
