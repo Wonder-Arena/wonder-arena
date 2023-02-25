@@ -506,6 +506,98 @@ class flowService {
     }
   }
 
+  static async getPlayer(name) {
+    const user = await prisma.user.findUnique({
+      where: { name },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    delete user.password
+    delete user.id
+
+    if (user.flowAccount) {
+      let script = `
+      import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+
+      pub struct PlayerInfo {
+        pub let score: Int64 
+        pub let attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}}
+        pub let defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}}
+
+        init(
+          score: Int64,
+          attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}},
+          defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}},
+        ) {
+          self.score = score
+          self.attackRecords = attackRecords
+          self.defendRecords = defendRecords
+        }
+      }
+  
+      pub fun main(address: Address): PlayerInfo {
+          var score: Int64 = 0
+          var attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} = {}
+          var defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} = {}
+          if let _attackRecords = WonderArenaBattleField_BasicBeasts1.attackerChallenges[address] {
+              attackRecords = _attackRecords
+          }
+  
+          if let _defendRecords = WonderArenaBattleField_BasicBeasts1.defenderChallenges[address] {
+              defendRecords = _defendRecords
+          }
+
+          if let _score = WonderArenaBattleField_BasicBeasts1.scores[address] {
+              score = _score
+          }
+          return PlayerInfo(
+            score: score,
+            attackRecords: attackRecords,
+            defendRecords: defendRecords
+          )
+      }
+      `
+      .replace(WonderArenaPath, WonderArenaAddress)
+
+      const playerInfo = await fcl.query({
+        cadence: script,
+        args: (arg, t) => [
+          arg(user.flowAccount.address, t.Address)
+        ]
+      })
+      
+      const attackRecords = Object.values(playerInfo.attackRecords)
+        .flatMap((r) => Object.values(r))
+
+      const defendRecords = Object.values(playerInfo.defendRecords)
+        .flatMap((r) => Object.values(r))
+
+      const records = attackRecords
+        .concat(defendRecords)
+        .sort((a, b) => {
+          const aID = parseInt(a.id)
+          const bID = parseInt(b.id)
+          return bID - aID
+        })
+        .map((r) => {
+          delete r.events
+          return r
+        })
+
+      user.challenges = records
+      user.score = parseInt(playerInfo.score)
+      delete user.flowAccount.id
+      delete user.flowAccount.encryptedPrivateKey
+      delete user.flowAccount.userId
+    } 
+
+    return user
+  }
+
   static async claimReward(userData) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({

@@ -65,32 +65,6 @@ class authService {
         return { ...user, accessToken }
     }
 
-    static async info(name) {
-      const user = await prisma.user.findUnique({
-        where: {
-            name 
-        },
-        include: {
-          flowAccount: true
-        }
-      })
-
-      if (!user) {
-        throw createError.NotFound('User not exists') 
-      }
-
-      if (user.flowAccount) {
-        delete user.flowAccount.id
-        delete user.flowAccount.encryptedPrivateKey
-        delete user.flowAccount.userId
-      }
-
-      delete user.password
-      delete user.id
-
-      return user
-    }
-
     static async all() {
 
         const allUsers = (await prisma.user.findMany()).map((user) => {
