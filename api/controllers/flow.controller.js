@@ -103,6 +103,20 @@ class flowController {
         }
     }
 
+    static getPlayer = async (req, res, next) => {
+        try {
+            let data = await flow.getPlayer(req.params.name)
+            res.status(200).json({
+                status: true,
+                message: "",
+                data: data
+            })
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
     static claimReward = async (req, res, next) => {
         try {
             await flow.claimReward(req.user.payload)
