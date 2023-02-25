@@ -6,6 +6,7 @@ using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 using UnityEngine.Networking;
+using UnityEngine.SceneManagement;
 
 public class LeaderBoardManager : MonoBehaviour
 {
@@ -13,15 +14,31 @@ public class LeaderBoardManager : MonoBehaviour
     GameObject leaderboardRowPrefab;
     [SerializeField]
     GameObject contentParent;
+    [SerializeField]
+    Button challengePlayerButton;
+
     Dictionary<string, int> allPlayersScore = new();
     string selectedFlowAddress;
-    public string selectedRightNow = null;
+    public bool gotPlayer;
     
     FlowInterfaceBB flowInterface;
 
     private void Awake()
     {
         flowInterface = FlowInterfaceBB.Instance;
+        challengePlayerButton = challengePlayerButton.GetComponent<Button>();
+    }
+
+    public void Update()
+    {
+        if (!gotPlayer)
+        {
+            challengePlayerButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            challengePlayerButton.gameObject.SetActive(true);
+        }
     }
 
     private IEnumerator Start()
@@ -74,25 +91,21 @@ public class LeaderBoardManager : MonoBehaviour
                 newRow.transform.GetComponent<TabButton>().basicIdleSprite = contentParent.GetComponent<TabGroup>().tabIdle;
             }
 
+            contentParent.GetComponent<TabGroup>().ResetTabs();
+
             index += 1;
         }
     }
 
     public void ChallengePlayer()
     {
-        if (selectedRightNow == null)
-        {
-            Debug.Log("Select your opponent");
-        }
-        else
-        {
-            StartCoroutine(GetPlayer());
-        }
+        SceneManager.LoadScene("TeamMakingAttacking");
     }
 
-    private IEnumerator GetPlayer()
+    public IEnumerator GetPlayer(string selectedRightNow)
     {
-        string url = "https://wonder-arena-production.up.railway.app/auth/players/" + selectedRightNow;
+        gotPlayer = false;
+        string url = GameManager.Instance.endpointPATH + GameManager.Instance.getPlayerPATH + selectedRightNow;
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {GameManager.Instance.userAccessToken}");
         yield return request.SendWebRequest();
@@ -103,11 +116,14 @@ public class LeaderBoardManager : MonoBehaviour
 
         if (response.status == true)
         {
+            gotPlayer = true;
             selectedFlowAddress = response.data.flowAccount.address;
+            GameManager.Instance.lastDefenderAddress = selectedFlowAddress;
             Debug.Log(selectedFlowAddress);
         }
         else
         {
+            GameManager.Instance.lastDefenderAddress = null;
             Debug.Log(response.message);
         }
 

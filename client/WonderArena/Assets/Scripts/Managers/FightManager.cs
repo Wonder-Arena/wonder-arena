@@ -22,8 +22,12 @@ public class FightManager : MonoBehaviour
     [SerializeField]
     List<GameObject> defendersList;
 
+    [SerializeField]
+    GameObject groupsParentObject;
+
     private void Start()
     {
+        Debug.Log(FlowInterfaceBB.Instance.challengeRecords.Value);
         if (FlowInterfaceBB.Instance.challengeRecords.Value != null)
         {
             record = (FlowInterfaceBB.Instance.challengeRecords.Value as CadenceComposite);
@@ -126,11 +130,19 @@ public class FightManager : MonoBehaviour
         if (!IsOptionalNull(byBeastId))
         {
             byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
+            Debug.Log("By: " + byBeastObject.name);
         }
-        foreach (CadenceNumber targetId in targetBeastIDs)
+        if (targetBeastIDs.Length > 0)
         {
-            targetBeastObjects.Add(GetObjectById(targetId.Value));
-        }    
+            foreach (CadenceNumber targetId in targetBeastIDs)
+            {
+                targetBeastObjects.Add(GetObjectById(targetId.Value));
+            }
+            foreach (var x in targetBeastObjects)
+            {
+                Debug.Log("To: " + x.name);
+            }
+        }
         if (!IsOptionalNull(withSkill))
         {
             actualSkill = (withSkill.Value as CadenceString).Value;
@@ -152,21 +164,25 @@ public class FightManager : MonoBehaviour
             int.TryParse(actualDamage, out int actualDamageInt);
             int newHpOfTarget = hpInt - actualDamageInt;
             string newtargetName = target.name.Split("_")[0] + "_" 
-                + target.name.Split("_")[1] + "_" + newHpOfTarget.ToString() + "_" + target.name.Split("_")[2];
+                + target.name.Split("_")[1] + "_" + newHpOfTarget.ToString() + "_" + target.name.Split("_")[2] + "_" + target.name.Split("_")[3];
             target.name = newtargetName;
+            Debug.Log(hpOfTarget);
         }
     }
 
     private GameObject GetObjectById(string id)
     {
-        foreach (GameObject child in attackersList)
+        foreach (Transform team in groupsParentObject.transform)
         {
-            GameObject attacker = child.transform.GetChild(0).gameObject;
-            string attackerId = attacker.name.Split("_")[3];
-            if (attackerId == id)
+            foreach (Transform place in team)
             {
-                return attacker;
-            }
+                GameObject beastObject = place.GetChild(0).gameObject;
+                string beastId = beastObject.name.Split("_")[3];
+                if (beastId == id)
+                {
+                    return beastObject;
+                }
+            }  
         }
         return null;
     }

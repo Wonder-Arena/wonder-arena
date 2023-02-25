@@ -19,7 +19,7 @@ public class TabButton : MonoBehaviour, IPointerEnterHandler, IPointerClickHandl
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        tabGroup.OnTabEnter(this);
+        //tabGroup.OnTabEnter(this);
     }
 
     public void OnPointerExit(PointerEventData eventData)

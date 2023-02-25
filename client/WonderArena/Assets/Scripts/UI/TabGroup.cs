@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class TabGroup : MonoBehaviour
 {
@@ -13,12 +14,7 @@ public class TabGroup : MonoBehaviour
     public TabButton selectedTab;
     public int index;
     [SerializeField]
-    LeaderBoardManager leaderBoard;
-
-    private void Awake()
-    {
-        leaderBoard = leaderBoard.GetComponent<LeaderBoardManager>();
-    }
+    GameObject currentSceneManager;
 
     public void Subscribe(TabButton button)
     {
@@ -50,16 +46,39 @@ public class TabGroup : MonoBehaviour
         ResetTabs();
         button.background.sprite = tabActive;
         index = button.transform.GetSiblingIndex();
-        button.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.black;
-        button.transform.GetChild(5).GetComponent<TextMeshProUGUI>().color = Color.black;
+
+        if (SceneManager.GetActiveScene().name == "Leaderboard")
+        {
+            button.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.black;
+            button.transform.GetChild(5).GetComponent<TextMeshProUGUI>().color = Color.black;
+        }
+
         for (int i = 0; i < transform.childCount; i++)
         {
             if (transform.GetComponent<TabGroup>().index == i)
             {
-                leaderBoard.selectedRightNow = transform.GetChild(i).GetChild(4).GetComponent<TextMeshProUGUI>().text;
-                Debug.Log(leaderBoard.selectedRightNow);
+                if (SceneManager.GetActiveScene().name == "Leaderboard")
+                {
+                    GetPlayerInLeaderBoard(i);
+                }
+                else if (SceneManager.GetActiveScene().name == "DefendTeam")
+                {
+                    GetTeamInDefendTeam(i);
+                }
+                
             }
         }
+    }
+
+    private void GetPlayerInLeaderBoard(int index)
+    {
+        StartCoroutine(currentSceneManager.GetComponent<LeaderBoardManager>().GetPlayer(
+            transform.GetChild(index).GetChild(4).GetComponent<TextMeshProUGUI>().text));
+    }
+
+    private void GetTeamInDefendTeam(int index)
+    {
+        currentSceneManager.transform.GetComponent<TeamsManager>().SetPlatforms(transform.GetChild(index).transform);
     }
 
     public void ResetTabs()
@@ -70,9 +89,14 @@ public class TabGroup : MonoBehaviour
             {
                 continue;
             }
+
             button.background.sprite = button.basicIdleSprite;
-            button.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.white;
-            button.transform.GetChild(5).GetComponent<TextMeshProUGUI>().color = Color.white;
+
+            if (SceneManager.GetActiveScene().name == "Leaderboard")
+            {
+                button.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.white;
+                button.transform.GetChild(5).GetComponent<TextMeshProUGUI>().color = Color.white;
+            } 
         }
     }
 }

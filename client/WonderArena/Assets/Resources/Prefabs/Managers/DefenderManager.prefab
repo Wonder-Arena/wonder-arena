@@ -50,9 +50,10 @@ MonoBehaviour:
   ui_SelectedUnits: {fileID: 0}
   teamNameField: {fileID: 0}
   allBeastsPrefabs:
-  - {fileID: 8956028077105517844, guid: 14294e1cfebc36d4eb42191cb3b8d252, type: 3}
-  - {fileID: 8956028077105517844, guid: d6e1fb63b0a3f6c47953f6c510b16c38, type: 3}
-  - {fileID: 8956028077105517844, guid: a380939820588cc49a14c4fa9281c284, type: 3}
+  - {fileID: 8956028077105517844, guid: 500e28d83a2d1e24a9b4b6a16470ebce, type: 3}
+  - {fileID: 8956028077105517844, guid: 67bd0b8ead3ad6948b706e1d93cdb3f3, type: 3}
+  - {fileID: 8956028077105517844, guid: 9ac6dbd866fe7b441a6e892a71ed8e1a, type: 3}
   - {fileID: 8956028077105517844, guid: aeb825518e8c7604886707ddaa1a4b83, type: 3}
-  - {fileID: 8956028077105517844, guid: d478ebd17a1742c4aad1aa8c9dc025aa, type: 3}
+  - {fileID: 8956028077105517844, guid: 76d5551a678ab554db226ec66fc8b7b6, type: 3}
+  sceneButton: {fileID: 0}
   AddDefenderGroupTxn: {fileID: 4900000, guid: 42800554e83002348b1f7fdd8d6375c7, type: 3}

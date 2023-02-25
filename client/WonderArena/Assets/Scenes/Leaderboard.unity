@@ -699,7 +699,7 @@ MonoBehaviour:
   tabActive: {fileID: 21300000, guid: 8cbd63912786f074bb972212e2ec4d7f, type: 3}
   selectedTab: {fileID: 0}
   index: 0
-  leaderBoard: {fileID: 882769675}
+  currentSceneManager: {fileID: 882769674}
 --- !u!1 &562269303
 GameObject:
   m_ObjectHideFlags: 0
@@ -1434,7 +1434,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   leaderboardRowPrefab: {fileID: 2186990364579927889, guid: 067cf7f240ed8f2419eb8129263cab2b, type: 3}
   contentParent: {fileID: 484863367}
-  selectedRightNow: 
+  challengePlayerButton: {fileID: 1804088322}
 --- !u!4 &882769676
 Transform:
   m_ObjectHideFlags: 0

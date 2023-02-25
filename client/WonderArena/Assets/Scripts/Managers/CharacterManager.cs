@@ -76,6 +76,8 @@ public class CharacterManager : MonoBehaviour
             yield return null;
         }
 
+        yield return flowInterface.GetAllBeastsIDs();
+
         SetAllAvailableBeasts();
 
         // Adding Listeners to all Beasts Buttons
@@ -188,11 +190,11 @@ public class CharacterManager : MonoBehaviour
             Fight.Body fightBody = JsonUtility.FromJson<Fight.Body>(FightTxn.text);
 
             fightBody.attackerIDs = attackerCompIntId;
-            fightBody.defenderAddress = "0x9f1194fd9fa8e77d";
+            fightBody.defenderAddress = GameManager.Instance.lastDefenderAddress;
 
             string newJson = JsonUtility.ToJson(fightBody);
 
-            yield return StartCoroutine(GetFightRecord("https://wonder-arena-production.up.railway.app/auth/wonder_arena/fight",
+            yield return StartCoroutine(GetFightRecord(GameManager.Instance.endpointPATH + GameManager.Instance.fightPATH,
                 newJson, GameManager.Instance.userAccessToken));
 
             if (madeANewComp == true)

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -13,7 +14,24 @@ public class GameManager : MonoBehaviour
 
     public List<string> attackerComp = new();
     public List<string> lastDefenderNamesOfPawns = new();
-    public Dictionary<string, List<GameObject>> userDefenderGroups = new();
+    public Dictionary<string, List<string>> userDefenderGroups = new();
+
+    #region APIs
+
+    [Header("API URLs")]
+    public string endpointPATH = "https://wonder-arena-production.up.railway.app";
+    public string registerPATH = "/auth";
+    public string loginPATH = "/auth/login";
+    public string getPlayerPATH = "/auth/wonder_arena/players/";
+    public string claimBBsPATH = "/auth/wonder_arena/get_bbs";
+    public string addDefenderTeamPATH = "/auth/wonder_arena/add_defender_group";
+    public string removeDefenderTeamPATH = "/auth/wonder_arena/remove_defender_group";
+    public string fightPATH = "/auth/wonder_arena/fight";
+    public string accountLinking = "/auth/flow/account_link";
+    public string claimRewards = "/auth/wonder_arena/claim_reward";
+
+    #endregion
+
 
     public static GameManager Instance { get; private set; }
     private void Awake()
@@ -34,7 +52,6 @@ public class GameManager : MonoBehaviour
     {
         return true;
     }
-
 
 
 
@@ -80,7 +97,7 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator GetPlayer()
     {
-        string url = "https://wonder-arena-production.up.railway.app/auth/players/" + PlayerPrefs.GetString("Username");
+        string url = endpointPATH + getPlayerPATH + PlayerPrefs.GetString("Username");
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
         yield return request.SendWebRequest();
@@ -102,8 +119,9 @@ public class GameManager : MonoBehaviour
 
     public IEnumerator ClaimBBs()
     {
-        string url = "https://wonder-arena-production.up.railway.app/auth/wonder_arena/get_bbs";
-        UnityWebRequest request = UnityWebRequest.Get(url);
+        var request = new UnityWebRequest(endpointPATH + claimBBsPATH, "POST");
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
         yield return request.SendWebRequest();
 
@@ -112,7 +130,6 @@ public class GameManager : MonoBehaviour
         ClaimedBeast.Response response = JsonUtility.FromJson<ClaimedBeast.Response>(request.downloadHandler.text);
 
         Debug.Log(response.message);
-
     }
 
     #endregion

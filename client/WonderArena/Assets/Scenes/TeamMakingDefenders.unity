@@ -1060,6 +1060,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 4518713473765688875, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
+      propertyPath: sceneButton
+      value: 
+      objectReference: {fileID: 703327107}
+    - target: {fileID: 4518713473765688875, guid: 9885143c03e7b5549b534d47d8a14c77, type: 3}
       propertyPath: teamNameField
       value: 
       objectReference: {fileID: 550139899}

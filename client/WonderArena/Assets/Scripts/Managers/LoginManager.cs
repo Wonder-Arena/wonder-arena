@@ -115,11 +115,6 @@ public class LoginManager : MonoBehaviour
     [Header("Json Files")]
     [SerializeField] TextAsset RegisterTxn;
     [SerializeField] TextAsset LoginTxn;
-
-    [Header("URLs")]
-    [SerializeField] string endpointPATH = "https://wonder-arena-production.up.railway.app";
-    [SerializeField] string registerPATH = "/auth";
-    [SerializeField] string loginPATH = "/auth/login";
     #endregion
 
     private void Awake()
@@ -241,7 +236,7 @@ public class LoginManager : MonoBehaviour
             PlayerPrefs.SetString("Password", _password);
 
             string newJson = JsonUtility.ToJson(user);
-            string path = endpointPATH + registerPATH;
+            string path = GameManager.Instance.endpointPATH + GameManager.Instance.registerPATH;
 
             StartCoroutine(Register(path, newJson));
         }
@@ -270,7 +265,7 @@ public class LoginManager : MonoBehaviour
         PlayerPrefs.SetString("Password", _password);
 
         string newJson = JsonUtility.ToJson(user);
-        string path = endpointPATH + loginPATH;
+        string path = GameManager.Instance.endpointPATH + GameManager.Instance.loginPATH;
 
         StartCoroutine(LoginPost(path, newJson));
     }

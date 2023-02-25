@@ -41,7 +41,6 @@ public class DefenderTeamManager : MonoBehaviour
 
     public List<GameObject> listOfDefenderGroup = new(3);
     public bool haveDefenderComp;
-    public bool madeANewComp;
 
     [SerializeField]
     GameObject ui_CharaterSelection;
@@ -51,6 +50,8 @@ public class DefenderTeamManager : MonoBehaviour
     TMP_InputField teamNameField;
     [SerializeField]
     List<GameObject> allBeastsPrefabs;
+    [SerializeField]
+    ChangeSceneButton sceneButton;
 
     [SerializeField]
     TextAsset AddDefenderGroupTxn;
@@ -60,13 +61,13 @@ public class DefenderTeamManager : MonoBehaviour
 
     private void Awake()
     {
+        sceneButton = sceneButton.GetComponent<ChangeSceneButton>();
         flowInterface = FlowInterfaceBB.Instance.GetComponent<FlowInterfaceBB>();
         teamNameField = teamNameField.GetComponent<TMP_InputField>();
     }
 
     private IEnumerator Start()
     {
-        madeANewComp = false;
         haveDefenderComp = false;
         listOfDefenderGroup = new(3);
         // Waiting for all scripts to be done before trying to get Beasts
@@ -160,6 +161,17 @@ public class DefenderTeamManager : MonoBehaviour
 
     public void ConfirmDefenderTeam()
     {
+        StartCoroutine(waitForConfirmDefender());
+    }
+
+    private IEnumerator waitForConfirmDefender()
+    {
+        yield return StartCoroutine(SetDefenderTeam());
+        sceneButton.ToDefendGroup();
+    }
+
+    private IEnumerator SetDefenderTeam()
+    {
         haveDefenderComp = true;
         for (int i = 0; i < listOfDefenderGroup.Count; i++)
         {
@@ -174,9 +186,9 @@ public class DefenderTeamManager : MonoBehaviour
         {
             string _teamName = teamNameField.text;
             List<int> _beastIds = new();
-            
+
             foreach (GameObject defender in listOfDefenderGroup)
-            {            
+            {
                 int.TryParse(defender.name.Split("_")[3], out int intID);
                 _beastIds.Add(intID);
             }
@@ -188,27 +200,14 @@ public class DefenderTeamManager : MonoBehaviour
 
             string newJson = JsonUtility.ToJson(defenderGroupRequest);
 
-            StartCoroutine(AddDefenderTeam("https://wonder-arena-production.up.railway.app/auth/wonder_arena/add_defender_group", 
+            StartCoroutine(AddDefenderTeam(GameManager.Instance.endpointPATH + GameManager.Instance.addDefenderTeamPATH,
                 newJson, GameManager.Instance.userAccessToken));
-
-            if (madeANewComp == true)
-            {
-                if (GameManager.Instance.userDefenderGroups.ContainsKey(_teamName))
-                {
-                    GameManager.Instance.userDefenderGroups[_teamName] = listOfDefenderGroup;
-                }
-                else
-                {
-                    GameManager.Instance.userDefenderGroups.Add(_teamName, listOfDefenderGroup);
-                }
-                LevelManager.Instance.LoadScene("DefendTeam");
-            }
         }
         else
         {
             Debug.Log("Select your comp");
         }
-
+        yield return null;
     }
 
     private IEnumerator AddDefenderTeam(string url, string bodyJsonString, string accessToken)
@@ -235,7 +234,6 @@ public class DefenderTeamManager : MonoBehaviour
 
         if (response.status == true)
         {
-            madeANewComp = true;
             Debug.Log(response.message);
         }
         else
