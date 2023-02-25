@@ -51,12 +51,22 @@ public class LeaderBoardManager : MonoBehaviour
             yield return null;
         }
 
+        yield return StartCoroutine(FlowInterfaceBB.Instance.GetAllPlayers());
+
         foreach (CadenceDictionaryItem player in flowInterface.allPlayers_ListDictionaryItems)
         {
             string name = (player.Value as CadenceComposite).CompositeFieldAs<CadenceString>("name").Value;
             int score = int.Parse((player.Value as CadenceComposite).CompositeFieldAs<CadenceNumber>("score").Value);
 
-            allPlayersScore.Add(name, score);
+            if (allPlayersScore.ContainsKey(name))
+            {
+                allPlayersScore[name] = score;
+            }
+            else
+            {
+                allPlayersScore.Add(name, score);
+            }
+            
         }
 
         int index = 0;

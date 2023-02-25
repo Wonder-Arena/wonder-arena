@@ -79,6 +79,7 @@ public class DefenderTeamManager : MonoBehaviour
             yield return null;
         }
 
+        yield return StartCoroutine(flowInterface.GetAllBeastsIDs());
         SetAllAvailableBeasts();
 
         // Adding Listeners to all Beasts Buttons

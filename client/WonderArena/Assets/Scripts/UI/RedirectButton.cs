@@ -2,11 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Text.RegularExpressions;
+using UnityEngine.SceneManagement;
+using TMPro;
 
 public class RedirectButton : MonoBehaviour
 {
     [SerializeField]
     ConfirmationWindow confirmationWindow;
+
+    private void Awake()
+    {
+        confirmationWindow = confirmationWindow.GetComponent<ConfirmationWindow>();
+    }
 
     public void OpenConfirmationWindow(string message)
     {
@@ -18,8 +25,16 @@ public class RedirectButton : MonoBehaviour
 
     private void YesClicked()
     {
-        Application.OpenURL("https://www.basicbeasts.io/drop");
-        confirmationWindow.gameObject.SetActive(false);
+        if (SceneManager.GetActiveScene().name == "MainMenu")
+        {
+            Application.OpenURL("https://www.basicbeasts.io/drop");
+            confirmationWindow.gameObject.SetActive(false);
+        }
+        else if (SceneManager.GetActiveScene().name == "Profile")
+        {
+            string address = confirmationWindow.transform.Find("Input address").GetComponent<TMP_InputField>().text;
+            GameManager.Instance.LinkAccount(address);
+        }
     }
 
     private void NoClicked()

@@ -44,3 +44,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5036183a6844e0f449aa31f90cc2c234, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  userFlowAddress: 
+  userAccessToken: 
+  lastFightRecord: 
+  lastDefenderAddress: 
+  attackerComp: []
+  lastDefenderNamesOfPawns: []
+  endpointPATH: https://wonder-arena-production.up.railway.app
+  registerPATH: /auth
+  loginPATH: /auth/login
+  getPlayerPATH: /auth/wonder_arena/players/
+  claimBBsPATH: /auth/wonder_arena/get_bbs
+  addDefenderTeamPATH: /auth/wonder_arena/add_defender_group
+  removeDefenderTeamPATH: /auth/wonder_arena/remove_defender_group
+  fightPATH: /auth/wonder_arena/fight
+  accountLinkingPATH: /auth/flow/account_link
+  claimRewardsPATH: /auth/wonder_arena/claim_reward
+  confirmationWindow: {fileID: 0}

@@ -103,7 +103,7 @@ public class FlowInterfaceBB : MonoBehaviour
     }
 
     // Getting all players
-    private IEnumerator GetAllPlayers()
+    public IEnumerator GetAllPlayers()
     {
         Task<FlowScriptResponse> getAllPLayers = FLOW_ACCOUNT.ExecuteScript(GetAllPlayersTxn.text);
 

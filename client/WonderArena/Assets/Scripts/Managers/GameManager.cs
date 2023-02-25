@@ -4,6 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class GameManager : MonoBehaviour
 {
@@ -27,8 +28,8 @@ public class GameManager : MonoBehaviour
     public string addDefenderTeamPATH = "/auth/wonder_arena/add_defender_group";
     public string removeDefenderTeamPATH = "/auth/wonder_arena/remove_defender_group";
     public string fightPATH = "/auth/wonder_arena/fight";
-    public string accountLinking = "/auth/flow/account_link";
-    public string claimRewards = "/auth/wonder_arena/claim_reward";
+    public string accountLinkingPATH = "/auth/flow/account_link";
+    public string claimRewardsPATH = "/auth/wonder_arena/claim_reward";
 
     #endregion
 
@@ -94,6 +95,18 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    [System.Serializable]
+    public class ParentAddress
+    {
+        public string parentAddress;
+    }
+
+    [System.Serializable]
+    public class AccountLinkResponse
+    {
+        public bool status;
+        public string message;
+    }
 
     public IEnumerator GetPlayer()
     {
@@ -130,6 +143,60 @@ public class GameManager : MonoBehaviour
         ClaimedBeast.Response response = JsonUtility.FromJson<ClaimedBeast.Response>(request.downloadHandler.text);
 
         Debug.Log(response.message);
+    }
+
+    
+    public void LinkAccount(string address)
+    {
+        ParentAddress parentAddress = JsonUtility.FromJson<ParentAddress>(@"{ ""parentAddress"": ""0xbca26f5091cd39ec""}");
+        parentAddress.parentAddress = address;
+
+        string newJson = JsonUtility.ToJson(parentAddress);
+        Debug.Log(newJson);
+
+        StartCoroutine(LinkAccountPost(endpointPATH + accountLinkingPATH, newJson));
+    }
+
+
+    private IEnumerator LinkAccountPost(string url, string bodyJsonString)
+    {
+        GameObject confirmationWindow = GameObject.Find("Confirmation Window");
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
+        request.SendWebRequest();
+
+        while (!request.isDone)
+        {
+            int dots = ((int)(Time.time * 2.0f) % 4);
+            confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().text 
+                = "Linking accounts" + new string('.', dots);
+            yield return null;
+        }
+
+        Debug.Log("Status Code: " + request.responseCode);
+        Debug.Log(request.downloadHandler.text);
+
+        AccountLinkResponse response = JsonUtility.FromJson<AccountLinkResponse>(request.downloadHandler.text);
+
+        string message;
+        if (response.status == true)
+        {
+            message = "Succesfully linked accounts!";
+        }
+        else
+        {
+            confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().color = Color.red;
+            message = response.message;
+        }
+
+        confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().text = message;
+
+        request.disposeUploadHandlerOnDispose = true;
+        request.disposeDownloadHandlerOnDispose = true;
     }
 
     #endregion

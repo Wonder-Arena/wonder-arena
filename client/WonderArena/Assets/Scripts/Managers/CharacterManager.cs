@@ -76,7 +76,7 @@ public class CharacterManager : MonoBehaviour
             yield return null;
         }
 
-        yield return flowInterface.GetAllBeastsIDs();
+        yield return StartCoroutine(flowInterface.GetAllBeastsIDs());
 
         SetAllAvailableBeasts();
 
