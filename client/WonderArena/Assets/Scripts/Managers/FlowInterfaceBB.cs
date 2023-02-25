@@ -77,11 +77,12 @@ public class FlowInterfaceBB : MonoBehaviour
             }
         }
 
+        StartCoroutine(GameManager.Instance.GetPlayer());
+        
         while (GameManager.Instance.userFlowAddress == null)
         {
             int dots = ((int)(Time.time * 2.0f) % 4);
             Debug.Log("Registrating Flow Account" + new string('.', dots));
-            StartCoroutine(GameManager.Instance.GetPlayer());
             yield return null;
         }
 

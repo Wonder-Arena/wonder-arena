@@ -136,6 +136,8 @@ public class LeaderBoardManager : MonoBehaviour
             GameManager.Instance.lastDefenderAddress = null;
             Debug.Log(response.message);
         }
+        
+        request.Dispose();
 
     }
 

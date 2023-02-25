@@ -7,6 +7,7 @@ using DapperLabs.Flow.Sdk.DataObjects;
 using DapperLabs.Flow.Sdk.DevWallet;
 using DapperLabs.Flow.Sdk.Unity;
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 public class FightManager : MonoBehaviour
@@ -69,8 +70,10 @@ public class FightManager : MonoBehaviour
                 }
             }
             GameObject attackerObjectOnField = Instantiate(newAttackerObject, attackersList[i].transform);
-            attackerObjectOnField.name = $"{attackerNameAndSkinWithoutId}_{attackerHp}_{attackerId}";
-
+            attackerObjectOnField.name = $"{attackerNameAndSkinWithoutId}";
+            attackerObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(attackerHp);
+            attackerObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(attackerHp);
+            attackerObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(attackerId);
         }
     }
 
@@ -93,7 +96,10 @@ public class FightManager : MonoBehaviour
                 }
             }
             GameObject defenderObjectOnField = Instantiate(newDefenderObject, defendersList[i].transform);
-            defenderObjectOnField.name = $"{defenderNameAndSkinWithoutId}_{defenderHp}_{defenderId}";
+            defenderObjectOnField.name = $"{defenderNameAndSkinWithoutId}";
+            defenderObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(defenderHp);
+            defenderObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(defenderHp);
+            defenderObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(defenderId);
 
         }
     }
@@ -107,6 +113,20 @@ public class FightManager : MonoBehaviour
         yield return StartCoroutine(FlowInterfaceBB.Instance.GetDefenderPawnsNames(defenders));
 
         SetDefendersPawns();
+
+        for (int i = 0; i < attackersList.Count; i++)
+        {
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
+            .GetChild(i).Find("HpBar").GetComponent<Image>();
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
+            .GetChild(i).Find("Name").GetComponent<Image>();
+        }
+
+        for (int i = 0; i < defendersList.Count; i++)
+        {
+            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
+            .GetChild(i).Find("HpBar").GetComponent<Image>();
+        }
 
         CadenceBase[] events = (record.CompositeFieldAs<CadenceArray>("events").Value);
 
@@ -123,27 +143,15 @@ public class FightManager : MonoBehaviour
                 bool targetDefeated = _event.CompositeFieldAs<CadenceBool>("targetDefeated").Value;
 
                 SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, hitTheTarget, effect, damage, targetSkipped, targetDefeated);
+                yield return new WaitForSeconds(5);
             }
     }
 
-    public class Beast
-    {
-        public int hp;
-        public int id;
-    }
-
-    public class GameState //bz: create a state to update HP after each event and have it shown on the health bars
-    {
-        public List<Beast> beasts;
-    }
-
-    GameState gameState = new GameState(); //Create a new game state
 
     // To Suurikat: How do we get all beast ids used in an event?
 
     // foreach (Beast beast in allBeasts)
     // {
-            Beast newBeast = new Beast();
             // newBeast.id = 
             // newBeast.hp = 100;
             // gameState.beasts.Add(beast)
@@ -155,25 +163,21 @@ public class FightManager : MonoBehaviour
         bool targetSkipped, bool targetDefeated)
     {
         // [0] - name, [1] - skin, [2] - hp, [3] - id
-
-        // bz stuff start
-
-        // -Get the IDs
-        string beastId = null; // Beast ID
-        
-        // int targetBeastId = int.Parse(targetBeastIDs[0].ToString()); //Target Beast
+        string target = (targetBeastIDs[0] as CadenceNumber).Value;
+        GameObject targetObject = GetObjectById(target);
+        BeastStats targetStats = targetObject.GetComponent<BeastStats>();
+        bool isSideEffect = !IsOptionalNull(effect);
         
 
-        // case 1: if attacker exists
-        
+        //// case 1: if attacker exists
+        //
+        //
         if (!IsOptionalNull(byBeastId)) 
         {
-            beastId = (byBeastId.Value as CadenceNumber).Value;
-            // L210: let target = e.targetBeastIDs[0]
-            string target = (targetBeastIDs[0] as CadenceNumber).Value;
-
+            GameObject byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
+            BeastStats byBeastStats = byBeastObject.GetComponent<BeastStats>();
+            
             // L214: let isSideEffect = e.effect != nil
-            bool isSideEffect = !IsOptionalNull(effect);
             
             // L217: case 1.1: if skill exist
             bool isSkillUsed = !IsOptionalNull(withSkill);
@@ -185,87 +189,92 @@ public class FightManager : MonoBehaviour
                     textLog.text += log + "\n";
                     //TODO: Change the state of the beast GetObjectById(beastId).SetAnimation(skill)
                 }
-            } 
+            }
+
             else
-            { //L223:
-                if (!isSideEffect)
+            { 
+                if (!isSideEffect) //L223:
                 {
                     string log = "Used default attack without side effects";
                     textLog.text += log + "\n";
                 }   
-            }  
+            }
 
+            if (!hitTheTarget && !isSideEffect)
+            {
+                string log = "Miss!";
+                textLog.text += log + "\n";
+            }
             
-
-
+            else
+            {
+                bool didDamage = !IsOptionalNull(damage); // if let damage = e.damage 
+                if (didDamage) 
+                {
+                    string log = "beast suffered damage";
+                    textLog.text += log + "\n";
+                    
+                    float damageInt = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
+                    targetStats.hp -= damageInt; // subtract damage from beast class
+                    
+                    // Log that hp changed (temp)
+                    string log2 = $"{targetObject.name} has this much hp left: {targetStats.hp}";
+                    textLog.text += log2 + "\n";
+                } 
+                
+                // pub let effect: PawnEffect?
+                else if (isSideEffect) // L230_old: else if let effect = e.effect 
+                {
+                    string log = $"{targetObject.name} going {PawnEffect(effect.Value as CadenceComposite)}";
+                    textLog.text += log + "\n";
+                    //TODO: change pawnStatus whether it's poisened, sleeping or has returned to normal
+                } 
+            }
         } 
-        else if (false)
+
+        //// case 2: check if pawnStatus exist
+        //
+        //
+
+        else if (!IsOptionalNull(byStatus)) //L243_old: else if let status = e.byStatus
         {
-
-        } //case 2: check if pawnStatus exist
-
-        else if (false)
-        {
-            
-        } //case 3: check targetDefeated
-
-        // bz stuff end
-
-        GameObject byBeastObject = null;
-        string actualSkill = null;
-
-        List<GameObject> targetBeastObjects = new();
-
-
-        string actualDamage = null;
-        
-        if (!IsOptionalNull(byBeastId))
-        {
-            byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
-            Debug.Log("By: " + byBeastObject.name);
-        }
-
-        Beast byBeast = new();
-
-        byBeast.hp = int.Parse(byBeastObject.name.Split("_")[2]);
-        byBeast.id = int.Parse(byBeastObject.name.Split("_")[3]);
-
-        if (!IsOptionalNull(damage))
-        {
-            actualDamage = (damage.Value as CadenceNumber).Value;
-        }
-        if (targetBeastIDs.Length > 0)
-        {
-            foreach (CadenceNumber targetId in targetBeastIDs)
+            if (hitTheTarget)
             {
-                targetBeastObjects.Add(GetObjectById(targetId.Value));
+                bool didDamage = !IsOptionalNull(damage);
+                
+                if (didDamage)
+                {
+                    float damageInt = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
+                    targetStats.hp -= damageInt; // subtract damage from beast class
+                    
+                    string log = $"{targetObject.name} suffers {PawnStatus(byStatus.Value as CadenceComposite)}" + 
+                        $" and got {damageInt} damage";
+                    textLog.text += log + "\n";
+                }
+
+                else if (targetSkipped)
+                {
+                    string log = $"{targetObject.name} is skipping next turn due to {PawnStatus(byStatus.Value as CadenceComposite)}";
+                    textLog.text += log + "\n";    
+                }
+
+                else if (isSideEffect)
+                {
+                    string log = $"{targetObject.name} now is Normal!";
+                    textLog.text += log + "\n";
+                }
             }
-            foreach (var x in targetBeastObjects)
-            {
-                Debug.Log("To: " + x.name);
-            }
-            foreach (GameObject target in targetBeastObjects)
-            {
-                string hpOfTarget = target.name.Split("_")[2];
-                int.TryParse(hpOfTarget, out int hpInt);
-                int.TryParse(actualDamage, out int actualDamageInt);
-                int newHpOfTarget = hpInt - actualDamageInt;
-                string newtargetName = target.name.Split("_")[0] + "_"
-                    + target.name.Split("_")[1] + "_" + newHpOfTarget.ToString() + "_" + target.name.Split("_")[2] + "_" + target.name.Split("_")[3];
-                target.name = newtargetName;
-                Debug.Log(target.name + " Current hp: " + hpOfTarget);
-            }
-        }
-        if (!IsOptionalNull(withSkill))
+        } 
+
+        //// case 3: check targetDefeated
+        //
+        //
+
+        else if (targetDefeated)
         {
-            actualSkill = (withSkill.Value as CadenceString).Value;
+            string log = $"{targetObject.name} is defeated!";
+            textLog.text += log + "\n";
         }
-        else
-        {
-            actualSkill = "Default";
-        }
- 
-        // Damaging all the targets by damage value
     }
 
     private GameObject GetObjectById(string id)
@@ -275,7 +284,7 @@ public class FightManager : MonoBehaviour
             foreach (Transform place in team)
             {
                 GameObject beastObject = place.GetChild(0).gameObject;
-                string beastId = beastObject.name.Split("_")[3];
+                string beastId = beastObject.transform.GetComponent<BeastStats>().id.ToString();
                 if (beastId == id)
                 {
                     return beastObject;
@@ -297,11 +306,39 @@ public class FightManager : MonoBehaviour
         }
     }
 
-    private class Pawns
+    private string PawnEffect(CadenceComposite effect)
     {
-        private class Effects
+        string effectNumber = effect.CompositeFieldAs<CadenceNumber>("rawValue").Value;
+        switch (effectNumber)
         {
-
+            case "0":
+                return "ToNormal";
+            case "1":
+                return "ToParalysis";
+            case "2":
+                return "ToPoison";
+            case "3":
+                return "ToSleep";            
         }
+        return null;
+    }
+
+    private string PawnStatus(CadenceComposite status)
+    {
+        string statusNumber = status.CompositeFieldAs<CadenceNumber>("rawValue").Value;
+        switch (statusNumber)
+        {
+            case "0":
+                return "Normal";
+            case "1":
+                return "Paralysis";
+            case "2":
+                return "Poison";
+            case "3":
+                return "Sleep";    
+            case "4":
+                return "Defeated";            
+        }
+        return null;
     }
 }

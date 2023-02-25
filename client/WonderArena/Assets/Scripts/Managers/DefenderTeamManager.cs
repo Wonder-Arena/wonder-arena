@@ -242,7 +242,6 @@ public class DefenderTeamManager : MonoBehaviour
             Debug.Log(response.message);
         }
 
-        request.disposeUploadHandlerOnDispose = true;
-        request.disposeDownloadHandlerOnDispose = true;
+        request.Dispose();
     }
 }

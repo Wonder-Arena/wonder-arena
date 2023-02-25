@@ -245,7 +245,6 @@ public class CharacterManager : MonoBehaviour
 
         isFightDone = true;
 
-        request.disposeUploadHandlerOnDispose = true;
-        request.disposeDownloadHandlerOnDispose = true;
+        request.Dispose();
     }
 }

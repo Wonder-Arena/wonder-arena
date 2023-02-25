@@ -128,6 +128,7 @@ public class GameManager : MonoBehaviour
             Debug.Log(response.message);
         }
 
+        request.Dispose();
     }
 
     public IEnumerator ClaimBBs()
@@ -143,6 +144,8 @@ public class GameManager : MonoBehaviour
         ClaimedBeast.Response response = JsonUtility.FromJson<ClaimedBeast.Response>(request.downloadHandler.text);
 
         Debug.Log(response.message);
+        
+        request.Dispose();
     }
 
     
@@ -195,8 +198,7 @@ public class GameManager : MonoBehaviour
 
         confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().text = message;
 
-        request.disposeUploadHandlerOnDispose = true;
-        request.disposeDownloadHandlerOnDispose = true;
+        request.Dispose();
     }
 
     #endregion

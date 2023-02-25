@@ -161,8 +161,7 @@ public class LoginManager : MonoBehaviour
             errorField.text = registerResponse.message;
         }
 
-        request.disposeUploadHandlerOnDispose = true;
-        request.disposeDownloadHandlerOnDispose = true;
+        request.Dispose();
     }
 
 
@@ -197,8 +196,7 @@ public class LoginManager : MonoBehaviour
             errorField.text = loginResponse.message;
         }
 
-        request.disposeUploadHandlerOnDispose = true;
-        request.disposeDownloadHandlerOnDispose = true;
+        request.Dispose();
     }
 
     public void OnRegisterButtonClicked()
