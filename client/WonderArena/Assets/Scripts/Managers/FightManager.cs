@@ -116,16 +116,20 @@ public class FightManager : MonoBehaviour
 
         for (int i = 0; i < attackersList.Count; i++)
         {
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("HpBar").GetComponent<Image>();
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
-            .GetChild(i).Find("Name").GetComponent<Image>();
+
+            healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
+            attackersList[i].transform.GetChild(0).name.Split("_")[0];
         }
 
         for (int i = 0; i < defendersList.Count; i++)
         {
-            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
+            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
             .GetChild(i).Find("HpBar").GetComponent<Image>();
+
+            healthBars.transform.Find("Attackers").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
+            defendersList[i].transform.GetChild(0).name.Split("_")[0];
         }
 
         CadenceBase[] events = (record.CompositeFieldAs<CadenceArray>("events").Value);
@@ -163,6 +167,7 @@ public class FightManager : MonoBehaviour
         bool targetSkipped, bool targetDefeated)
     {
         // [0] - name, [1] - skin, [2] - hp, [3] - id
+
         string target = (targetBeastIDs[0] as CadenceNumber).Value;
         GameObject targetObject = GetObjectById(target);
         BeastStats targetStats = targetObject.GetComponent<BeastStats>();
@@ -185,7 +190,7 @@ public class FightManager : MonoBehaviour
             {
                 if (!isSideEffect)
                 {
-                    string log = "Skill used without side effects";
+                    string log = $"{byBeastObject.name} used skill without side effects";
                     textLog.text += log + "\n";
                     //TODO: Change the state of the beast GetObjectById(beastId).SetAnimation(skill)
                 }
@@ -195,7 +200,7 @@ public class FightManager : MonoBehaviour
             { 
                 if (!isSideEffect) //L223:
                 {
-                    string log = "Used default attack without side effects";
+                    string log = $"{byBeastObject.name} used default attack without side effects";
                     textLog.text += log + "\n";
                 }   
             }
@@ -211,11 +216,10 @@ public class FightManager : MonoBehaviour
                 bool didDamage = !IsOptionalNull(damage); // if let damage = e.damage 
                 if (didDamage) 
                 {
-                    string log = "beast suffered damage";
+                    string log = $"{targetObject.name} suffered {(damage.Value as CadenceNumber).Value} damage";
                     textLog.text += log + "\n";
                     
-                    float damageInt = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
-                    targetStats.hp -= damageInt; // subtract damage from beast class
+                    targetStats.DoDamage(damage);
                     
                     // Log that hp changed (temp)
                     string log2 = $"{targetObject.name} has this much hp left: {targetStats.hp}";
@@ -227,7 +231,7 @@ public class FightManager : MonoBehaviour
                 {
                     string log = $"{targetObject.name} going {PawnEffect(effect.Value as CadenceComposite)}";
                     textLog.text += log + "\n";
-                    //TODO: change pawnStatus whether it's poisened, sleeping or has returned to normal
+                    //TODO: change pawnStatus whether it's poisened, sleeping or has returned to normal, etc
                 } 
             }
         } 
@@ -244,11 +248,14 @@ public class FightManager : MonoBehaviour
                 
                 if (didDamage)
                 {
-                    float damageInt = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
-                    targetStats.hp -= damageInt; // subtract damage from beast class
+                    // float damageInt = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
+                    // targetStats.hp -= damageInt; // subtract damage from beast class
+                    targetStats.DoDamage(damage);
+                    
+                    string damageFloat = (damage.Value as CadenceNumber).Value;
                     
                     string log = $"{targetObject.name} suffers {PawnStatus(byStatus.Value as CadenceComposite)}" + 
-                        $" and got {damageInt} damage";
+                        $" and got {damageFloat} damage";
                     textLog.text += log + "\n";
                 }
 
@@ -276,6 +283,16 @@ public class FightManager : MonoBehaviour
             textLog.text += log + "\n";
         }
     }
+
+    // private void DoDamage(CadenceOptional damage, float hp, BeastStats beastStats)
+    // {
+    //     beastStats.currentHp = beastStats.hp;
+    //     float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
+    //     float newHp = hp - damageFloat;
+    //     beastStats.hp = newHp;
+    //     beastStats.hp = Mathf.Clamp(beastStats.hp, 0f, beastStats.maxHp);
+    //     //ChangeAnimationState("GetHurt", beastStats.gameObject);
+    // }
 
     private GameObject GetObjectById(string id)
     {
@@ -341,4 +358,14 @@ public class FightManager : MonoBehaviour
         }
         return null;
     }
+
+    private void ChangeAnimationState(string newState, GameObject beast)
+    {
+        Animator animator = beast.GetComponent<Animator>();
+
+        animator.Play(newState);
+    }
+
 }
+
+

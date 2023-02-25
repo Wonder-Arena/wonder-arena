@@ -645,7 +645,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter username...
+  m_text: ' Enter username...'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
   m_sharedMaterial: {fileID: 8846435766180450591, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
@@ -2183,7 +2183,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Confirm your password...
+  m_text: ' Confirm your password...
 
 '
   m_isRightToLeft: 0
@@ -2341,7 +2341,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter email...
+  m_text: ' Enter email...'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
   m_sharedMaterial: {fileID: 8846435766180450591, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
@@ -4878,7 +4878,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter password...
+  m_text: ' Enter password...'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
   m_sharedMaterial: {fileID: 8846435766180450591, guid: 7994168a19565cc4abddd12e560356ef, type: 2}

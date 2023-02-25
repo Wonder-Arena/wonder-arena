@@ -94,6 +94,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1782096061024230515}
   - component: {fileID: -7360593309881604327}
+  - component: {fileID: 601948250377965159}
   m_Layer: 0
   m_Name: Moon_Normal
   m_TagString: Untagged
@@ -130,3 +131,29 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HpBar: {fileID: 0}
+  maxHp: 0
+  currentHp: 0
+  hp: 0
+  id: 0
+  healthVelocity: 0
+  smoothTime: 100
+--- !u!95 &601948250377965159
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782096061024230514}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 1a3d0aea71ba5f542bbf4086fdc36d95, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
