@@ -234,6 +234,400 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
             WonderArenaBattleField_BasicBeasts1.defenderChallenges = {}
             WonderArenaBattleField_BasicBeasts1.scores = {}
         }
+
+        pub fun fight(attackerAddress: Address, attackerGroup: BeastGroup, defenderAddress: Address) {
+            let currentBlockTime = getCurrentBlock().timestamp
+            assert(currentBlockTime >= WonderArenaWorldRules_BasicBeasts1.startTime, message: "Game not start yet")
+            assert(currentBlockTime <= WonderArenaWorldRules_BasicBeasts1.endTime, message: "Game ended")
+
+            assert(attackerAddress != defenderAddress, message: "attacker and defender should not be the same")
+            if let challenges = WonderArenaBattleField_BasicBeasts1.attackerChallenges[attackerAddress] {
+                if let _challenges = challenges[defenderAddress] {
+                    assert(UInt8(_challenges.keys.length) < WonderArenaWorldRules_BasicBeasts1.maxChallengeTimes, message: "Has challenged for 3 times")
+                }
+            }
+
+            let attackerPlayerCap = WonderArenaBattleField_BasicBeasts1.players[attackerAddress]
+            assert(attackerPlayerCap != nil, message: "attacker is not registered")
+
+            let defenderPlayerCap = WonderArenaBattleField_BasicBeasts1.players[defenderAddress]
+            assert(defenderPlayerCap != nil, message: "defender is not registered")
+
+            let attackerPlayer = attackerPlayerCap!.borrow() ?? panic("Could not borrow attacker player")
+            let defenderPlayer = defenderPlayerCap!.borrow() ?? panic("Could not borrow defender player")
+
+            let attackerAccount = getAccount(attackerAddress)
+            let attackerCollection = attackerAccount
+                .getCapability(BasicBeasts.CollectionPublicPath)
+                .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
+                ?? panic("Borrow attacker pawn collection failed")
+
+            let attackerIDs: [UInt64] = []
+            let defenderIDs: [UInt64] = []
+            let pawnsMap: {UInt64: WonderArenaPawn_BasicBeasts1.Pawn} = {}
+            for id in attackerGroup.beastIDs {
+                if let attackerBeast = attackerCollection.borrowBeast(id: id) {
+                    attackerIDs.append(id)
+                    pawnsMap.insert(key: id, WonderArenaPawn_BasicBeasts1.getPawn(beast: attackerBeast))
+                }
+            }
+
+            let defenderAccount = getAccount(defenderAddress)
+            let defenderCollection = defenderAccount
+                .getCapability(BasicBeasts.CollectionPublicPath)
+                .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
+                ?? panic("Borrow defender pawn collection failed")
+
+            let defenderGroups = defenderPlayer.getDefenderGroups()
+            if defenderGroups.length == 0 {
+                panic("Defender have 0 defender group")
+            } 
+
+            let rand = unsafeRandom()
+            let index = rand % UInt64(defenderGroups.length)
+            let defenderGroup = defenderGroups[index]
+            for id in defenderGroup.beastIDs {
+                if let defenderBeast = defenderCollection.borrowBeast(id: id) {
+                    defenderIDs.append(id)
+                    pawnsMap.insert(key: id, WonderArenaPawn_BasicBeasts1.getPawn(beast: defenderBeast))
+                } 
+            }
+
+            let counter: UInt8 = 0
+            let events: [BattleEvent] = []
+            var getWinner = false
+
+            while true {
+                if getWinner {
+                    break
+                }
+
+                let pawns = pawnsMap.values
+
+                let orderedPawns = WonderArenaBattleField_BasicBeasts1.getOrderedPawns(counter: UInt64(counter), pawns: pawns)
+                for p in orderedPawns {
+                    let isAttacker = attackerIDs.contains(p.nft.id)
+                    var opponent = isAttacker ? defenderIDs : attackerIDs
+
+                    let pawn = pawnsMap[p.nft.id]!
+                    if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated {
+                        continue
+                    }
+
+                    // Pre-attack
+
+                    // Skip
+                    var shouldSkip = false
+                    if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Paralysis {
+                        let rand = unsafeRandom() % 100
+                        if rand < 25 {
+                            shouldSkip = true
+                        }
+                    } else if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Sleep {
+                        shouldSkip = true
+                    }
+
+                    if shouldSkip {
+                        let skipEvent = BattleEvent(
+                            byBeastID: nil,
+                            withSkill: nil,
+                            byStatus: pawn.status,
+                            targetBeastIDs: [pawn.nft.id],
+                            hitTheTarget: true,
+                            effect: nil,
+                            damage: nil,
+                            targetSkipped: true,
+                            targetDefeated: false,
+                            isAttackSideEffect: false
+                        )
+                        events.append(skipEvent)
+                        shouldSkip = true
+                    }
+
+                    // Damage
+                    if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Poison {
+                        let damage = pawn.maxHp / 10
+                        let event = BattleEvent(
+                            byBeastID: nil,
+                            withSkill: nil,
+                            byStatus: pawn.status,
+                            targetBeastIDs: [pawn.nft.id],
+                            hitTheTarget: true,
+                            effect: nil,
+                            damage: damage,
+                            targetSkipped: false,
+                            targetDefeated: false,
+                            isAttackSideEffect: false
+                        )
+                        events.append(event)
+                        pawn.setHp(pawn.hp < damage ? 0 : pawn.hp - damage)
+                    }
+
+                    // Damage settlement
+
+                    if pawn.hp <= 0 {
+                        let defeatedEvent = BattleEvent(
+                            byBeastID: nil,
+                            withSkill: nil,
+                            byStatus: nil,
+                            targetBeastIDs: [pawn.nft.id],
+                            hitTheTarget: true,
+                            effect: nil,
+                            damage: nil,
+                            targetSkipped: false,
+                            targetDefeated: true,
+                            isAttackSideEffect: false
+                        )
+                        events.append(defeatedEvent)
+                        pawn.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated)
+                        shouldSkip = true
+                    }
+
+                    // Cure
+                    if pawn.status != WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated {
+                        var shouldCure = false
+                        if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Paralysis 
+                            || pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Poison {
+                            let cureRand = unsafeRandom() % 100
+                            if cureRand < 25 {
+                                shouldCure = true
+                            }
+                        } else if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Sleep {
+                            shouldCure = true
+                        }
+
+                        if shouldCure {
+                            let event = BattleEvent(
+                                byBeastID: nil,
+                                withSkill: nil,
+                                byStatus: pawn.status,
+                                targetBeastIDs: [pawn.nft.id],
+                                hitTheTarget: true,
+                                effect: WonderArenaPawn_BasicBeasts1.PawnEffect.ToNormal,
+                                damage: nil,
+                                targetSkipped: false,
+                                targetDefeated: false,
+                                isAttackSideEffect: false
+                            )
+                            events.append(event)
+                            pawn.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Normal)
+                        }
+                    }
+
+                    if !shouldSkip && pawn.status != WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated {
+                        var _target: WonderArenaPawn_BasicBeasts1.Pawn? = nil
+                        for id in opponent {
+                            if pawnsMap[id]!.hp != 0 {
+                                _target = pawnsMap[id]
+                                break
+                            }
+                        }
+
+                        // Attack
+                        if let target = _target {
+                            var hitTheTarget = false
+                            let attackRand = unsafeRandom() % 100
+                            if attackRand < pawn.accuracy {
+                                hitTheTarget = true
+                            }
+
+                            if hitTheTarget {
+                                let multiplier = WonderArenaBattleField_BasicBeasts1.getTypeMultiplier(attackerType: pawn.type, defenderType: target.type)
+                                var skill: String? = nil
+                                var attackValue = pawn.attack.value
+                                if pawn.mana >= pawn.skill.manaRequired {
+                                    skill = pawn.skill.name
+                                    attackValue = pawn.skill.value
+                                    pawn.setMana(pawn.mana - pawn.skill.manaRequired)
+                                }
+
+                                let rawDamage = (attackValue * multiplier) / 100
+                                let damage: UInt64 = rawDamage > target.defense ? rawDamage - target.defense : 0
+                                let event = BattleEvent(
+                                    byBeastID: pawn.nft.id,
+                                    withSkill: skill,
+                                    byStatus: nil,
+                                    targetBeastIDs: [target.nft.id],
+                                    hitTheTarget: true,
+                                    effect: nil,
+                                    damage: damage,
+                                    targetSkipped: false,
+                                    targetDefeated: false,
+                                    isAttackSideEffect: false
+                                )
+                                events.append(event)
+                                target.setHp(target.hp < damage ? 0 : target.hp - damage)
+                                target.setMana(target.mana + damage)
+
+                                if pawn.attack.effect != WonderArenaPawn_BasicBeasts1.PawnEffect.None {
+                                    let effectRand = unsafeRandom() % 100
+                                    var effect: WonderArenaPawn_BasicBeasts1.PawnEffect? = nil
+                                    if effectRand < pawn.attack.effectProb {
+                                        effect = pawn.attack.effect
+                                        let event = BattleEvent(
+                                            byBeastID: pawn.nft.id,
+                                            withSkill: nil,
+                                            byStatus: nil,
+                                            targetBeastIDs: [target.nft.id],
+                                            hitTheTarget: true,
+                                            effect: effect,
+                                            damage: nil,
+                                            targetSkipped: false,
+                                            targetDefeated: false,
+                                            isAttackSideEffect: true
+                                        )
+                                        events.append(event)
+                                        target.setStatus(WonderArenaPawn_BasicBeasts1.effectToStatus(effect: effect!))
+                                    }
+                                }
+
+                                if target.hp <= 0 {
+                                    let defeatedEvent = BattleEvent(
+                                        byBeastID: nil,
+                                        withSkill: nil,
+                                        byStatus: nil,
+                                        targetBeastIDs: [target.nft.id],
+                                        hitTheTarget: true,
+                                        effect: nil,
+                                        damage: nil,
+                                        targetSkipped: false,
+                                        targetDefeated: true,
+                                        isAttackSideEffect: false
+                                    )
+                                    events.append(defeatedEvent)
+                                    target.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated)
+                                }
+
+                                pawnsMap[target.nft.id] = target
+                            }
+                        }
+                    }
+
+                    pawnsMap[pawn.nft.id] = pawn
+
+                    // Winner
+
+                    var winner: Address? = nil  
+                    var atLeastOneAttackerAlive = false
+                    for id in attackerIDs {
+                        if pawnsMap[id]!.hp != 0 {
+                            atLeastOneAttackerAlive = true
+                            break
+                        }
+                    }
+
+                    var atLeastOneDefenderAlive = false
+                    for id in defenderIDs {
+                        if pawnsMap[id]!.hp != 0 {
+                            atLeastOneDefenderAlive = true
+                            break
+                        }
+                    }
+
+                    if !atLeastOneAttackerAlive {
+                        winner = defenderAddress
+                    } else if !atLeastOneDefenderAlive {
+                        winner = attackerAddress
+                    }
+
+                    if let winnerAddress = winner {
+                        self.addRecord(
+                            winnerAddress: winnerAddress,
+                            attackerAddress: attackerAddress,
+                            attackerBeasts: attackerIDs,
+                            defenderAddress: defenderAddress,
+                            defenderBeasts: defenderIDs,
+                            events: events
+                        )
+                        getWinner = true
+                        break
+                    }
+                }
+            }
+        }
+
+        pub fun addRecord (
+            winnerAddress: Address,
+            attackerAddress: Address, 
+            attackerBeasts: [UInt64], 
+            defenderAddress: Address,
+            defenderBeasts: [UInt64], 
+            events: [BattleEvent]
+        ) {
+            let attackerScoreChange: Int64 = winnerAddress == attackerAddress ? 60 : -30
+            let defenderScoreChange: Int64 = winnerAddress == attackerAddress ? -30 : 60
+            let recordUUID = WonderArenaBattleField_BasicBeasts1.generateUUID()
+
+            let attackerPlayer = (WonderArenaBattleField_BasicBeasts1.players[attackerAddress]!).borrow() ?? panic("Attacker is not exist")
+            let defenderPlayer = (WonderArenaBattleField_BasicBeasts1.players[defenderAddress]!).borrow() ?? panic("Defender is not exist")
+
+            let record = ChallengeRecord(
+                id: recordUUID,
+                winner: winnerAddress,
+                attacker: PlayerStruct(name: attackerPlayer.name, address: attackerPlayer.address),
+                attackerBeasts: attackerBeasts,
+                defender: PlayerStruct(name: defenderPlayer.name, address: defenderPlayer.address),
+                defenderBeasts: defenderBeasts,
+                events: events,
+                attackerScoreChange: attackerScoreChange,
+                defenderScoreChange: defenderScoreChange
+            )
+
+            if let attackerScore = WonderArenaBattleField_BasicBeasts1.scores[attackerAddress] {
+                var newScore = attackerScore + attackerScoreChange
+                if newScore < 0 {
+                    newScore = 0
+                }
+                WonderArenaBattleField_BasicBeasts1.scores[attackerAddress] = newScore
+            } else {
+                WonderArenaBattleField_BasicBeasts1.scores[attackerAddress] = attackerScoreChange > 0 ? attackerScoreChange : 0
+            }
+
+            if let defenderScore = WonderArenaBattleField_BasicBeasts1.scores[defenderAddress] {
+                var newScore = defenderScore + defenderScoreChange
+                if newScore < 0 {
+                    newScore = 0
+                }
+                WonderArenaBattleField_BasicBeasts1.scores[defenderAddress] = newScore
+            } else {
+                WonderArenaBattleField_BasicBeasts1.scores[defenderAddress] = defenderScoreChange > 0 ? defenderScoreChange : 0
+            }
+
+            var attackerChallenges = WonderArenaBattleField_BasicBeasts1.attackerChallenges[attackerAddress]
+            if attackerChallenges == nil {
+                attackerChallenges = {}
+            }
+
+            var aRecords = attackerChallenges![defenderAddress]
+            if aRecords == nil {
+                aRecords = {}
+            }
+            aRecords!.insert(key: recordUUID, record)
+            attackerChallenges!.insert(key: defenderAddress, aRecords!)
+            WonderArenaBattleField_BasicBeasts1.attackerChallenges.insert(key: attackerAddress, attackerChallenges!)
+
+            var defenderChallenges = WonderArenaBattleField_BasicBeasts1.defenderChallenges[defenderAddress]
+            if defenderChallenges == nil {
+                defenderChallenges = {}
+            }
+
+            var dRecords = defenderChallenges![attackerAddress]
+            if dRecords == nil {
+                dRecords = {}
+            }
+            dRecords!.insert(key: recordUUID, record)
+            defenderChallenges!.insert(key: attackerAddress, dRecords!)
+            WonderArenaBattleField_BasicBeasts1.defenderChallenges.insert(key: defenderAddress, defenderChallenges!)
+
+            emit ChallengeHappened(
+                uuid: recordUUID,
+                winner: winnerAddress, 
+                attacker: attackerAddress, 
+                attackerBeasts: attackerBeasts, 
+                defender: defenderAddress, 
+                defenderBeasts: defenderBeasts
+            )
+        } 
     }
 
     pub fun getTypeMultiplier(
@@ -280,317 +674,6 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         return map[attackerType]![defenderType]!
     }
 
-    pub fun fight(attackerAddress: Address, attackerGroup: BeastGroup, defenderAddress: Address) {
-        let currentBlockTime = getCurrentBlock().timestamp
-        assert(currentBlockTime >= WonderArenaWorldRules_BasicBeasts1.startTime, message: "Game not start yet")
-        assert(currentBlockTime <= WonderArenaWorldRules_BasicBeasts1.endTime, message: "Game ended")
-
-        assert(attackerAddress != defenderAddress, message: "attacker and defender should not be the same")
-        if let challenges = self.attackerChallenges[attackerAddress] {
-            if let _challenges = challenges[defenderAddress] {
-                assert(UInt8(_challenges.keys.length) < WonderArenaWorldRules_BasicBeasts1.maxChallengeTimes, message: "Has challenged for 3 times")
-            }
-        }
-
-        let attackerPlayerCap = self.players[attackerAddress]
-        assert(attackerPlayerCap != nil, message: "attacker is not registered")
-
-        let defenderPlayerCap = self.players[defenderAddress]
-        assert(defenderPlayerCap != nil, message: "defender is not registered")
-
-        let attackerPlayer = attackerPlayerCap!.borrow() ?? panic("Could not borrow attacker player")
-        let defenderPlayer = defenderPlayerCap!.borrow() ?? panic("Could not borrow defender player")
-
-        let attackerAccount = getAccount(attackerAddress)
-        let attackerCollection = attackerAccount
-            .getCapability(BasicBeasts.CollectionPublicPath)
-            .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
-            ?? panic("Borrow attacker pawn collection failed")
-
-        let attackerIDs: [UInt64] = []
-        let defenderIDs: [UInt64] = []
-        let pawnsMap: {UInt64: WonderArenaPawn_BasicBeasts1.Pawn} = {}
-        for id in attackerGroup.beastIDs {
-            if let attackerBeast = attackerCollection.borrowBeast(id: id) {
-                attackerIDs.append(id)
-                pawnsMap.insert(key: id, WonderArenaPawn_BasicBeasts1.getPawn(beast: attackerBeast))
-            }
-        }
-
-        let defenderAccount = getAccount(defenderAddress)
-        let defenderCollection = defenderAccount
-            .getCapability(BasicBeasts.CollectionPublicPath)
-            .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
-            ?? panic("Borrow defender pawn collection failed")
-
-        let defenderGroups = defenderPlayer.getDefenderGroups()
-        if defenderGroups.length == 0 {
-            panic("Defender have 0 defender group")
-        } 
-
-        let rand = unsafeRandom()
-        let index = rand % UInt64(defenderGroups.length)
-        let defenderGroup = defenderGroups[index]
-        for id in defenderGroup.beastIDs {
-            if let defenderBeast = defenderCollection.borrowBeast(id: id) {
-                defenderIDs.append(id)
-                pawnsMap.insert(key: id, WonderArenaPawn_BasicBeasts1.getPawn(beast: defenderBeast))
-            } 
-        }
-
-        let counter: UInt8 = 0
-        let events: [BattleEvent] = []
-        var getWinner = false
-
-        while true {
-            if getWinner {
-                break
-            }
-
-            let pawns = pawnsMap.values
-
-            let orderedPawns = self.getOrderedPawns(counter: UInt64(counter), pawns: pawns)
-            for p in orderedPawns {
-                let isAttacker = attackerIDs.contains(p.nft.id)
-                var opponent = isAttacker ? defenderIDs : attackerIDs
-
-                let pawn = pawnsMap[p.nft.id]!
-                if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated {
-                    continue
-                }
-
-                // Pre-attack
-
-                // Skip
-                var shouldSkip = false
-                if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Paralysis {
-                    let rand = unsafeRandom() % 100
-                    if rand < 25 {
-                        shouldSkip = true
-                    }
-                } else if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Sleep {
-                    shouldSkip = true
-                }
-
-                if shouldSkip {
-                    let skipEvent = BattleEvent(
-                        byBeastID: nil,
-                        withSkill: nil,
-                        byStatus: pawn.status,
-                        targetBeastIDs: [pawn.nft.id],
-                        hitTheTarget: true,
-                        effect: nil,
-                        damage: nil,
-                        targetSkipped: true,
-                        targetDefeated: false,
-                        isAttackSideEffect: false
-                    )
-                    events.append(skipEvent)
-                    shouldSkip = true
-                }
-
-                // Damage
-                if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Poison {
-                    let damage = pawn.maxHp / 10
-                    let event = BattleEvent(
-                        byBeastID: nil,
-                        withSkill: nil,
-                        byStatus: pawn.status,
-                        targetBeastIDs: [pawn.nft.id],
-                        hitTheTarget: true,
-                        effect: nil,
-                        damage: damage,
-                        targetSkipped: false,
-                        targetDefeated: false,
-                        isAttackSideEffect: false
-                    )
-                    events.append(event)
-                    pawn.setHp(pawn.hp < damage ? 0 : pawn.hp - damage)
-                }
-
-                // Damage settlement
-
-                if pawn.hp <= 0 {
-                    let defeatedEvent = BattleEvent(
-                        byBeastID: nil,
-                        withSkill: nil,
-                        byStatus: nil,
-                        targetBeastIDs: [pawn.nft.id],
-                        hitTheTarget: true,
-                        effect: nil,
-                        damage: nil,
-                        targetSkipped: false,
-                        targetDefeated: true,
-                        isAttackSideEffect: false
-                    )
-                    events.append(defeatedEvent)
-                    pawn.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated)
-                    shouldSkip = true
-                }
-
-                // Cure
-                if pawn.status != WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated {
-                    var shouldCure = false
-                    if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Paralysis 
-                        || pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Poison {
-                        let cureRand = unsafeRandom() % 100
-                        if cureRand < 25 {
-                            shouldCure = true
-                        }
-                    } else if pawn.status == WonderArenaPawn_BasicBeasts1.PawnStatus.Sleep {
-                        shouldCure = true
-                    }
-
-                    if shouldCure {
-                        let event = BattleEvent(
-                            byBeastID: nil,
-                            withSkill: nil,
-                            byStatus: pawn.status,
-                            targetBeastIDs: [pawn.nft.id],
-                            hitTheTarget: true,
-                            effect: WonderArenaPawn_BasicBeasts1.PawnEffect.ToNormal,
-                            damage: nil,
-                            targetSkipped: false,
-                            targetDefeated: false,
-                            isAttackSideEffect: false
-                        )
-                        events.append(event)
-                        pawn.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Normal)
-                    }
-                }
-
-                if !shouldSkip && pawn.status != WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated {
-                    var _target: WonderArenaPawn_BasicBeasts1.Pawn? = nil
-                    for id in opponent {
-                        if pawnsMap[id]!.hp != 0 {
-                            _target = pawnsMap[id]
-                            break
-                        }
-                    }
-
-                    // Attack
-                    if let target = _target {
-                        var hitTheTarget = false
-                        let attackRand = unsafeRandom() % 100
-                        if attackRand < pawn.accuracy {
-                            hitTheTarget = true
-                        }
-
-                        if hitTheTarget {
-                            let multiplier = self.getTypeMultiplier(attackerType: pawn.type, defenderType: target.type)
-                            var skill: String? = nil
-                            var attackValue = pawn.attack.value
-                            if pawn.mana >= pawn.skill.manaRequired {
-                                skill = pawn.skill.name
-                                attackValue = pawn.skill.value
-                                pawn.setMana(pawn.mana - pawn.skill.manaRequired)
-                            }
-
-                            let rawDamage = (attackValue * multiplier) / 100
-                            let damage: UInt64 = rawDamage > target.defense ? rawDamage - target.defense : 0
-                            let event = BattleEvent(
-                                byBeastID: pawn.nft.id,
-                                withSkill: skill,
-                                byStatus: nil,
-                                targetBeastIDs: [target.nft.id],
-                                hitTheTarget: true,
-                                effect: nil,
-                                damage: damage,
-                                targetSkipped: false,
-                                targetDefeated: false,
-                                isAttackSideEffect: false
-                            )
-                            events.append(event)
-                            target.setHp(target.hp < damage ? 0 : target.hp - damage)
-                            target.setMana(target.mana + damage)
-
-                            if pawn.attack.effect != WonderArenaPawn_BasicBeasts1.PawnEffect.None {
-                                let effectRand = unsafeRandom() % 100
-                                var effect: WonderArenaPawn_BasicBeasts1.PawnEffect? = nil
-                                if effectRand < pawn.attack.effectProb {
-                                    effect = pawn.attack.effect
-                                    let event = BattleEvent(
-                                        byBeastID: pawn.nft.id,
-                                        withSkill: nil,
-                                        byStatus: nil,
-                                        targetBeastIDs: [target.nft.id],
-                                        hitTheTarget: true,
-                                        effect: effect,
-                                        damage: nil,
-                                        targetSkipped: false,
-                                        targetDefeated: false,
-                                        isAttackSideEffect: true
-                                    )
-                                    events.append(event)
-                                    target.setStatus(WonderArenaPawn_BasicBeasts1.effectToStatus(effect: effect!))
-                                }
-                            }
-
-                            if target.hp <= 0 {
-                                let defeatedEvent = BattleEvent(
-                                    byBeastID: nil,
-                                    withSkill: nil,
-                                    byStatus: nil,
-                                    targetBeastIDs: [target.nft.id],
-                                    hitTheTarget: true,
-                                    effect: nil,
-                                    damage: nil,
-                                    targetSkipped: false,
-                                    targetDefeated: true,
-                                    isAttackSideEffect: false
-                                )
-                                events.append(defeatedEvent)
-                                target.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated)
-                            }
-
-                            pawnsMap[target.nft.id] = target
-                        }
-                    }
-                }
-
-                pawnsMap[pawn.nft.id] = pawn
-
-                // Winner
-
-                var winner: Address? = nil  
-                var atLeastOneAttackerAlive = false
-                for id in attackerIDs {
-                    if pawnsMap[id]!.hp != 0 {
-                        atLeastOneAttackerAlive = true
-                        break
-                    }
-                }
-
-                var atLeastOneDefenderAlive = false
-                for id in defenderIDs {
-                    if pawnsMap[id]!.hp != 0 {
-                        atLeastOneDefenderAlive = true
-                        break
-                    }
-                }
-
-                if !atLeastOneAttackerAlive {
-                    winner = defenderAddress
-                } else if !atLeastOneDefenderAlive {
-                    winner = attackerAddress
-                }
-
-                if let winnerAddress = winner {
-                    self.addRecord(
-                        winnerAddress: winnerAddress,
-                        attackerAddress: attackerAddress,
-                        attackerBeasts: attackerIDs,
-                        defenderAddress: defenderAddress,
-                        defenderBeasts: defenderIDs,
-                        events: events
-                    )
-                    getWinner = true
-                    break
-                }
-            }
-        }
-    }
-
     pub resource EmptyResource {
         init() {}
     }
@@ -601,89 +684,6 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         destroy r
         return uuid
     }
-
-    pub fun addRecord (
-        winnerAddress: Address,
-        attackerAddress: Address, 
-        attackerBeasts: [UInt64], 
-        defenderAddress: Address,
-        defenderBeasts: [UInt64], 
-        events: [BattleEvent]
-    ) {
-        let attackerScoreChange: Int64 = winnerAddress == attackerAddress ? 60 : -30
-        let defenderScoreChange: Int64 = winnerAddress == attackerAddress ? -30 : 60
-        let recordUUID = self.generateUUID()
-
-        let attackerPlayer = (self.players[attackerAddress]!).borrow() ?? panic("Attacker is not exist")
-        let defenderPlayer = (self.players[defenderAddress]!).borrow() ?? panic("Defender is not exist")
-
-        let record = ChallengeRecord(
-            id: recordUUID,
-            winner: winnerAddress,
-            attacker: PlayerStruct(name: attackerPlayer.name, address: attackerPlayer.address),
-            attackerBeasts: attackerBeasts,
-            defender: PlayerStruct(name: defenderPlayer.name, address: defenderPlayer.address),
-            defenderBeasts: defenderBeasts,
-            events: events,
-            attackerScoreChange: attackerScoreChange,
-            defenderScoreChange: defenderScoreChange
-        )
-
-        if let attackerScore = self.scores[attackerAddress] {
-            var newScore = attackerScore + attackerScoreChange
-            if newScore < 0 {
-                newScore = 0
-            }
-            self.scores[attackerAddress] = newScore
-        } else {
-            self.scores[attackerAddress] = attackerScoreChange > 0 ? attackerScoreChange : 0
-        }
-
-        if let defenderScore = self.scores[defenderAddress] {
-            var newScore = defenderScore + defenderScoreChange
-            if newScore < 0 {
-                newScore = 0
-            }
-            self.scores[defenderAddress] = newScore
-        } else {
-            self.scores[defenderAddress] = defenderScoreChange > 0 ? defenderScoreChange : 0
-        }
-
-        var attackerChallenges = self.attackerChallenges[attackerAddress]
-        if attackerChallenges == nil {
-            attackerChallenges = {}
-        }
-
-        var aRecords = attackerChallenges![defenderAddress]
-        if aRecords == nil {
-            aRecords = {}
-        }
-        aRecords!.insert(key: recordUUID, record)
-        attackerChallenges!.insert(key: defenderAddress, aRecords!)
-        self.attackerChallenges.insert(key: attackerAddress, attackerChallenges!)
-
-        var defenderChallenges = self.defenderChallenges[defenderAddress]
-        if defenderChallenges == nil {
-            defenderChallenges = {}
-        }
-
-        var dRecords = defenderChallenges![attackerAddress]
-        if dRecords == nil {
-            dRecords = {}
-        }
-        dRecords!.insert(key: recordUUID, record)
-        defenderChallenges!.insert(key: attackerAddress, dRecords!)
-        self.defenderChallenges.insert(key: defenderAddress, defenderChallenges!)
-
-        emit ChallengeHappened(
-            uuid: recordUUID,
-            winner: winnerAddress, 
-            attacker: attackerAddress, 
-            attackerBeasts: attackerBeasts, 
-            defender: defenderAddress, 
-            defenderBeasts: defenderBeasts
-        )
-    } 
 
     pub fun getOrderedPawns(counter: UInt64, pawns: [WonderArenaPawn_BasicBeasts1.Pawn]): [WonderArenaPawn_BasicBeasts1.Pawn] {
         var swapped = true
