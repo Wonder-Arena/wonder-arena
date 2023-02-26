@@ -128,7 +128,15 @@ class flowController {
 
     static getPlayer = async (req, res, next) => {
         try {
-            let data = await flow.getPlayer(req.params.name)
+            if (!req.params.name) {
+                res.status(422).json({
+                    status: false,
+                    message: "invalid params"
+                })
+                return
+            }
+            const withRecords = req.query.basicOnly == "false"
+            let data = await flow.getPlayer(req.params.name, withRecords)
             res.status(200).json({
                 status: true,
                 message: "",

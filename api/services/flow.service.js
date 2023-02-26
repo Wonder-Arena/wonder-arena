@@ -20,7 +20,7 @@ class flowService {
 
   static decryptPrivateKey(encrypted) {
     const secret = process.env.SECRET_PASSPHRASE
-    const decrypted= CryptoJS.AES.decrypt(encrypted, secret).toString(CryptoJS.enc.Utf8)
+    const decrypted = CryptoJS.AES.decrypt(encrypted, secret).toString(CryptoJS.enc.Utf8)
     return decrypted
   }
 
@@ -31,7 +31,7 @@ class flowService {
     const key = this.decryptPrivateKey(keys[keyIndex])
 
     const signer = new FlowSigner(
-      process.env.ADMIN_ADDRESS, 
+      process.env.ADMIN_ADDRESS,
       key,
       keyIndex,
       {}
@@ -48,7 +48,7 @@ class flowService {
       {}
     )
 
-    return signer 
+    return signer
   }
 
   static generateKeypair() {
@@ -62,7 +62,7 @@ class flowService {
     }
 
     const publicKey = keypair.getPublic().encode('hex').substring(2)
-    return {privateKey: privateKey, publicKey: publicKey}
+    return { privateKey: privateKey, publicKey: publicKey }
   }
 
   static isGeneratingAccounts = false
@@ -93,7 +93,7 @@ class flowService {
     const { name, email } = data
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
+      include: { flowAccount: true }
     })
 
     if (!user) {
@@ -109,7 +109,7 @@ class flowService {
 
     const signer = await this.getAdminAccount()
 
-    const {privateKey: privateKey, publicKey: publicKeyHex} = this.generateKeypair()
+    const { privateKey: privateKey, publicKey: publicKeyHex } = this.generateKeypair()
     const code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
     import FungibleToken from 0x9a0766d93b6608b7
@@ -163,38 +163,38 @@ class flowService {
         }
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress) 
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(name, t.String),
         arg(publicKeyHex, t.String)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         let event = tx.events.find((e) => e.type == 'flow.AccountCreated')
         if (!event) {
-          throw {statusCode: 500, message: "Account generation failed"}
+          throw { statusCode: 500, message: "Account generation failed" }
         }
         const address = event.data.address
         let flowAccount = await prisma.flowAccount.create({
-            data: {
-              address: address,
-              encryptedPrivateKey: this.encryptPrivateKey(privateKey),
-              userId: user.id
-            }
-          })
-  
+          data: {
+            address: address,
+            encryptedPrivateKey: this.encryptPrivateKey(privateKey),
+            userId: user.id
+          }
+        })
+
         delete flowAccount.id
         delete flowAccount.encryptedPrivateKey
         delete flowAccount.userId
-      
+
         return flowAccount
       }
       throw "send transaction failed"
     } catch (e) {
-      throw {statusCode: 500, message: `Account generation failed ${e}`}
+      throw { statusCode: 500, message: `Account generation failed ${e}` }
     }
   }
 
@@ -202,8 +202,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -225,7 +225,7 @@ class flowService {
         return 0
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress) 
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     const groupNumber = await fcl.query({
       cadence: script,
@@ -259,7 +259,7 @@ class flowService {
       }
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress) 
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -275,7 +275,7 @@ class flowService {
       }
       throw "send transaction failed"
     } catch (e) {
-      throw {statusCode: 500, message: `Add defender group failed ${e}`}
+      throw { statusCode: 500, message: `Add defender group failed ${e}` }
     }
   }
 
@@ -283,8 +283,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -311,13 +311,13 @@ class flowService {
       }
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress) 
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(groupName, t.String)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         if (tx.status === 4 && tx.statusCode === 0) {
@@ -326,7 +326,7 @@ class flowService {
       }
       throw "send transaction failed"
     } catch (e) {
-      throw {statusCode: 500, message: `remove defender group failed ${e}`}
+      throw { statusCode: 500, message: `remove defender group failed ${e}` }
     }
   }
 
@@ -334,8 +334,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -380,25 +380,25 @@ class flowService {
         }
     }
     `
-    
+
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(user.flowAccount.address, t.Address)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         if (tx.status === 4 && tx.statusCode === 0) {
           let updatedUser = await prisma.user.update({
             where: { email },
             data: { claimedBBs: true }
-          }) 
+          })
           return updatedUser
         }
       }
       throw "send transaction failed"
     } catch (e) {
-      throw {statusCode: 500, message: `Claim BasicBeasts failed ${e}`}
+      throw { statusCode: 500, message: `Claim BasicBeasts failed ${e}` }
     }
   }
 
@@ -406,8 +406,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -444,17 +444,17 @@ class flowService {
         }
     }
     `
-    
+
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(user.flowAccount.address, t.Address),
         arg(tokenID.toString(), t.UInt64)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         if (tx.status === 4 && tx.statusCode === 0) {
-          return 
+          return
         }
       }
       throw "send transaction failed"
@@ -468,8 +468,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -504,7 +504,7 @@ class flowService {
         return 0
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress) 
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     const challengeTimes = await fcl.query({
       cadence: script,
@@ -515,7 +515,7 @@ class flowService {
     })
 
     if (challengeTimes >= 3) {
-      throw {statusCode: 422, message: "Can only challenge a player for 3 times at most"}
+      throw { statusCode: 422, message: "Can only challenge a player for 3 times at most" }
     }
 
     let signer = await this.getAdminAccount()
@@ -543,7 +543,7 @@ class flowService {
         }
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress) 
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -551,7 +551,7 @@ class flowService {
         arg(attackerIDs.map((id) => id.toString()), t.Array(t.UInt64)),
         arg(defenderAddress, t.Address)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         if (tx.status === 4 && tx.statusCode === 0) {
@@ -559,20 +559,20 @@ class flowService {
           if (!event) {
             throw "Fight failed"
           }
-          return {attacker: user.flowAccount.address, defender: defenderAddress, challengeUUID: event.data.uuid}
+          return { attacker: user.flowAccount.address, defender: defenderAddress, challengeUUID: event.data.uuid }
         }
       }
       throw "send transaction failed"
     } catch (e) {
-      throw {statusCode: 500, message: `Fight failed ${e}`}
+      throw { statusCode: 500, message: `Fight failed ${e}` }
     }
   }
 
-  static async getPlayer(name) {
+  static async getPlayer(name, withRecords) {
     const user = await prisma.user.findUnique({
       where: { name },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -582,80 +582,83 @@ class flowService {
     delete user.id
 
     if (user.flowAccount) {
-      let script = `
-      import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
-
-      pub struct PlayerInfo {
-        pub let score: Int64 
-        pub let attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}}
-        pub let defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}}
-
-        init(
-          score: Int64,
-          attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}},
-          defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}},
-        ) {
-          self.score = score
-          self.attackRecords = attackRecords
-          self.defendRecords = defendRecords
+      if (withRecords) {
+        let script = `
+        import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+  
+        pub struct PlayerInfo {
+          pub let score: Int64 
+          pub let attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}}
+          pub let defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}}
+  
+          init(
+            score: Int64,
+            attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}},
+            defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}},
+          ) {
+            self.score = score
+            self.attackRecords = attackRecords
+            self.defendRecords = defendRecords
+          }
         }
-      }
+    
+        pub fun main(address: Address): PlayerInfo {
+            var score: Int64 = 0
+            var attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} = {}
+            var defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} = {}
+            if let _attackRecords = WonderArenaBattleField_BasicBeasts1.attackerChallenges[address] {
+                attackRecords = _attackRecords
+            }
+    
+            if let _defendRecords = WonderArenaBattleField_BasicBeasts1.defenderChallenges[address] {
+                defendRecords = _defendRecords
+            }
   
-      pub fun main(address: Address): PlayerInfo {
-          var score: Int64 = 0
-          var attackRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} = {}
-          var defendRecords: {Address: {UInt64: WonderArenaBattleField_BasicBeasts1.ChallengeRecord}} = {}
-          if let _attackRecords = WonderArenaBattleField_BasicBeasts1.attackerChallenges[address] {
-              attackRecords = _attackRecords
-          }
-  
-          if let _defendRecords = WonderArenaBattleField_BasicBeasts1.defenderChallenges[address] {
-              defendRecords = _defendRecords
-          }
+            if let _score = WonderArenaBattleField_BasicBeasts1.scores[address] {
+                score = _score
+            }
+            return PlayerInfo(
+              score: score,
+              attackRecords: attackRecords,
+              defendRecords: defendRecords
+            )
+        }
+        `
+          .replace(WonderArenaPath, WonderArenaAddress)
 
-          if let _score = WonderArenaBattleField_BasicBeasts1.scores[address] {
-              score = _score
-          }
-          return PlayerInfo(
-            score: score,
-            attackRecords: attackRecords,
-            defendRecords: defendRecords
-          )
-      }
-      `
-      .replace(WonderArenaPath, WonderArenaAddress)
-
-      const playerInfo = await fcl.query({
-        cadence: script,
-        args: (arg, t) => [
-          arg(user.flowAccount.address, t.Address)
-        ]
-      })
-      
-      const attackRecords = Object.values(playerInfo.attackRecords)
-        .flatMap((r) => Object.values(r))
-
-      const defendRecords = Object.values(playerInfo.defendRecords)
-        .flatMap((r) => Object.values(r))
-
-      const records = attackRecords
-        .concat(defendRecords)
-        .sort((a, b) => {
-          const aID = parseInt(a.id)
-          const bID = parseInt(b.id)
-          return bID - aID
-        })
-        .map((r) => {
-          delete r.events
-          return r
+        const playerInfo = await fcl.query({
+          cadence: script,
+          args: (arg, t) => [
+            arg(user.flowAccount.address, t.Address)
+          ]
         })
 
-      user.challenges = records
-      user.score = parseInt(playerInfo.score)
+        const attackRecords = Object.values(playerInfo.attackRecords)
+          .flatMap((r) => Object.values(r))
+
+        const defendRecords = Object.values(playerInfo.defendRecords)
+          .flatMap((r) => Object.values(r))
+
+        const records = attackRecords
+          .concat(defendRecords)
+          .sort((a, b) => {
+            const aID = parseInt(a.id)
+            const bID = parseInt(b.id)
+            return bID - aID
+          })
+          .map((r) => {
+            delete r.events
+            return r
+          })
+
+        user.challenges = records
+        user.score = parseInt(playerInfo.score)
+      }
+
       delete user.flowAccount.id
       delete user.flowAccount.encryptedPrivateKey
       delete user.flowAccount.userId
-    } 
+    }
 
     return user
   }
@@ -664,8 +667,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -694,7 +697,7 @@ class flowService {
         return false
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress)
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     // Hardcoded
     const rewardID = '133445141'
@@ -741,14 +744,14 @@ class flowService {
         }
     }
     `
-    .replace(WonderArenaPath, WonderArenaAddress)
+      .replace(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(WonderArenaAddress, t.Address),
         arg(rewardID, t.UInt64)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         if (tx.status === 4 && tx.statusCode === 0) {
@@ -765,8 +768,8 @@ class flowService {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { flowAccount: true } 
-    }) 
+      include: { flowAccount: true }
+    })
 
     if (!user) {
       throw createError.NotFound('User not found')
@@ -777,7 +780,7 @@ class flowService {
     }
 
     try {
-      const accountInfo = await fcl.send([ fcl.getAccount(fcl.sansPrefix(parentAddress)) ])
+      const accountInfo = await fcl.send([fcl.getAccount(fcl.sansPrefix(parentAddress))])
     } catch (e) {
       throw createError.NotFound('parent address not found on the blockchain')
     }
@@ -810,7 +813,7 @@ class flowService {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(parentAddress, t.Address)
       ])
-  
+
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
         if (tx.status === 4 && tx.statusCode === 0) {
