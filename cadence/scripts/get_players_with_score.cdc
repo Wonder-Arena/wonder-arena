@@ -5,17 +5,20 @@ pub struct Player {
     pub let address: Address
     pub let score: Int64
     pub let defenderGroups: [WonderArenaBattleField_BasicBeasts1.BeastGroup]
+    pub let isChallengable: Bool
 
     init(
         name: String,
         address: Address,
         score: Int64,
-        defenderGroups: [WonderArenaBattleField_BasicBeasts1.BeastGroup]
+        defenderGroups: [WonderArenaBattleField_BasicBeasts1.BeastGroup],
+        isChallengable: Bool
     ) {
         self.name = name
         self.address = address
         self.score = score
         self.defenderGroups = defenderGroups
+        self.isChallengable = isChallengable
     }
 }
 
@@ -25,15 +28,14 @@ pub fun main(): {Address: Player} {
         if let playerCap = WonderArenaBattleField_BasicBeasts1.players[address] {
             if let _player = playerCap.borrow() {
                 let defenderGroups = _player.getDefenderGroups()
-                if defenderGroups.length > 0 {
-                    let player = Player(
-                        name: _player.name,
-                        address: address,
-                        score: WonderArenaBattleField_BasicBeasts1.scores[address] ?? 0,
-                        defenderGroups: defenderGroups
-                    )
-                    res[address] = player
-                }
+                let player = Player(
+                    name: _player.name,
+                    address: address,
+                    score: WonderArenaBattleField_BasicBeasts1.scores[address] ?? 0,
+                    defenderGroups: defenderGroups,
+                    isChallengable: defenderGroups.length > 0
+                )
+                res[address] = player
             }
         }
     }
