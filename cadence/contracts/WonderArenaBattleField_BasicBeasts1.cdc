@@ -38,6 +38,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 
         pub let targetSkipped: Bool
         pub let targetDefeated: Bool
+        pub let isAttackSideEffect: Bool
 
         init(
             byBeastID: UInt64?,
@@ -48,7 +49,8 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
             effect: WonderArenaPawn_BasicBeasts1.PawnEffect?,
             damage: UInt64?,
             targetSkipped: Bool,
-            targetDefeated: Bool
+            targetDefeated: Bool,
+            isAttackSideEffect: Bool
         ) {
             self.byBeastID = byBeastID
             self.withSkill = withSkill
@@ -59,6 +61,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
             self.damage = damage
             self.targetSkipped = targetSkipped
             self.targetDefeated = targetDefeated
+            self.isAttackSideEffect = isAttackSideEffect
         }
     }
 
@@ -93,6 +96,19 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
 	    pub let name: String
 	    pub let address: Address
         pub fun getDefenderGroups(): [BeastGroup]
+    }
+
+    pub struct PlayerStruct {
+	    pub let name: String
+	    pub let address: Address
+
+        init(
+            name: String,
+            address: Address
+        ) {
+            self.name = name
+            self.address = address
+        }
     }
 
     pub resource Player: PlayerPublic {
@@ -148,7 +164,9 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     pub struct ChallengeRecord {
         pub let id: UInt64
 	    pub let winner: Address
+        pub let attacker: PlayerStruct
 	    pub let attackerBeasts: [UInt64]
+        pub let defender: PlayerStruct
 	    pub let defenderBeasts: [UInt64]
 	    pub let events: [BattleEvent]
         pub let attackerScoreChange: Int64
@@ -157,7 +175,9 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         init(
             id: UInt64,
             winner: Address,
+            attacker: PlayerStruct,
 	        attackerBeasts: [UInt64],
+            defender: PlayerStruct,
 	        defenderBeasts: [UInt64],
 	        events: [BattleEvent],
             attackerScoreChange: Int64,
@@ -165,7 +185,9 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         ) {
             self.id = id
             self.winner = winner
+            self.attacker = attacker
             self.attackerBeasts = attackerBeasts
+            self.defender = defender
             self.defenderBeasts = defenderBeasts
             self.events = events
             self.attackerScoreChange = attackerScoreChange
@@ -360,7 +382,8 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                         effect: nil,
                         damage: nil,
                         targetSkipped: true,
-                        targetDefeated: false
+                        targetDefeated: false,
+                        isAttackSideEffect: false
                     )
                     events.append(skipEvent)
                     shouldSkip = true
@@ -378,7 +401,8 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                         effect: nil,
                         damage: damage,
                         targetSkipped: false,
-                        targetDefeated: false
+                        targetDefeated: false,
+                        isAttackSideEffect: false
                     )
                     events.append(event)
                     pawn.setHp(pawn.hp < damage ? 0 : pawn.hp - damage)
@@ -396,7 +420,8 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                         effect: nil,
                         damage: nil,
                         targetSkipped: false,
-                        targetDefeated: true 
+                        targetDefeated: true,
+                        isAttackSideEffect: false
                     )
                     events.append(defeatedEvent)
                     pawn.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated)
@@ -426,7 +451,8 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                             effect: WonderArenaPawn_BasicBeasts1.PawnEffect.ToNormal,
                             damage: nil,
                             targetSkipped: false,
-                            targetDefeated: false
+                            targetDefeated: false,
+                            isAttackSideEffect: false
                         )
                         events.append(event)
                         pawn.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Normal)
@@ -471,29 +497,33 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                                 effect: nil,
                                 damage: damage,
                                 targetSkipped: false,
-                                targetDefeated: false
+                                targetDefeated: false,
+                                isAttackSideEffect: false
                             )
                             events.append(event)
                             target.setHp(target.hp < damage ? 0 : target.hp - damage)
                             target.setMana(target.mana + damage)
 
-                            let effectRand = unsafeRandom() % 100
-                            var effect: WonderArenaPawn_BasicBeasts1.PawnEffect? = nil
-                            if effectRand < pawn.attack.effectProb && pawn.attack.effect != WonderArenaPawn_BasicBeasts1.PawnEffect.None {
-                                effect = pawn.attack.effect
-                                let event = BattleEvent(
-                                    byBeastID: pawn.nft.id,
-                                    withSkill: nil,
-                                    byStatus: nil,
-                                    targetBeastIDs: [target.nft.id],
-                                    hitTheTarget: true,
-                                    effect: effect,
-                                    damage: nil,
-                                    targetSkipped: false,
-                                    targetDefeated: false
-                                )
-                                events.append(event)
-                                target.setStatus(WonderArenaPawn_BasicBeasts1.effectToStatus(effect: effect!))
+                            if pawn.attack.effect != WonderArenaPawn_BasicBeasts1.PawnEffect.None {
+                                let effectRand = unsafeRandom() % 100
+                                var effect: WonderArenaPawn_BasicBeasts1.PawnEffect? = nil
+                                if effectRand < pawn.attack.effectProb {
+                                    effect = pawn.attack.effect
+                                    let event = BattleEvent(
+                                        byBeastID: pawn.nft.id,
+                                        withSkill: nil,
+                                        byStatus: nil,
+                                        targetBeastIDs: [target.nft.id],
+                                        hitTheTarget: true,
+                                        effect: effect,
+                                        damage: nil,
+                                        targetSkipped: false,
+                                        targetDefeated: false,
+                                        isAttackSideEffect: true
+                                    )
+                                    events.append(event)
+                                    target.setStatus(WonderArenaPawn_BasicBeasts1.effectToStatus(effect: effect!))
+                                }
                             }
 
                             if target.hp <= 0 {
@@ -506,7 +536,8 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                                     effect: nil,
                                     damage: nil,
                                     targetSkipped: false,
-                                    targetDefeated: true 
+                                    targetDefeated: true,
+                                    isAttackSideEffect: false
                                 )
                                 events.append(defeatedEvent)
                                 target.setStatus(WonderArenaPawn_BasicBeasts1.PawnStatus.Defeated)
@@ -545,7 +576,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                 }
 
                 if let winnerAddress = winner {
-                    self.recordWinner(
+                    self.addRecord(
                         winnerAddress: winnerAddress,
                         attackerAddress: attackerAddress,
                         attackerBeasts: attackerIDs,
@@ -571,7 +602,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         return uuid
     }
 
-    pub fun recordWinner(
+    pub fun addRecord (
         winnerAddress: Address,
         attackerAddress: Address, 
         attackerBeasts: [UInt64], 
@@ -583,10 +614,15 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
         let defenderScoreChange: Int64 = winnerAddress == attackerAddress ? -30 : 60
         let recordUUID = self.generateUUID()
 
+        let attackerPlayer = (self.players[attackerAddress]!).borrow() ?? panic("Attacker is not exist")
+        let defenderPlayer = (self.players[defenderAddress]!).borrow() ?? panic("Defender is not exist")
+
         let record = ChallengeRecord(
             id: recordUUID,
             winner: winnerAddress,
+            attacker: PlayerStruct(name: attackerPlayer.name, address: attackerPlayer.address),
             attackerBeasts: attackerBeasts,
+            defender: PlayerStruct(name: defenderPlayer.name, address: defenderPlayer.address),
             defenderBeasts: defenderBeasts,
             events: events,
             attackerScoreChange: attackerScoreChange,
