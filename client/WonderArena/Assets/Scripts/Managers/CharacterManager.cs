@@ -140,26 +140,42 @@ public class CharacterManager : MonoBehaviour
             }
         }
 
+        List<string> beastsNames = new();
+
+        foreach (GameObject attacker in listOfAttackerGroup)
+        {
+            if (attacker != null)
+            {
+                beastsNames.Add(attacker.name);
+            }
+            else
+            {
+                beastsNames.Add(null);
+            }      
+        }
+
         // Deleting all of the previous selected units and refilling it again
-        foreach (Transform child in ui_SelectedUnits.transform)
-        {
-            foreach (Transform childInChild in child)
-            {
-                Destroy(childInChild.gameObject);
-            }
-        }
-        for (int i = 0; i < listOfAttackerGroup.Count; i++)
-        {
-            if (listOfAttackerGroup[i] != null)
-            {
-                GameObject newSelectedUnit = Instantiate(listOfAttackerGroup[i], ui_SelectedUnits.transform.GetChild(i));
-                newSelectedUnit.name = listOfAttackerGroup[i].name;
-                newSelectedUnit.transform.Find("SelectedBackground").gameObject.SetActive(false);
-                newSelectedUnit.transform.Find("Background").gameObject.SetActive(false);
-                newSelectedUnit.transform.Find("Shadow").gameObject.SetActive(false);
-                newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
-            }
-        }
+        // foreach (Transform child in ui_SelectedUnits.transform)
+        // {
+        //     foreach (Transform childInChild in child)
+        //     {
+        //         Destroy(childInChild.gameObject);
+        //     }
+        // }
+        // for (int i = 0; i < listOfAttackerGroup.Count; i++)
+        // {
+        //     if (listOfAttackerGroup[i] != null)
+        //     {
+        //         GameObject newSelectedUnit = Instantiate(listOfAttackerGroup[i], ui_SelectedUnits.transform.GetChild(i));
+        //         newSelectedUnit.name = listOfAttackerGroup[i].name;
+        //         newSelectedUnit.transform.Find("SelectedBackground").gameObject.SetActive(false);
+        //         newSelectedUnit.transform.Find("Background").gameObject.SetActive(false);
+        //         newSelectedUnit.transform.Find("Shadow").gameObject.SetActive(false);
+        //         newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
+        //     }
+        // }
+
+        PlatformSetter.Instance.SetAllBeast(beastsNames);
     }
 
     public void OnConfirmClicked()
