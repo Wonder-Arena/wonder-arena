@@ -111,6 +111,7 @@ public class CharacterManager : MonoBehaviour
                 {
                     GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
                     newSelectionBeast.name = $"{selectionBeast.name}_{hpOfPawn}_{nftId}";
+                    newSelectionBeast.transform.Find("Platform").gameObject.SetActive(false);
                 }
             }
         }
@@ -153,7 +154,10 @@ public class CharacterManager : MonoBehaviour
             {
                 GameObject newSelectedUnit = Instantiate(listOfAttackerGroup[i], ui_SelectedUnits.transform.GetChild(i));
                 newSelectedUnit.name = listOfAttackerGroup[i].name;
-                Destroy(newSelectedUnit.transform.GetChild(1).gameObject);
+                newSelectedUnit.transform.Find("SelectedBackground").gameObject.SetActive(false);
+                newSelectedUnit.transform.Find("Background").gameObject.SetActive(false);
+                newSelectedUnit.transform.Find("Shadow").gameObject.SetActive(false);
+                newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
             }
         }
     }

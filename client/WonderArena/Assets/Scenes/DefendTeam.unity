@@ -159,7 +159,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -430, y: -429}
+  m_AnchoredPosition: {x: -300, y: -429}
   m_SizeDelta: {x: 220, y: 80}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &65118219
@@ -205,7 +205,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1433823649}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1846826721}
+        m_TargetAssemblyTypeName: TeamsManager, Assembly-CSharp
+        m_MethodName: DeleteTeam
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &79816654
 GameObject:
   m_ObjectHideFlags: 0
@@ -1980,7 +1992,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1637053567
 RectTransform:
   m_ObjectHideFlags: 0
@@ -2559,6 +2571,7 @@ MonoBehaviour:
   - {fileID: 8956028077105517844, guid: 67bd0b8ead3ad6948b706e1d93cdb3f3, type: 3}
   - {fileID: 8956028077105517844, guid: 9ac6dbd866fe7b441a6e892a71ed8e1a, type: 3}
   - {fileID: 8956028077105517844, guid: 76d5551a678ab554db226ec66fc8b7b6, type: 3}
+  selectedTeam: {fileID: 0}
 --- !u!1 &1857668599
 GameObject:
   m_ObjectHideFlags: 0

@@ -78,7 +78,7 @@ public class TabGroup : MonoBehaviour
 
     private void GetTeamInDefendTeam(int index)
     {
-        currentSceneManager.transform.GetComponent<TeamsManager>().SetPlatforms(transform.GetChild(index).transform);
+        currentSceneManager.transform.GetComponent<TeamsManager>().selectedTeam = transform.GetChild(index).transform;
     }
 
     public void ResetTabs()

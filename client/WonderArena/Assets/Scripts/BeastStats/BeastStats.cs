@@ -14,19 +14,9 @@ public class BeastStats : MonoBehaviour
     public float hp;
     public int id;
     public float healthVelocity;
-    public float smoothTime = 100f;
-
-    private bool doingDamage = false;
+    private bool firstDamage = false;
     [SerializeField] float newHp;
 
-    // void Update()
-    // {
-    //     newHp = Mathf.SmoothDamp(HpBar.fillAmount, hp, ref healthVelocity, smoothTime);
-    //     HpBar.fillAmount = newHp;
-    // }
-
-
-    //chat gpt
     public float healthSpeed = 0.1f;
 
     private void Start()
@@ -36,45 +26,21 @@ public class BeastStats : MonoBehaviour
 
     public void DoDamage(CadenceOptional damage) 
     {
-        doingDamage = true;
-        // currentHp = hp; // Why do we have this?
-
+        firstDamage = true;
         float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
-
-        // float newHp = hp - damageFloat;
-        // hp = newHp;
         hp -= damageFloat;
         hp = Mathf.Clamp(hp, 0f, maxHp);
     }
 
     private void Update()
     {
-        if (doingDamage)
+        if (firstDamage)
         {
             float targetHp = hp / maxHp;
             newHp = Mathf.SmoothDamp(HpBar.fillAmount, targetHp, ref healthVelocity, healthSpeed);
             HpBar.fillAmount = newHp;
         } 
     }
-
-    // public void TakeDamage(float damage)
-    // {
-    //     currentHp -= damage;
-    //     currentHp = Mathf.Clamp(currentHp, 0f, maxHp);
-    // }
-
-    /*
-    private void DoDamage(CadenceOptional damage, float hp, BeastStats beastStats)
-    {
-        beastStats.currentHp = beastStats.hp;
-        float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
-        float newHp = hp - damageFloat;
-        beastStats.hp = newHp;
-        beastStats.hp = Mathf.Clamp(beastStats.hp, 0f, beastStats.maxHp);
-        //ChangeAnimationState("GetHurt", beastStats.gameObject);
-    }
-    */
-
     
 }
 

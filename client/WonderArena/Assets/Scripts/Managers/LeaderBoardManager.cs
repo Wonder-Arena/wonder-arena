@@ -17,6 +17,12 @@ public class LeaderBoardManager : MonoBehaviour
     [SerializeField]
     Button challengePlayerButton;
 
+    [SerializeField]
+    TextMeshProUGUI battlePlayed;
+
+    [SerializeField]
+    TextMeshProUGUI battleWon;
+
     Dictionary<string, int> allPlayersScore = new();
     string selectedFlowAddress;
     public bool gotPlayer;
@@ -27,6 +33,8 @@ public class LeaderBoardManager : MonoBehaviour
     {
         flowInterface = FlowInterfaceBB.Instance;
         challengePlayerButton = challengePlayerButton.GetComponent<Button>();
+        battlePlayed = battlePlayed.GetComponent<TextMeshProUGUI>();
+        battleWon = battleWon.GetComponent<TextMeshProUGUI>();
     }
 
     public void Update()
@@ -129,6 +137,7 @@ public class LeaderBoardManager : MonoBehaviour
             gotPlayer = true;
             selectedFlowAddress = response.data.flowAccount.address;
             GameManager.Instance.lastDefenderAddress = selectedFlowAddress;
+            SetPlayedData(response.data.challenges, response.data.flowAccount.address);
             Debug.Log(selectedFlowAddress);
         }
         else
@@ -136,9 +145,24 @@ public class LeaderBoardManager : MonoBehaviour
             GameManager.Instance.lastDefenderAddress = null;
             Debug.Log(response.message);
         }
-        
+
         request.Dispose();
 
+    }
+
+    private void SetPlayedData(List<Player.ChallengeData> challenges, string selectedAddress)
+    {
+        int battleWonInt = 0;
+        foreach (var challenge in challenges)
+        {
+            if (challenge.winner == selectedAddress)
+            {
+                battleWonInt += 1;
+            }
+        }
+        
+        battlePlayed.text = challenges.Count().ToString();
+        battleWon.text = battleWonInt.ToString();
     }
 
     [System.Serializable]
@@ -159,6 +183,19 @@ public class LeaderBoardManager : MonoBehaviour
             public string name;
             public bool claimedBBs;
             public FlowAccount flowAccount;
+
+            public List<ChallengeData> challenges;
+        }
+
+        [System.Serializable]
+        public class ChallengeData
+        {
+            public string id;
+            public string winner;
+            public List<string> attackerBeasts;
+            public List<string> defenderBeasts;
+            public string attackerScoreChange;
+            public string defenderScoreChange;
         }
 
         [System.Serializable]
@@ -168,3 +205,4 @@ public class LeaderBoardManager : MonoBehaviour
         }
     }
 }
+

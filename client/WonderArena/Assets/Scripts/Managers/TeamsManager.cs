@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Networking;
+using System.Text;
 
 public class TeamsManager : MonoBehaviour
 {
@@ -12,6 +14,8 @@ public class TeamsManager : MonoBehaviour
     GameObject teamCardPrefab;
     [SerializeField]
     List<GameObject> allBeastsPrefabs;
+
+    public Transform selectedTeam = null;
 
     public Dictionary<string, List<string>> userDefenderTeam = new();
 
@@ -50,9 +54,9 @@ public class TeamsManager : MonoBehaviour
         }
     }
 
-    public void SetPlatforms(Transform buttonTransform)
+    public void SetPlatforms()
     {
-        Transform beastGroup = buttonTransform.Find("BeastGroup");
+        Transform beastGroup = selectedTeam.Find("BeastGroup");
 
         //foreach (GameObject beastPrefab in allBeastsPrefabs)
         //{
@@ -63,5 +67,79 @@ public class TeamsManager : MonoBehaviour
         //        Destroy(newBeastIcon.transform.Find("Platform").gameObject);
         //    }
         //}
+    }
+
+    public void DeleteTeam()
+    {
+        StartCoroutine(RemoveDefenderGroup());
+    }
+
+    private IEnumerator RemoveDefenderGroup()
+    {
+        if (selectedTeam != null)
+        {
+            string _teamName = selectedTeam.Find("TeamName").GetComponent<TextMeshProUGUI>().text;
+
+            DefenderGroup.Request defenderGroupRequest = JsonUtility.FromJson<DefenderGroup.Request>(@"{""groupName"": ""Figters""}");
+
+            defenderGroupRequest.groupName = _teamName;
+
+            string newJson = JsonUtility.ToJson(defenderGroupRequest);
+
+            yield return StartCoroutine(RemoveTeam(GameManager.Instance.endpointPATH + GameManager.Instance.removeDefenderTeamPATH,
+                newJson, GameManager.Instance.userAccessToken));
+        }
+    }
+        
+
+    private IEnumerator RemoveTeam(string url, string bodyJsonString, string accessToken)
+    {
+        var request = new UnityWebRequest(url, "POST");
+        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", $"Bearer {accessToken}");
+        yield return request.SendWebRequest();
+
+        while (!request.isDone)
+        {
+            int dots = ((int)(Time.time * 2.0f) % 4);
+            Debug.Log("Deleting a team" + new string('.', dots));
+            yield return null;
+        }
+
+        Debug.Log("Status Code: " + request.responseCode);
+        Debug.Log(request.downloadHandler.text);
+
+        DefenderGroup.Response response = JsonUtility.FromJson<DefenderGroup.Response>(request.downloadHandler.text);
+
+        if (response.status == true)
+        {
+            Debug.Log(response.message);
+        }
+        else
+        {
+            Debug.Log(response.message);
+        }
+
+        request.Dispose();
+    }
+
+    [System.Serializable]
+    public class DefenderGroup
+    {
+        [System.Serializable]
+        public class Request
+        {
+            public string groupName;
+        }
+
+        [System.Serializable]
+        public class Response
+        {
+            public bool status;
+            public string message;
+        }
     }
 }

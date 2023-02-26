@@ -17,12 +17,21 @@ public class FightManager : MonoBehaviour
     public List<CadenceComposite> allAttackerPawns = new();
     public CadenceComposite record;
 
+    public string winner;
+
     [SerializeField]
     List<GameObject> allPawnsPrefabs;
     [SerializeField]
     List<GameObject> attackersList;
     [SerializeField]
     List<GameObject> defendersList;
+
+    [SerializeField]
+    GameObject winScreen;
+    string attackerScoreChange;
+    [SerializeField]
+    GameObject defeatScreen;
+    string defenderScoreChange;
 
     [SerializeField]
     TextMeshProUGUI textLog;
@@ -38,7 +47,10 @@ public class FightManager : MonoBehaviour
     }
 
     private void Start()
-    {
+    {   
+        winScreen.SetActive(false);
+        defeatScreen.SetActive(false);
+
         if (FlowInterfaceBB.Instance.challengeRecords.Value != null)
         {
             record = (FlowInterfaceBB.Instance.challengeRecords.Value as CadenceComposite);
@@ -107,8 +119,10 @@ public class FightManager : MonoBehaviour
     private IEnumerator SimulateFight()
     {
         string id = (record.CompositeFieldAs<CadenceNumber>("id").Value);
-        string winner = (record.CompositeFieldAs<CadenceAddress>("winner").Value);
+        winner = (record.CompositeFieldAs<CadenceAddress>("winner").Value);
         CadenceBase[] defenders = (record.CompositeFieldAs<CadenceArray>("defenderBeasts").Value);
+        attackerScoreChange = (record.CompositeFieldAs<CadenceNumber>("attackerScoreChange").Value);
+        defenderScoreChange = (record.CompositeFieldAs<CadenceNumber>("defenderScoreChange").Value);
 
         yield return StartCoroutine(FlowInterfaceBB.Instance.GetDefenderPawnsNames(defenders));
 
@@ -134,21 +148,28 @@ public class FightManager : MonoBehaviour
 
         CadenceBase[] events = (record.CompositeFieldAs<CadenceArray>("events").Value);
 
-        foreach (CadenceComposite _event in events)
-            {
-                CadenceOptional byBeastId = _event.CompositeFieldAs<CadenceOptional>("byBeastID");
-                CadenceOptional withSkill = _event.CompositeFieldAs<CadenceOptional>("withSkill");
-                CadenceOptional byStatus = _event.CompositeFieldAs<CadenceOptional>("byStatus");
-                CadenceBase[] targetBeastIDs = _event.CompositeFieldAs<CadenceArray>("targetBeastIDs").Value;
-                bool hitTheTarget = _event.CompositeFieldAs<CadenceBool>("hitTheTarget").Value;
-                CadenceOptional effect = _event.CompositeFieldAs<CadenceOptional>("effect");
-                CadenceOptional damage = _event.CompositeFieldAs<CadenceOptional>("damage");
-                bool targetSkipped = _event.CompositeFieldAs<CadenceBool>("targetSkipped").Value;
-                bool targetDefeated = _event.CompositeFieldAs<CadenceBool>("targetDefeated").Value;
 
-                SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, hitTheTarget, effect, damage, targetSkipped, targetDefeated);
-                yield return new WaitForSeconds(5);
-            }
+        int index = 0;
+        foreach (CadenceComposite _event in events)
+        {
+            index += 1;
+            CadenceOptional byBeastId = _event.CompositeFieldAs<CadenceOptional>("byBeastID");
+            CadenceOptional withSkill = _event.CompositeFieldAs<CadenceOptional>("withSkill");
+            CadenceOptional byStatus = _event.CompositeFieldAs<CadenceOptional>("byStatus");
+            CadenceBase[] targetBeastIDs = _event.CompositeFieldAs<CadenceArray>("targetBeastIDs").Value;
+            bool hitTheTarget = _event.CompositeFieldAs<CadenceBool>("hitTheTarget").Value;
+            CadenceOptional effect = _event.CompositeFieldAs<CadenceOptional>("effect");
+            CadenceOptional damage = _event.CompositeFieldAs<CadenceOptional>("damage");
+            bool targetSkipped = _event.CompositeFieldAs<CadenceBool>("targetSkipped").Value;
+            bool targetDefeated = _event.CompositeFieldAs<CadenceBool>("targetDefeated").Value;
+
+            textLog.text = "Event: " + index.ToString() + ":\n";
+            SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, hitTheTarget, effect, damage, targetSkipped, targetDefeated);
+            yield return new WaitForSeconds(5);
+        }
+
+        SetResultScreen();
+
     }
 
 
@@ -182,55 +203,50 @@ public class FightManager : MonoBehaviour
             GameObject byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
             BeastStats byBeastStats = byBeastObject.GetComponent<BeastStats>();
             
+            textLog.text += $"{byBeastObject.name.Split("_")[0]}";
+
             // L214: let isSideEffect = e.effect != nil
             
             // L217: case 1.1: if skill exist
             bool isSkillUsed = !IsOptionalNull(withSkill);
-            if (isSkillUsed)
+            if (isSkillUsed) // 1.1.1 log("NAME used")
             {
+                string skillName = (withSkill.Value as CadenceString).Value;
                 if (!isSideEffect)
                 {
-                    string log = $"{byBeastObject.name} used skill without side effects";
-                    textLog.text += log + "\n";
+                    textLog.text += $" used \"{skillName}\" without side effects";
                     //TODO: Change the state of the beast GetObjectById(beastId).SetAnimation(skill)
                 }
             }
-
-            else
+            else // 1.1.2 log("NAME attacked TARGET")
             { 
                 if (!isSideEffect) //L223:
                 {
-                    string log = $"{byBeastObject.name} used default attack without side effects";
-                    textLog.text += log + "\n";
+                    textLog.text += $" used default attack without side effects";
                 }   
             }
-
+            // TODO: add delay here
             if (!hitTheTarget && !isSideEffect)
             {
-                string log = "Miss!";
-                textLog.text += log + "\n";
+                textLog.text += "Miss!";
             }
-            
             else
             {
                 bool didDamage = !IsOptionalNull(damage); // if let damage = e.damage 
-                if (didDamage) 
+                if (didDamage) // log("that's a lot of damage")
                 {
-                    string log = $"{targetObject.name} suffered {(damage.Value as CadenceNumber).Value} damage";
-                    textLog.text += log + "\n";
+                    textLog.text += $"\n {targetObject.name} suffered {(damage.Value as CadenceNumber).Value} damage";
                     
                     targetStats.DoDamage(damage);
                     
                     // Log that hp changed (temp)
-                    string log2 = $"{targetObject.name} has this much hp left: {targetStats.hp}";
-                    textLog.text += log2 + "\n";
+                    textLog.text += $" and now has this much hp left: {targetStats.hp}";
                 } 
                 
                 // pub let effect: PawnEffect?
                 else if (isSideEffect) // L230_old: else if let effect = e.effect 
                 {
-                    string log = $"{targetObject.name} going {PawnEffect(effect.Value as CadenceComposite)}";
-                    textLog.text += log + "\n";
+                    textLog.text += $" and now {targetObject.name} going {PawnEffect(effect.Value as CadenceComposite)}!";
                     //TODO: change pawnStatus whether it's poisened, sleeping or has returned to normal, etc
                 } 
             }
@@ -254,21 +270,19 @@ public class FightManager : MonoBehaviour
                     
                     string damageFloat = (damage.Value as CadenceNumber).Value;
                     
-                    string log = $"{targetObject.name} suffers {PawnStatus(byStatus.Value as CadenceComposite)}" + 
-                        $" and got {damageFloat} damage";
-                    textLog.text += log + "\n";
+                    textLog.text += 
+                    $"{targetObject.name} suffers {PawnStatus(byStatus.Value as CadenceComposite)} and got {damageFloat} damage";
                 }
 
                 else if (targetSkipped)
                 {
-                    string log = $"{targetObject.name} is skipping next turn due to {PawnStatus(byStatus.Value as CadenceComposite)}";
-                    textLog.text += log + "\n";    
+                    textLog.text += 
+                    $"{targetObject.name} is skipping next turn due to {PawnStatus(byStatus.Value as CadenceComposite)}!"; 
                 }
 
-                else if (isSideEffect)
+                else if (isSideEffect) //TODO: this is wrong only happens when isSideEffect == ToNormal
                 {
-                    string log = $"{targetObject.name} now is Normal!";
-                    textLog.text += log + "\n";
+                    textLog.text += $"{targetObject.name} now is in Normal state!";
                 }
             }
         } 
@@ -279,20 +293,9 @@ public class FightManager : MonoBehaviour
 
         else if (targetDefeated)
         {
-            string log = $"{targetObject.name} is defeated!";
-            textLog.text += log + "\n";
+            textLog.text += $"{targetObject.name} is defeated!";
         }
     }
-
-    // private void DoDamage(CadenceOptional damage, float hp, BeastStats beastStats)
-    // {
-    //     beastStats.currentHp = beastStats.hp;
-    //     float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
-    //     float newHp = hp - damageFloat;
-    //     beastStats.hp = newHp;
-    //     beastStats.hp = Mathf.Clamp(beastStats.hp, 0f, beastStats.maxHp);
-    //     //ChangeAnimationState("GetHurt", beastStats.gameObject);
-    // }
 
     private GameObject GetObjectById(string id)
     {
@@ -365,6 +368,111 @@ public class FightManager : MonoBehaviour
 
         animator.Play(newState);
     }
+
+    private void SetResultScreen()
+    {
+        if (winner == GameManager.Instance.userFlowAddress)
+        {
+            SetScreen(winScreen);
+        }
+        else
+        {
+            SetScreen(defeatScreen);
+        }
+    }
+
+    private void SetScreen(GameObject screen)
+    {
+        screen.SetActive(true);
+        screen.transform.Find("Score").Find("Value").GetComponent<TextMeshProUGUI>().text = attackerScoreChange;
+        screen.transform.Find("EnemyScore").Find("Value").GetComponent<TextMeshProUGUI>().text = defenderScoreChange;
+    }
+
+
+/*
+    
+
+*/
+
+/*
+Event: 1:
+Moon used default attack without side effects -> Moon attacked Shen
+ Shen_Normal suffered 5 damage and now has this much hp left: 75 -> 
+
+ Event: 2:
+Moon used default attack without side effects
+ Azazel_Normal suffered 20 damage and now has this much hp left: 40
+
+ Event: 3:
+Azazel used default attack without side effects
+ Shen_Normal suffered 80 damage and now has this much hp left: 0
+ 
+ Event: 4:
+Shen_Normal is defeated!
+
+Event: 5:
+Saber used default attack without side effects
+ Saber_Normal suffered 0 damage and now has this much hp left: 70
+ 
+ Event: 0:
+Saber used default attack without side effects
+ Azazel_Normal suffered 50 damage and now has this much hp left: 0
+ 
+ Event: 0:
+Azazel_Normal is defeated!
+
+Event: 0:
+Moon used default attack without side effects
+ Saber_Normal suffered 45 damage and now has this much hp left: 25
+ 
+ Event: 0:
+Moon used default attack without side effects
+ Moon_Normal suffered 10 damage and now has this much hp left: 60
+ 
+ Event: 0:
+Saber used default attack without side effects
+ Saber_Normal suffered 0 damage and now has this much hp left: 25
+ 
+ Event: 0:
+Saber used default attack without side effects
+ Moon_Normal suffered 25 damage and now has this much hp left: 35
+ 
+ Event: 0:
+Moon used default attack without side effects
+ Saber_Normal suffered 45 damage and now has this much hp left: 0
+ 
+ Event: 0:
+Saber_Normal is defeated!Event: 0:
+Moon used default attack without side effects
+ Moon_Normal suffered 10 damage and now has this much hp left: 25
+ 
+ Event: 0:
+Saber used default attack without side effects
+ Moon_Normal suffered 25 damage and now has this much hp left: 45
+ 
+ Event: 0:
+Moon used default attack without side effects
+ Moon_Normal suffered 10 damage and now has this much hp left: 35
+ 
+ Event: 0:
+Moon used default attack without side effects
+ Moon_Normal suffered 10 damage and now has this much hp left: 15
+ 
+ Event: 0:
+Saber used default attack without side effects
+ Moon_Normal suffered 25 damage and now has this much hp left: 10
+ 
+ Event: 0:
+Moon used "Mega Volt Crash" without side effects
+ Moon_Normal suffered 40 damage and now has this much hp left: 0
+ 
+ Event: 0:
+Moon_Normal is defeated!
+
+*/
+
+
+
 
 }
 

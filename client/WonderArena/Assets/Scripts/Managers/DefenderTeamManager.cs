@@ -113,6 +113,7 @@ public class DefenderTeamManager : MonoBehaviour
                 {
                     GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
                     newSelectionBeast.name = $"{selectionBeast.name}_{hpOfPawn}_{nftId}";
+                    newSelectionBeast.transform.Find("Platform").gameObject.SetActive(false);
                 }
             }
         }
@@ -155,7 +156,10 @@ public class DefenderTeamManager : MonoBehaviour
             {
                 GameObject newSelectedUnit = Instantiate(listOfDefenderGroup[i], ui_SelectedUnits.transform.GetChild(i));
                 newSelectedUnit.name = listOfDefenderGroup[i].name;
-                Destroy(newSelectedUnit.transform.GetChild(1).gameObject);
+                newSelectedUnit.transform.Find("SelectedBackground").gameObject.SetActive(false);
+                newSelectedUnit.transform.Find("Background").gameObject.SetActive(false);
+                newSelectedUnit.transform.Find("Shadow").gameObject.SetActive(false);
+                newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
             }
         }
     }
@@ -201,14 +205,13 @@ public class DefenderTeamManager : MonoBehaviour
 
             string newJson = JsonUtility.ToJson(defenderGroupRequest);
 
-            StartCoroutine(AddDefenderTeam(GameManager.Instance.endpointPATH + GameManager.Instance.addDefenderTeamPATH,
+            yield return StartCoroutine(AddDefenderTeam(GameManager.Instance.endpointPATH + GameManager.Instance.addDefenderTeamPATH,
                 newJson, GameManager.Instance.userAccessToken));
         }
         else
         {
             Debug.Log("Select your comp");
         }
-        yield return null;
     }
 
     private IEnumerator AddDefenderTeam(string url, string bodyJsonString, string accessToken)
