@@ -28,6 +28,8 @@ public class FightManager : MonoBehaviour
 
     [SerializeField]
     GameObject winScreen;
+    [SerializeField]
+    GameObject resultBeasts;
     string attackerScoreChange;
     [SerializeField]
     GameObject defeatScreen;
@@ -51,6 +53,7 @@ public class FightManager : MonoBehaviour
     {   
         winScreen.SetActive(false);
         defeatScreen.SetActive(false);
+        resultBeasts.SetActive(false);
 
         if (FlowInterfaceBB.Instance.challengeRecords.Value != null)
         {
@@ -171,7 +174,7 @@ public class FightManager : MonoBehaviour
         }
 
         SetResultScreen();
-
+        PlatformSetter.Instance.SetAllBeast(attackerCompNames);
     }
 
 
@@ -205,8 +208,6 @@ public class FightManager : MonoBehaviour
         {
             GameObject byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
             BeastStats byBeastStats = byBeastObject.GetComponent<BeastStats>();
-            
-            textLog.text += $"{byBeastObject.name.Split("_")[0]}";
 
             string byBeastName = byBeastObject.name.Split("_")[0];
 
@@ -390,6 +391,7 @@ public class FightManager : MonoBehaviour
 
     private void SetResultScreen()
     {
+        resultBeasts.SetActive(true);
         if (winner == GameManager.Instance.userFlowAddress)
         {
             SetScreen(winScreen);

@@ -53,7 +53,6 @@ public class GameManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        Time.fixedDeltaTime = 1f;
     }
 
     public bool HaveAttackerComp()

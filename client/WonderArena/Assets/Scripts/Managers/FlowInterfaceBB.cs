@@ -111,6 +111,7 @@ public class FlowInterfaceBB : MonoBehaviour
     // Getting all players
     public IEnumerator GetAllPlayers()
     {
+        allPlayers_ListDictionaryItems = new();
         Task<FlowScriptResponse> getAllPLayers = FLOW_ACCOUNT.ExecuteScript(GetAllPlayersTxn.text);
 
         yield return new WaitUntil(() => getAllPLayers.IsCompleted);
@@ -150,6 +151,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     private IEnumerator GetAllPlayerPawns()
     {
+        playerAllPawns_ListCadenceComposite = new();
         // Executing script to get all Pawns from account
         Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text, 
             new CadenceAddress(userFlowAddress), new CadenceArray(playerAllBeastsIDs_CadenceBaseArray));

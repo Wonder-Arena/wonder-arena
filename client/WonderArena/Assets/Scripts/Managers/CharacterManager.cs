@@ -46,6 +46,8 @@ public class CharacterManager : MonoBehaviour
     public bool haveAttackerComp;
     public bool madeANewComp;
 
+    AudioClip clickSound;
+
     [SerializeField]
     GameObject ui_CharaterSelection;
     [SerializeField]
@@ -62,6 +64,7 @@ public class CharacterManager : MonoBehaviour
     private void Awake()
     {
         flowInterface = FlowInterfaceBB.Instance.GetComponent<FlowInterfaceBB>();
+        clickSound = transform.GetComponent<AudioSource>().clip;
     }
 
     private IEnumerator Start()
@@ -120,6 +123,7 @@ public class CharacterManager : MonoBehaviour
     // Selecting out Beasts from UI to actual list
     public void SelectUnit(GameObject unit)
     {
+        AudioSource.PlayClipAtPoint(clickSound, transform.position);
         bool isSelectedCheck;
 
         // Setting check mark to our unit
@@ -198,6 +202,7 @@ public class CharacterManager : MonoBehaviour
         if (haveAttackerComp)
         {
             List<int> attackerCompIntId = new();
+            GameManager.Instance.attackerComp = new();
             for (int i = 0; i < listOfAttackerGroup.Count; i++)
             {
                 if (listOfAttackerGroup[i] != null)

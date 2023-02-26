@@ -1,21 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System;
 
 public class AudioManager : MonoBehaviour
 {
-    [SerializeField]
-    AudioSource audioSource;
+    // Audio source and clip references
+    private AudioSource audioSource;
+    private AudioClip currentClip;
 
-    [SerializeField]
-    List<AudioClip> musicList;
+    // Music tracks for each scene
+    [SerializeField] AudioClip starterMusic;
+    [SerializeField] AudioClip basicMusic;
+    [SerializeField] AudioClip fightMusic;
+    [SerializeField] AudioClip endMusic;
 
     public static AudioManager Instance { get; set; }
-
     private void Awake()
     {
-        audioSource = audioSource.GetComponent<AudioSource>();
         // Make our Instance only for and for all scenes
         if (Instance != null && Instance != this)
         {
@@ -26,13 +27,53 @@ public class AudioManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
+        // Get the audio source component and set the current clip
+        audioSource = GetComponent<AudioSource>();
+        currentClip = audioSource.clip;
     }
 
-    private void Update()
+    private void OnEnable()
     {
-        if (SceneManager.GetActiveScene().name == "FightScene")
+        // Listen for scene changes
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        // Stop listening for scene changes
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Change the music based on scene name
+        switch (scene.name)
         {
-            
+            case "ConnectingWallet":
+                SetMusic(starterMusic);
+                break;
+            case "MainMenu":
+                SetMusic(basicMusic);
+                break;
+            case "FightScene":
+                SetMusic(fightMusic);
+                break;
+            default:
+                SetMusic(basicMusic);
+                break;
         }
+    }
+
+    private void SetMusic(AudioClip clip)
+    {
+        // If the current clip is the same as the new clip, do nothing
+        if (currentClip == clip) return;
+
+        // Otherwise, set the new clip and play it
+        audioSource.clip = clip;
+        audioSource.Play();
+
+        // Update the current clip reference
+        currentClip = clip;
     }
 }

@@ -53,6 +53,8 @@ public class DefenderTeamManager : MonoBehaviour
     [SerializeField]
     ChangeSceneButton sceneButton;
 
+    AudioClip clickSound;
+
     [SerializeField]
     TextAsset AddDefenderGroupTxn;
 
@@ -64,6 +66,7 @@ public class DefenderTeamManager : MonoBehaviour
         sceneButton = sceneButton.GetComponent<ChangeSceneButton>();
         flowInterface = FlowInterfaceBB.Instance.GetComponent<FlowInterfaceBB>();
         teamNameField = teamNameField.GetComponent<TMP_InputField>();
+        clickSound = transform.GetComponent<AudioSource>().clip;
     }
 
     private IEnumerator Start()
@@ -133,6 +136,7 @@ public class DefenderTeamManager : MonoBehaviour
     // Selecting out Defenders from UI to actual list
     public void SelectDefender(GameObject unit)
     {
+        AudioSource.PlayClipAtPoint(clickSound, transform.position);
         bool isSelectedCheck;
 
         // Setting check mark to our unit
