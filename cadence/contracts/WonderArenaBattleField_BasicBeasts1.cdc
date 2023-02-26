@@ -420,7 +420,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
                         let event = BattleEvent(
                             byBeastID: nil,
                             withSkill: nil,
-                            byStatus: nil,
+                            byStatus: pawn.status,
                             targetBeastIDs: [pawn.nft.id],
                             hitTheTarget: true,
                             effect: WonderArenaPawn_BasicBeasts1.PawnEffect.ToNormal,
