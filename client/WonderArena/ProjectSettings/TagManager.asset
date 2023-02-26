@@ -40,11 +40,11 @@ TagManager:
   - 
   - 
   m_SortingLayers:
-  - name: Default
-    uniqueID: 0
-    locked: 0
   - name: Background
     uniqueID: 1084592205
+    locked: 0
+  - name: Default
+    uniqueID: 0
     locked: 0
   - name: Pawns
     uniqueID: 108519615

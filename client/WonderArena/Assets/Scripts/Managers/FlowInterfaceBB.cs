@@ -59,7 +59,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != this)
+        if (Instance != this || (SceneManager.GetActiveScene().name == "ConnectingWallet"))
         {
             Destroy(this);
         }
@@ -82,6 +82,7 @@ public class FlowInterfaceBB : MonoBehaviour
         }
 
         StartCoroutine(GameManager.Instance.GetPlayerUpdate(5f));
+
         
         while (GameManager.Instance.userFlowAddress == null)
         {

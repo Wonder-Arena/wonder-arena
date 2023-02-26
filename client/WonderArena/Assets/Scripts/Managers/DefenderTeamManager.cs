@@ -172,13 +172,9 @@ public class DefenderTeamManager : MonoBehaviour
 
     public void ConfirmDefenderTeam()
     {
-        StartCoroutine(WaitForConfirmDefender());
-    }
-
-    private IEnumerator WaitForConfirmDefender()
-    {
-        yield return StartCoroutine(SetDefenderTeam());
-        sceneButton.ToDefendGroup();
+        StartCoroutine(SetDefenderTeam());
+        
+        LevelManager.Instance.LoadScene("DefendTeam");
     }
 
     private IEnumerator SetDefenderTeam()
@@ -237,8 +233,6 @@ public class DefenderTeamManager : MonoBehaviour
             yield return null;
         }
 
-        GameManager.Instance.taskIsCompleted = true;
-
         Debug.Log("Status Code: " + request.responseCode);
         Debug.Log(request.downloadHandler.text);
 
@@ -252,6 +246,8 @@ public class DefenderTeamManager : MonoBehaviour
         {
             Debug.Log(response.message);
         }
+
+        yield return StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
 
         request.Dispose();
     }

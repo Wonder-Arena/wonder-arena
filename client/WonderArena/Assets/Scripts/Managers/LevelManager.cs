@@ -32,6 +32,31 @@ public class LevelManager : MonoBehaviour
         canvasGroup = _loaderCanvas.GetComponent<CanvasGroup>();
     }
 
+    //public async void LoadScene(string sceneName)
+    //{
+    //    _target = 0;
+    //    _targedAplpha = 0;
+    //    canvasGroup.alpha = 1;
+    //    _progressBar.fillAmount = 0;
+
+    //    var scene = SceneManager.LoadSceneAsync(sceneName);
+    //    scene.allowSceneActivation = false;
+
+    //    _loaderCanvas.SetActive(true);
+
+    //    do
+    //    {
+    //        await Task.Delay(100);
+    //        _target = scene.progress;
+
+    //    } while (scene.progress < 0.9f);
+    //    _target = 1;
+    //    await Task.Delay(500);
+
+    //    isLoadedScene = true;
+    //    scene.allowSceneActivation = true;
+    //}
+
     public async void LoadScene(string sceneName)
     {
         _target = 0;
@@ -50,44 +75,28 @@ public class LevelManager : MonoBehaviour
             _target = scene.progress;
 
         } while (scene.progress < 0.9f);
-        _target = 1;
+
+        scene.allowSceneActivation = true;
+
         await Task.Delay(500);
 
-        isLoadedScene = true;
-        scene.allowSceneActivation = true;
-    }
-
-    public async void LoadSceneWithTask(string sceneName)
-    {
-        _target = 0;
-        _targedAplpha = 0;
-        canvasGroup.alpha = 1;
-        _progressBar.fillAmount = 0;
-
-        var scene = SceneManager.LoadSceneAsync(sceneName);
-        scene.allowSceneActivation = false;
-
-        _loaderCanvas.SetActive(true);
-
-        do
-        {
-            await Task.Delay(100);
-            _target = scene.progress;
-
-        } while (scene.progress < 0.9f);
-
-
-        while (!GameManager.Instance.taskIsCompleted)
-        {
-            Debug.Log("Task is making progress");
-        }
+        //StartCoroutine(WaitForTask());
 
         _target = 1;
-        await Task.Delay(500);
-
         isLoadedScene = true;
-        scene.allowSceneActivation = true;
     }
+
+    //private IEnumerator WaitForTask()
+    //{
+    //    while ()
+    //    {
+    //        Debug.Log("Task is making progress");
+    //        yield return null;
+    //    }
+
+    //    _target = 1;
+    //    isLoadedScene = true;
+    //}
 
     private void Update()
     {

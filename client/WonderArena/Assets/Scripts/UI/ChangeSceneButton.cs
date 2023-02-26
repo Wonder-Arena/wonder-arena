@@ -10,14 +10,14 @@ public class ChangeSceneButton : MonoBehaviour
     }
 
     public void ToDefendGroup()
-    {
-        StartCoroutine(WaitForDefenders());
+    {       
+        StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
+        LevelManager.Instance.LoadScene("DefendTeam");
     }
 
-    private IEnumerator WaitForDefenders()
+    private void Update()
     {
-        yield return StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
-        LevelManager.Instance.LoadSceneWithTask("DefendTeam");
+
     }
 
     public void MakeATeamAndChangeScene(string sceneName)

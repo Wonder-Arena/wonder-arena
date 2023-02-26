@@ -165,7 +165,8 @@ public class FightManager : MonoBehaviour
             bool targetDefeated = _event.CompositeFieldAs<CadenceBool>("targetDefeated").Value;
 
             textLog.text = "Event: " + index.ToString() + ":\n";
-            SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, hitTheTarget, effect, damage, targetSkipped, targetDefeated);
+            yield return StartCoroutine(SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, 
+                hitTheTarget, effect, damage, targetSkipped, targetDefeated));
             yield return new WaitForSeconds(secondsBetweenEvents);
         }
 
@@ -184,7 +185,7 @@ public class FightManager : MonoBehaviour
     // }
 
 
-    private void SimulateEvent(CadenceOptional byBeastId, CadenceOptional withSkill, CadenceOptional byStatus,
+    private IEnumerator SimulateEvent(CadenceOptional byBeastId, CadenceOptional withSkill, CadenceOptional byStatus,
         CadenceBase[] targetBeastIDs, bool hitTheTarget, CadenceOptional effect, CadenceOptional damage,
         bool targetSkipped, bool targetDefeated)
     {
@@ -195,6 +196,7 @@ public class FightManager : MonoBehaviour
         BeastStats targetStats = targetObject.GetComponent<BeastStats>();
         bool isSideEffect = !IsOptionalNull(effect);
         
+        string targetName = targetObject.name.Split("_")[0];
 
         //// case 1: if attacker exists
         //
@@ -206,6 +208,8 @@ public class FightManager : MonoBehaviour
             
             textLog.text += $"{byBeastObject.name.Split("_")[0]}";
 
+            string byBeastName = byBeastObject.name.Split("_")[0];
+
             // L214: let isSideEffect = e.effect != nil
             
             // L217: case 1.1: if skill exist
@@ -215,7 +219,8 @@ public class FightManager : MonoBehaviour
                 string skillName = (withSkill.Value as CadenceString).Value;
                 if (!isSideEffect)
                 {
-                    textLog.text += $" used \"{skillName}\" without side effects";
+                    textLog.text += $"{byBeastName} used \"{skillName}\"";
+                    yield return StartCoroutine(ChangeAndWaitAnimationStateTime("Skill", byBeastObject));
                     //TODO: Change the state of the beast GetObjectById(beastId).SetAnimation(skill)
                 }
             }
@@ -223,7 +228,8 @@ public class FightManager : MonoBehaviour
             { 
                 if (!isSideEffect) //L223:
                 {
-                    textLog.text += $" used default attack without side effects";
+                    textLog.text += $"{byBeastName} attacked {targetName}";
+                    yield return StartCoroutine(ChangeAndWaitAnimationStateTime("StandardAttack", byBeastObject));
                 }   
             }
             // TODO: add delay here
@@ -236,18 +242,18 @@ public class FightManager : MonoBehaviour
                 bool didDamage = !IsOptionalNull(damage); // if let damage = e.damage 
                 if (didDamage) // log("that's a lot of damage")
                 {
-                    textLog.text += $"\n {targetObject.name} suffered {(damage.Value as CadenceNumber).Value} damage";
-                    
+                    // textLog.text += $"\n {targetName} suffered {(damage.Value as CadenceNumber).Value} damage";
+                    yield return StartCoroutine(ChangeAndWaitAnimationStateTime("GetHurt", targetObject));
                     targetStats.DoDamage(damage);
                     
                     // Log that hp changed (temp)
-                    textLog.text += $" and now has this much hp left: {targetStats.hp}";
+                    // textLog.text += $" and now has this much hp left: {targetStats.hp}";
                 } 
                 
                 // pub let effect: PawnEffect?
                 else if (isSideEffect) // L230_old: else if let effect = e.effect 
                 {
-                    textLog.text += $" and now {targetObject.name} going {PawnEffect(effect.Value as CadenceComposite)}!";
+                    textLog.text += $" and now {targetName} going {PawnEffect(effect.Value as CadenceComposite)}!";
                     //TODO: change pawnStatus whether it's poisened, sleeping or has returned to normal, etc
                 } 
             }
@@ -272,18 +278,19 @@ public class FightManager : MonoBehaviour
                     string damageFloat = (damage.Value as CadenceNumber).Value;
                     
                     textLog.text += 
-                    $"{targetObject.name} suffers {PawnStatus(byStatus.Value as CadenceComposite)} and got {damageFloat} damage";
+                    $"{targetName} suffers {PawnStatus(byStatus.Value as CadenceComposite)} and got {damageFloat} damage";
+                    ChangeAndWaitAnimationStateTime("GetHurt", targetObject);
                 }
 
                 else if (targetSkipped)
                 {
                     textLog.text += 
-                    $"{targetObject.name} is skipping next turn due to {PawnStatus(byStatus.Value as CadenceComposite)}!"; 
+                    $"{targetName} is skipping next turn due to {PawnStatus(byStatus.Value as CadenceComposite)}!"; 
                 }
 
                 else if (isSideEffect) //TODO: this is wrong only happens when isSideEffect == ToNormal
                 {
-                    textLog.text += $"{targetObject.name} now is in Normal state!";
+                    textLog.text += $"{targetName} now is in Normal state!";
                 }
             }
         } 
@@ -294,7 +301,9 @@ public class FightManager : MonoBehaviour
 
         else if (targetDefeated)
         {
-            textLog.text += $"{targetObject.name} is defeated!";
+            textLog.text += $"{targetName} is defeated!";
+            yield return StartCoroutine(ChangeAndWaitAnimationStateTime("Dead", targetObject));
+            targetObject.SetActive(false);
         }
     }
 
@@ -363,11 +372,20 @@ public class FightManager : MonoBehaviour
         return null;
     }
 
-    private void ChangeAnimationState(string newState, GameObject beast)
+    private IEnumerator ChangeAndWaitAnimationStateTime(string newState, GameObject beast)
     {
         Animator animator = beast.GetComponent<Animator>();
 
+        if (animator.GetCurrentAnimatorStateInfo(0).IsName(newState))
+        {
+            yield return null;
+        }
+
         animator.Play(newState);
+
+        yield return new WaitForSeconds(animator.GetCurrentAnimatorStateInfo(0).length);
+
+        animator.Play("Idle");
     }
 
     private void SetResultScreen()

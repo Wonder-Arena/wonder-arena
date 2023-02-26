@@ -13,12 +13,13 @@ public class GameManager : MonoBehaviour
     public string lastFightRecord = null;
     public string lastDefenderAddress = null;
     public string userTotalScore = null;
-    public bool taskIsCompleted = false;
 
     public List<string> attackerComp = new();
     public List<string> lastDefenderNamesOfPawns = new();
     public List<Player.ChallengeData> userChallengeData = new(); 
     public Dictionary<string, List<string>> userDefenderGroups = new();
+
+    public Dictionary<string, bool> gameManagerEnumerators = new();
 
     public bool linkedSuccesfully;
 
@@ -39,7 +40,7 @@ public class GameManager : MonoBehaviour
     #endregion
 
 
-    public static GameManager Instance { get; private set; }
+    public static GameManager Instance { get; set; }
     private void Awake()
     {
         // Make our Instance only for and for all scenes
@@ -52,6 +53,7 @@ public class GameManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
+        Time.fixedDeltaTime = 1f;
     }
 
     public bool HaveAttackerComp()
