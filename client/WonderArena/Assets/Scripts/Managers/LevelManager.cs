@@ -57,7 +57,7 @@ public class LevelManager : MonoBehaviour
         scene.allowSceneActivation = true;
     }
 
-    public async void LoadSceneWithTask(string sceneName, bool taskIsDone)
+    public async void LoadSceneWithTask(string sceneName)
     {
         _target = 0;
         _targedAplpha = 0;
@@ -74,7 +74,14 @@ public class LevelManager : MonoBehaviour
             await Task.Delay(100);
             _target = scene.progress;
 
-        } while (scene.progress < 0.9f && !taskIsDone);
+        } while (scene.progress < 0.9f);
+
+
+        while (!GameManager.Instance.taskIsCompleted)
+        {
+            Debug.Log("Task is making progress");
+        }
+
         _target = 1;
         await Task.Delay(500);
 
@@ -84,7 +91,7 @@ public class LevelManager : MonoBehaviour
 
     private void Update()
     {
-        _progressBar.fillAmount = Mathf.MoveTowards(_progressBar.fillAmount, _target, 3 * Time.deltaTime);
+        _progressBar.fillAmount = Mathf.MoveTowards(_progressBar.fillAmount, _target, 1f * Time.deltaTime);
         if (isLoadedScene)
         {
             canvasGroup.alpha = Mathf.MoveTowards(canvasGroup.alpha, _targedAplpha, 1.5f * Time.deltaTime);

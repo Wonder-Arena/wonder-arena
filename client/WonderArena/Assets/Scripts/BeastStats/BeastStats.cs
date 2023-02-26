@@ -17,7 +17,7 @@ public class BeastStats : MonoBehaviour
     private bool firstDamage = false;
     [SerializeField] float newHp;
 
-    public float healthSpeed = 0.1f;
+    public float healthTime = 0.1f;
 
     private void Start()
     {
@@ -37,7 +37,7 @@ public class BeastStats : MonoBehaviour
         if (firstDamage)
         {
             float targetHp = hp / maxHp;
-            newHp = Mathf.SmoothDamp(HpBar.fillAmount, targetHp, ref healthVelocity, healthSpeed);
+            newHp = Mathf.SmoothDamp(HpBar.fillAmount, targetHp, ref healthVelocity, healthTime);
             HpBar.fillAmount = newHp;
         } 
     }

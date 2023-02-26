@@ -32,12 +32,13 @@ public class FightManager : MonoBehaviour
     [SerializeField]
     GameObject defeatScreen;
     string defenderScoreChange;
+    [SerializeField]
+    float secondsBetweenEvents = 2; 
 
     [SerializeField]
     TextMeshProUGUI textLog;
     [SerializeField]
     GameObject healthBars;
-
     [SerializeField]
     GameObject groupsParentObject;
 
@@ -165,7 +166,7 @@ public class FightManager : MonoBehaviour
 
             textLog.text = "Event: " + index.ToString() + ":\n";
             SimulateEvent(byBeastId, withSkill, byStatus, targetBeastIDs, hitTheTarget, effect, damage, targetSkipped, targetDefeated);
-            yield return new WaitForSeconds(5);
+            yield return new WaitForSeconds(secondsBetweenEvents);
         }
 
         SetResultScreen();

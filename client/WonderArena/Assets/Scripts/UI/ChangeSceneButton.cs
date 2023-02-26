@@ -11,13 +11,13 @@ public class ChangeSceneButton : MonoBehaviour
 
     public void ToDefendGroup()
     {
-        StartCoroutine(waitForDefenders());
+        StartCoroutine(WaitForDefenders());
     }
 
-    private IEnumerator waitForDefenders()
+    private IEnumerator WaitForDefenders()
     {
         yield return StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
-        LevelManager.Instance.LoadScene("DefendTeam");
+        LevelManager.Instance.LoadSceneWithTask("DefendTeam");
     }
 
     public void MakeATeamAndChangeScene(string sceneName)
@@ -35,15 +35,15 @@ public class ChangeSceneButton : MonoBehaviour
     public void ChangeSceneToChallenge()
     {
         string sceneName;
-        if (GameManager.Instance.HaveAttackerComp())
+        if (GameManager.Instance.userDefenderGroups.Count > 0)
         {
-            Debug.Log("Have Attacker Comp");
-            sceneName = "TeamMakingAttacking";
+            Debug.Log("Have Defender Comp");
+            sceneName = "Leaderboard";
         }
         else
         {
-            Debug.Log("Don't Have Attacker Comp");
-            sceneName = "";
+            Debug.Log("Don't Have Defender Comp");
+            sceneName = "RegisterPlayer";
         }
         LevelManager.Instance.LoadScene(sceneName);
     }

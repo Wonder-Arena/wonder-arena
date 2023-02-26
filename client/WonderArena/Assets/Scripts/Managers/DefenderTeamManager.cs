@@ -98,8 +98,19 @@ public class DefenderTeamManager : MonoBehaviour
     // Setting all of out Beasts from Blockchain to UI to let player choose them
     public void SetAllAvailableBeasts()
     {
-        List<CadenceComposite> copy_allPawns = new(flowInterface.playerAllPawns_ListCadenceComposite);
-        foreach (CadenceComposite pawn in copy_allPawns)
+        if (ui_CharaterSelection.transform.childCount > 0)
+        {
+            foreach (GameObject beast in ui_CharaterSelection.transform)
+            {
+                if (beast != null)
+                {
+                    Destroy(beast);
+                }
+            }
+        }
+        
+        List<CadenceComposite> allPawns = flowInterface.playerAllPawns_ListCadenceComposite;
+        foreach (CadenceComposite pawn in allPawns)
         {
             string hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
             CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
@@ -142,34 +153,29 @@ public class DefenderTeamManager : MonoBehaviour
             }
         }
 
-        // Deleting all of the previous selected units and refilling it again
-        foreach (Transform child in ui_SelectedUnits.transform)
+        List<string> beastsNames = new();
+
+        foreach (GameObject attacker in listOfDefenderGroup)
         {
-            foreach (Transform childInChild in child)
+            if (attacker != null)
             {
-                Destroy(childInChild.gameObject);
+                beastsNames.Add(attacker.name);
+            }
+            else
+            {
+                beastsNames.Add(null);
             }
         }
-        for (int i = 0; i < listOfDefenderGroup.Count; i++)
-        {
-            if (listOfDefenderGroup[i] != null)
-            {
-                GameObject newSelectedUnit = Instantiate(listOfDefenderGroup[i], ui_SelectedUnits.transform.GetChild(i));
-                newSelectedUnit.name = listOfDefenderGroup[i].name;
-                newSelectedUnit.transform.Find("SelectedBackground").gameObject.SetActive(false);
-                newSelectedUnit.transform.Find("Background").gameObject.SetActive(false);
-                newSelectedUnit.transform.Find("Shadow").gameObject.SetActive(false);
-                newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
-            }
-        }
+
+        PlatformSetter.Instance.SetAllBeast(beastsNames);
     }
 
     public void ConfirmDefenderTeam()
     {
-        StartCoroutine(waitForConfirmDefender());
+        StartCoroutine(WaitForConfirmDefender());
     }
 
-    private IEnumerator waitForConfirmDefender()
+    private IEnumerator WaitForConfirmDefender()
     {
         yield return StartCoroutine(SetDefenderTeam());
         sceneButton.ToDefendGroup();
@@ -230,6 +236,8 @@ public class DefenderTeamManager : MonoBehaviour
             Debug.Log("Making new team" + new string('.', dots));
             yield return null;
         }
+
+        GameManager.Instance.taskIsCompleted = true;
 
         Debug.Log("Status Code: " + request.responseCode);
         Debug.Log(request.downloadHandler.text);

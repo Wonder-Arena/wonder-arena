@@ -47,6 +47,7 @@ public class TeamsManager : MonoBehaviour
                             GameObject newBeastIcon = Instantiate(beastPrefab, newTeamCard.transform.Find("BeastGroup").GetChild(i));
                             Destroy(newBeastIcon.transform.Find("Background").gameObject);
                             Destroy(newBeastIcon.transform.Find("Platform").gameObject);
+                            newBeastIcon.name = beastPrefab.name;
                         }
                     }
                 }
@@ -56,17 +57,13 @@ public class TeamsManager : MonoBehaviour
 
     public void SetPlatforms()
     {
+        List<string> beastsNames = new();
         Transform beastGroup = selectedTeam.Find("BeastGroup");
-
-        //foreach (GameObject beastPrefab in allBeastsPrefabs)
-        //{
-        //    if (defenderGroup.Value[i].Split("_")[0] + "_" + defenderGroup.Value[i].Split("_")[1] == beastPrefab.name)
-        //    {
-        //        GameObject newBeastIcon = Instantiate(beastPrefab, newTeamCard.transform.Find("BeastGroup").GetChild(i));
-        //        Destroy(newBeastIcon.transform.Find("Background").gameObject);
-        //        Destroy(newBeastIcon.transform.Find("Platform").gameObject);
-        //    }
-        //}
+        for (int i = 0; i < beastGroup.childCount; i++)
+        {
+            beastsNames.Add(beastGroup.GetChild(i).GetChild(0).name);
+        }
+        PlatformSetter.Instance.SetAllBeast(beastsNames);
     }
 
     public void DeleteTeam()
@@ -80,6 +77,8 @@ public class TeamsManager : MonoBehaviour
         {
             string _teamName = selectedTeam.Find("TeamName").GetComponent<TextMeshProUGUI>().text;
 
+            selectedTeam.gameObject.SetActive(false);
+
             DefenderGroup.Request defenderGroupRequest = JsonUtility.FromJson<DefenderGroup.Request>(@"{""groupName"": ""Figters""}");
 
             defenderGroupRequest.groupName = _teamName;
@@ -88,6 +87,10 @@ public class TeamsManager : MonoBehaviour
 
             yield return StartCoroutine(RemoveTeam(GameManager.Instance.endpointPATH + GameManager.Instance.removeDefenderTeamPATH,
                 newJson, GameManager.Instance.userAccessToken));
+        }
+        else
+        {
+            Debug.Log("Please, select team to delete!");
         }
     }
         
@@ -116,10 +119,12 @@ public class TeamsManager : MonoBehaviour
 
         if (response.status == true)
         {
+            Destroy(selectedTeam.gameObject);
             Debug.Log(response.message);
         }
         else
         {
+            selectedTeam.gameObject.SetActive(true);
             Debug.Log(response.message);
         }
 

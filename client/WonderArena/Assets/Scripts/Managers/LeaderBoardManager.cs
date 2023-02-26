@@ -183,8 +183,8 @@ public class LeaderBoardManager : MonoBehaviour
             public string name;
             public bool claimedBBs;
             public FlowAccount flowAccount;
-
             public List<ChallengeData> challenges;
+            public int score;
         }
 
         [System.Serializable]

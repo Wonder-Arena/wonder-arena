@@ -7,6 +7,7 @@ using DapperLabs.Flow.Sdk.DataObjects;
 using DapperLabs.Flow.Sdk.DevWallet;
 using DapperLabs.Flow.Sdk.Unity;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class FlowInterfaceBB : MonoBehaviour
 {
@@ -46,7 +47,10 @@ public class FlowInterfaceBB : MonoBehaviour
             if (m_instance == null)
             {
                 m_instance = FindObjectOfType<FlowInterfaceBB>();
-                DontDestroyOnLoad(m_instance);
+                if (SceneManager.GetActiveScene().name != "ConnectingWallet")
+                {
+                    DontDestroyOnLoad(m_instance);
+                }  
             }
 
             return m_instance;
@@ -77,7 +81,7 @@ public class FlowInterfaceBB : MonoBehaviour
             }
         }
 
-        StartCoroutine(GameManager.Instance.GetPlayer());
+        StartCoroutine(GameManager.Instance.GetPlayerUpdate(5f));
         
         while (GameManager.Instance.userFlowAddress == null)
         {

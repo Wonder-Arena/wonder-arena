@@ -12,10 +12,15 @@ public class GameManager : MonoBehaviour
     public string userAccessToken = null;
     public string lastFightRecord = null;
     public string lastDefenderAddress = null;
+    public string userTotalScore = null;
+    public bool taskIsCompleted = false;
 
     public List<string> attackerComp = new();
     public List<string> lastDefenderNamesOfPawns = new();
+    public List<Player.ChallengeData> userChallengeData = new(); 
     public Dictionary<string, List<string>> userDefenderGroups = new();
+
+    public bool linkedSuccesfully;
 
     #region APIs
 
@@ -54,6 +59,19 @@ public class GameManager : MonoBehaviour
         return true;
     }
 
+    public void ClearUserData()
+    {
+        userFlowAddress = null;
+        userAccessToken = null;
+        lastFightRecord = null;
+        lastDefenderAddress = null;
+        userTotalScore = null;
+
+        attackerComp = new();
+        lastDefenderNamesOfPawns = new();
+        userDefenderGroups = new();
+        userChallengeData = new();
+    }
 
 
     #region Networking
@@ -75,6 +93,19 @@ public class GameManager : MonoBehaviour
             public string name;
             public bool claimedBBs;
             public FlowAccount flowAccount;
+            public List<ChallengeData> challenges;
+            public int score;
+        }
+
+        [System.Serializable]
+        public class ChallengeData
+        {
+            public string id;
+            public string winner;
+            public List<string> attackerBeasts;
+            public List<string> defenderBeasts;
+            public string attackerScoreChange;
+            public string defenderScoreChange;
         }
 
         [System.Serializable]
@@ -121,7 +152,9 @@ public class GameManager : MonoBehaviour
 
         if (response.status == true)
         {
+            userTotalScore = response.data.score.ToString();
             userFlowAddress = response.data.flowAccount.address;
+            userChallengeData = response.data.challenges;
         }
         else
         {
@@ -129,6 +162,16 @@ public class GameManager : MonoBehaviour
         }
 
         request.Dispose();
+    }
+
+    public IEnumerator GetPlayerUpdate(float seconds)
+    {
+        yield return new WaitForSeconds(seconds);
+        while (userFlowAddress == null)
+        {
+            StartCoroutine(GetPlayer());
+            yield return null;
+        }    
     }
 
     public IEnumerator ClaimBBs()
@@ -163,6 +206,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator LinkAccountPost(string url, string bodyJsonString)
     {
+        linkedSuccesfully = true;
         GameObject confirmationWindow = GameObject.Find("Confirmation Window");
         var request = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
@@ -192,6 +236,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
+            linkedSuccesfully = false;
             confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().color = Color.red;
             message = response.message;
         }

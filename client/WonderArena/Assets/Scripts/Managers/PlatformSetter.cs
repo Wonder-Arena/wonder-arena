@@ -12,16 +12,17 @@ public class PlatformSetter : MonoBehaviour
     public static PlatformSetter Instance { get; private set; }
     private void Awake()
     {
-        // Make our Instance only for and for all scenes
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
+        Instance = this;
+        //// Make our Instance only for and for all scenes
+        //if (Instance != null && Instance != this)
+        //{
+        //    Destroy(gameObject);
+        //}
+        //else
+        //{
+        //    Instance = this;
+        //    DontDestroyOnLoad(gameObject);
+        //}
     }
 
     public void SetAllBeast(List<string> namesOfBeasts)
@@ -43,7 +44,7 @@ public class PlatformSetter : MonoBehaviour
             {
                 if (namesOfBeasts[i] != null)
                 {
-                    if (beast.name == namesOfBeasts[i].Split("_")[0] + "_" + namesOfBeasts[i].Split("_")[1] )
+                    if (beast.name == namesOfBeasts[i].Split("_")[0] + "_" + namesOfBeasts[i].Split("_")[1])
                     {
                         GameObject newBeastObject = Instantiate(beast, 
                             platformsParent.transform.GetChild(i));

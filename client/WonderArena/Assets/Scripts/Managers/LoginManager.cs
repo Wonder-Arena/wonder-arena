@@ -99,6 +99,8 @@ public class LoginManager : MonoBehaviour
     [SerializeField] GameObject videoStartingScreen;
     [SerializeField] GameObject nonVideoStartingScreen;
     [SerializeField] GameObject loginButtons;
+    private bool isVideoClicked;
+    public float alphaVelocity;
 
     //Serialized Fields from front end
     [Header("Input Fields for Registration")]
@@ -119,6 +121,8 @@ public class LoginManager : MonoBehaviour
 
     private void Awake()
     {
+        isVideoClicked = false;
+        nonVideoStartingScreen.SetActive(false);
         usernameRegistrationField = usernameRegistrationField.GetComponent<TMP_InputField>();
         emailRegistrationField = emailRegistrationField.GetComponent<TMP_InputField>();
         passwordRegistrationField = passwordRegistrationField.GetComponent<TMP_InputField>();
@@ -152,9 +156,8 @@ public class LoginManager : MonoBehaviour
             PlayerPrefs.SetString("Email", registerResponse.data.email);
             PlayerPrefs.SetString("Username", registerResponse.data.name);
             PlayerPrefs.Save();
-            loginObject.SetActive(true);
             registrationObject.SetActive(false);
-            OnLoginEnable();         
+            OnSecondLoginButtonClicked();
         }
         else
         {
@@ -232,6 +235,7 @@ public class LoginManager : MonoBehaviour
 
             PlayerPrefs.DeleteAll();
             PlayerPrefs.SetString("Password", _password);
+            PlayerPrefs.Save();
 
             string newJson = JsonUtility.ToJson(user);
             string path = GameManager.Instance.endpointPATH + GameManager.Instance.registerPATH;
@@ -261,6 +265,23 @@ public class LoginManager : MonoBehaviour
 
         PlayerPrefs.DeleteAll();
         PlayerPrefs.SetString("Password", _password);
+        PlayerPrefs.Save();
+
+        string newJson = JsonUtility.ToJson(user);
+        string path = GameManager.Instance.endpointPATH + GameManager.Instance.loginPATH;
+
+        StartCoroutine(LoginPost(path, newJson));
+    }
+
+    public void OnSecondLoginButtonClicked()
+    {
+        string _email = PlayerPrefs.GetString("Email");
+        string _password = PlayerPrefs.GetString("Password");
+
+        UserInputData user = JsonUtility.FromJson<UserInputData>(LoginTxn.text);
+
+        user.email = _email;
+        user.password = _password;
 
         string newJson = JsonUtility.ToJson(user);
         string path = GameManager.Instance.endpointPATH + GameManager.Instance.loginPATH;
@@ -283,6 +304,47 @@ public class LoginManager : MonoBehaviour
         loginObject.SetActive(false);
         registrationObject.SetActive(true);
         loginButtons.SetActive(false);
+    }
+
+    public void OnVideoClicked()
+    {
+        isVideoClicked = true;
+
+        StartCoroutine(WaitForAlpha());
+    }
+
+    private IEnumerator WaitForAlpha()
+    {
+        while (videoStartingScreen.transform.Find("ClickGameStart").GetComponent<CanvasGroup>().alpha > 0.001f)
+        {
+            yield return null;
+        }
+        videoStartingScreen.transform.Find("ClickGameStart").gameObject.SetActive(false);
+        if (PlayerPrefs.HasKey("Email"))
+        {
+            OnSecondLoginButtonClicked();
+        }
+        else
+        {
+            nonVideoStartingScreen.SetActive(true);
+            OnRegisterClicked();
+        }
+    }
+
+    private void Update()
+    {
+        if (isVideoClicked)
+        {
+            UpdateAlphaVideo();
+        }      
+    }
+
+    private void UpdateAlphaVideo()
+    {
+        float alphaTime = 0.05f;
+        float newAlpha = Mathf.SmoothDamp(videoStartingScreen.transform.Find("ClickGameStart").GetComponent<CanvasGroup>().alpha, 
+            0f, ref alphaVelocity, alphaTime);
+        videoStartingScreen.transform.Find("ClickGameStart").GetComponent<CanvasGroup>().alpha = newAlpha;
     }
 
     #region EmailCheck

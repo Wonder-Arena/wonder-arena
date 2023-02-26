@@ -154,6 +154,8 @@ public class CharacterManager : MonoBehaviour
             }      
         }
 
+        PlatformSetter.Instance.SetAllBeast(beastsNames);
+
         // Deleting all of the previous selected units and refilling it again
         // foreach (Transform child in ui_SelectedUnits.transform)
         // {
@@ -174,8 +176,6 @@ public class CharacterManager : MonoBehaviour
         //         newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
         //     }
         // }
-
-        PlatformSetter.Instance.SetAllBeast(beastsNames);
     }
 
     public void OnConfirmClicked()
