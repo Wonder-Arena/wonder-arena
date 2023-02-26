@@ -402,6 +402,68 @@ class flowService {
     }
   }
 
+  static async buyBB(userData, tokenID) {
+    const { name, email } = userData
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: { flowAccount: true } 
+    }) 
+
+    if (!user) {
+      throw createError.NotFound('User not found')
+    }
+
+    if (!user.flowAccount) {
+      throw createError.NotFound('flow account not found')
+    }
+
+    let signer = await this.getAdminAccount()
+    let code = `
+    import NonFungibleToken from 0x631e88ae7f1d7c20
+    import BasicBeasts from 0xfa252d0aa22bf86a
+    
+    transaction(recipient: Address, tokenID: UInt64) {
+        let senderCollection: &BasicBeasts.Collection
+        let recipientCollection: &BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}
+    
+        prepare(acct: AuthAccount) {
+            self.senderCollection = acct.borrow<&BasicBeasts.Collection>(from: BasicBeasts.CollectionStoragePath)
+                ?? panic("borrow sender collection failed")
+    
+            self.recipientCollection = getAccount(recipient)
+                .getCapability(BasicBeasts.CollectionPublicPath)
+                .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
+                ?? panic("borrow recipient collection failed")
+        }
+    
+        execute {
+          if let beast = self.senderCollection.borrowBeast(id: tokenID) {
+              let beast <- self.senderCollection.withdraw(withdrawID: tokenID)
+              self.recipientCollection.deposit(token: <- beast)
+          }
+        }
+    }
+    `
+    
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(user.flowAccount.address, t.Address),
+        arg(tokenID.toString(), t.UInt64)
+      ])
+  
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return 
+        }
+      }
+      throw "send transaction failed"
+    } catch (e) {
+      throw createError.InternalServerError(`Buy BasicBeast failed ${e}`)
+    }
+  }
+
+
   static async fight(userData, attackerIDs, defenderAddress) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({

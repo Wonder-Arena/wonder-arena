@@ -77,6 +77,29 @@ class flowController {
         }
     }
 
+    static buyBB = async (req, res, next) => {
+        try {
+            if (!req.body.tokenID) {
+                res.status(422).json({
+                    status: false,
+                    message: "invalid params"
+                })
+                return
+            }
+
+            await flow.buyBB(req.user.payload, req.body.tokenID)
+            res.status(200).json({
+                status: true,
+                message: "BB is bought successfully"
+            })
+
+        } catch (e) {
+            console.log(e)
+            next(createError(e.statusCode, e.message))
+        }
+    }
+
+
     static fight = async (req, res, next) => {
         try {
             if (!req.body.attackerIDs || 
