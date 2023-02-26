@@ -5,7 +5,12 @@ transaction(
     attackerIDs: [UInt64],
     defenderAddress: Address
 ) {
-    prepare(acct: AuthAccount) {}
+    let adminRef: &WonderArenaBattleField_BasicBeasts1.Admin
+    prepare(acct: AuthAccount) {
+        self.adminRef = acct
+            .borrow<&WonderArenaBattleField_BasicBeasts1.Admin>(from: WonderArenaBattleField_BasicBeasts1.AdminStoragePath)
+            ?? panic("borrow battle field admin failed")
+    }
 
     execute {
         let attackerGroup = WonderArenaBattleField_BasicBeasts1.BeastGroup(
@@ -13,7 +18,7 @@ transaction(
             beastIDs: attackerIDs
         )
 
-        WonderArenaBattleField_BasicBeasts1.fight(
+        self.adminRef.fight(
             attackerAddress: attackerAddress,
             attackerGroup: attackerGroup,
             defenderAddress: defenderAddress

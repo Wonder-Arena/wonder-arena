@@ -4,7 +4,14 @@ import BasicBeasts from "./basicbeasts/BasicBeasts.cdc"
 
 pub contract WonderArenaPawn_BasicBeasts1 {
 
+    pub let AdminStoragePath: StoragePath
+    pub let AdminPublicPath: PublicPath
+    pub let AdminPrivatePath: PrivatePath
+
     pub event ContractInitialized()
+
+    pub event PawnTemplateAdded(templateName: String)
+    pub event PawnTemplateRemoved(templateName: String)
 
     pub enum PawnType: UInt8 {
         pub case Water
@@ -15,6 +22,7 @@ pub contract WonderArenaPawn_BasicBeasts1 {
     }
 
     pub enum PawnEffect: UInt8 {
+        pub case None
         pub case ToNormal
         pub case ToParalysis
         pub case ToPoison
@@ -136,150 +144,93 @@ pub contract WonderArenaPawn_BasicBeasts1 {
         }
     }
 
+    pub struct PawnTemplate {
+        pub let templateName: String
+        pub let type: PawnType
+        pub let maxHp: UInt64
+        pub let hp: UInt64
+        pub let agility: UInt64
+        pub let speed: UInt64
+        pub let attack: PawnAttack
+        pub let defense: UInt64
+        pub let accuracy: UInt64
+        pub let status: PawnStatus
+        pub let mana: UInt64
+        pub let skill: PawnSkill
+
+        init(
+            templateName: String,
+            type: PawnType,
+            hp: UInt64,
+            agility: UInt64,
+            speed: UInt64,
+            attack: PawnAttack,
+            defense: UInt64,
+            accuracy: UInt64,
+            status: PawnStatus,
+            mana: UInt64,
+            skill: PawnSkill
+        ) {
+            self.templateName = templateName
+            self.type = type
+            self.maxHp = hp
+            self.hp = hp
+            self.agility = agility
+            self.speed = speed
+            self.attack = attack
+            self.defense = defense
+            self.accuracy = accuracy
+            self.status = status
+            self.mana = mana
+            self.skill = skill
+        }
+    }
+
+    pub let pawnTemplates: {String: PawnTemplate}
+
+    pub resource Admin {
+
+        pub fun addTemplate(_ template: PawnTemplate) {
+            assert(WonderArenaPawn_BasicBeasts1.pawnTemplates[template.templateName] == nil, message: "Template with this name is already exists")
+            WonderArenaPawn_BasicBeasts1.pawnTemplates.insert(key: template.templateName, template)
+            emit PawnTemplateAdded(templateName: template.templateName)
+        }
+
+        pub fun removeTemplate(_ templateName: String) {
+            WonderArenaPawn_BasicBeasts1.pawnTemplates.remove(key: templateName)
+            emit PawnTemplateRemoved(templateName: templateName)
+        }
+    }
+
     pub fun getPawn(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
-        let template = beast.getBeastTemplate()
-        let name = template.name
-        if name == "Moon" {
-            return self.pawnMoon(beast: beast)
-        } else if name == "Saber" {
-            return self.pawnSaber(beast: beast)
-        } else if name == "Shen" {
-            return self.pawnShen(beast: beast)
-        } else if name == "Azazel" {
-            return self.pawnAzazel(beast: beast)
+        let beastTemplate = beast.getBeastTemplate()
+        if let pawnTemplate = self.pawnTemplates[beastTemplate.name] {
+            return Pawn(
+                nft: beast,
+                type: pawnTemplate.type,
+                hp: pawnTemplate.hp,
+                agility: pawnTemplate.agility,
+                speed: pawnTemplate.speed,
+                attack: pawnTemplate.attack,
+                defense: pawnTemplate.defense,
+                accuracy: pawnTemplate.accuracy,
+                status: pawnTemplate.status,
+                mana: pawnTemplate.mana,
+                skill: pawnTemplate.skill
+            )
         }
         panic("Unsupported beast!")
     }
 
-    pub fun pawnMoon(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
-        let skill = PawnSkill(
-            name: "Mega Volt Crash",
-            value: 90,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 50, // 50%
-            manaRequired: 50
-        )
-
-        let attack = PawnAttack(
-            value: 30,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 5
-        )
-
-        let pawn = Pawn(
-            nft: beast,
-            type: PawnType.Electric,
-            hp: 70,
-            agility: 30,
-            speed: 10,
-            attack: attack,
-            defense: 5,
-            accuracy: 95, // 95%
-            status: PawnStatus.Normal,
-            mana: 0,
-            skill: skill
-        )
-
-        return pawn
-    }
-
-    pub fun pawnSaber(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
-        let skill = PawnSkill(
-            name: "Supersonic Wave",
-            value: 50,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 50, // 50%
-            manaRequired: 60
-        )
-
-        let attack = PawnAttack(
-            value: 30,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 5
-        )
-
-        let pawn = Pawn(
-            nft: beast,
-            type: PawnType.Water,
-            hp: 70,
-            agility: 30,
-            speed: 10,
-            attack: attack,
-            defense: 15,
-            accuracy: 95, // 95%
-            status: PawnStatus.Normal,
-            mana: 0,
-            skill: skill
-        )
-
-        return pawn
-    }
-
-    pub fun pawnShen(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
-        let skill = PawnSkill(
-            name: "Tackle",
-            value: 100,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 50, // 50%
-            manaRequired: 60
-        )
-
-        let attack = PawnAttack(
-            value: 35,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 5
-        )
-
-        let pawn = Pawn(
-            nft: beast,
-            type: PawnType.Grass,
-            hp: 80,
-            agility: 30,
-            speed: 30,
-            attack: attack,
-            defense: 10,
-            accuracy: 95, // 95%
-            status: PawnStatus.Normal,
-            mana: 0,
-            skill: skill
-        )
-
-        return pawn
-    }
-
-    pub fun pawnAzazel(beast: &BasicBeasts.NFT{BasicBeasts.Public}): Pawn {
-        let skill = PawnSkill(
-            name: "Phantom Force",
-            value: 50,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 80, // 50%
-            manaRequired: 30
-        )
-
-        let attack = PawnAttack(
-            value: 45,
-            effect: PawnEffect.ToParalysis,
-            effectProb: 5
-        )
-
-        let pawn = Pawn(
-            nft: beast,
-            type: PawnType.Fire,
-            hp: 60,
-            agility: 30,
-            speed: 15,
-            attack: attack,
-            defense: 10,
-            accuracy: 95, // 95%
-            status: PawnStatus.Normal,
-            mana: 0,
-            skill: skill
-        )
-
-        return pawn
-    }
-
     init() {
+        self.pawnTemplates = {}
+
+        self.AdminStoragePath = /storage/WonderArenaPawn_Admin_BasicBeasts1
+        self.AdminPublicPath = /public/WonderArenaPawn_Admin_BasicBeasts1
+        self.AdminPrivatePath = /private/WonderArenaPawn_Admin_BasicBeasts1
+
+        self.account.save(<- create Admin(), to: self.AdminStoragePath)
+
         emit ContractInitialized()
     }
 }
