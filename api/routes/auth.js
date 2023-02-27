@@ -22,6 +22,6 @@ router.post('/wonder_arena/fight', auth, flow.fight)
 router.post('/wonder_arena/claim_reward', auth, flow.claimReward)
 
 var cors = require('cors')
-router.post('/stripe/create_checkout_session', cors(), stripe.createCheckoutSession)
+router.post('/stripe/create_checkout_session', auth, cors(), stripe.createCheckoutSession)
 
 module.exports = router

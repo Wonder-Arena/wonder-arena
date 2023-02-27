@@ -24,7 +24,7 @@ class stripeController {
     
       res.status(200).json({
         status: true,
-        message: null,
+        message: "",
         data: {
           sessionID: session.id
         }
