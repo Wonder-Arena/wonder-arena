@@ -15,4 +15,3 @@ pub fun main(address: Address, beastIDs: [UInt64]): [WonderArenaPawn_BasicBeasts
     }
     return res
 }
- 

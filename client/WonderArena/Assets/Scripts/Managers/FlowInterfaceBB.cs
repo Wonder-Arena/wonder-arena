@@ -18,6 +18,8 @@ public class FlowInterfaceBB : MonoBehaviour
     // Actual address;
     public string userFlowAddress = null;
 
+    CoroutineHelper coroutineHelper;
+
     public CadenceOptional challengeRecords;
     public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
     public List<CadenceDictionaryItem> allPlayers_ListDictionaryItems = new();
@@ -66,6 +68,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
         // Register DevWallet
         FlowSDK.RegisterWalletProvider(ScriptableObject.CreateInstance<DevWalletProvider>());
+        CoroutineHelper coroutineHelper = CoroutineHelper.Instance;
     }
 
     private IEnumerator Start()
@@ -91,16 +94,15 @@ public class FlowInterfaceBB : MonoBehaviour
             yield return null;
         }
 
-        StartCoroutine(GameManager.Instance.ClaimBBs());
+        //StartCoroutine(GameManager.Instance.ClaimBBs());
+        coroutineHelper.RunCoroutine("ClaimBBs", GameManager.Instance.ClaimBBs());
 
         userFlowAddress = GameManager.Instance.userFlowAddress;
 
         if (PlayerPrefs.HasKey("Username"))
         {
-            yield return StartCoroutine(GetAllPlayers());
+            coroutineHelper.RunCoroutine("GetAllPlayers", GetAllPlayers());
             //yield return StartCoroutine(GetAllBeastsIDs());
-
-            isScriptsCompleted = true;
         }
         else
         {
