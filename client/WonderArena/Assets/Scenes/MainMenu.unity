@@ -1440,6 +1440,7 @@ GameObject:
   - component: {fileID: 568307722}
   - component: {fileID: 568307721}
   - component: {fileID: 568307724}
+  - component: {fileID: 568307725}
   m_Layer: 5
   m_Name: BuyBBs
   m_TagString: Untagged
@@ -1512,16 +1513,16 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 568307724}
-        m_TargetAssemblyTypeName: RedirectButton, Assembly-CSharp
-        m_MethodName: OpenConfirmationWindow
+      - m_Target: {fileID: 568307725}
+        m_TargetAssemblyTypeName: ChangeSceneButton, Assembly-CSharp
+        m_MethodName: ChangeScene
         m_Mode: 5
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: It will take you to BB site \n Are you sure?
+          m_StringArgument: BuyBeasts
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &568307722
@@ -1575,6 +1576,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   confirmationWindow: {fileID: 838944923}
+--- !u!114 &568307725
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 568307718}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 446ac5277f4caaa4385bcf9510dfef80, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &584438306
 GameObject:
   m_ObjectHideFlags: 0
