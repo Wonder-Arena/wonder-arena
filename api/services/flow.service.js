@@ -78,7 +78,6 @@ class flowService {
     return { privateKey: privateKey, publicKey: publicKey }
   }
 
-
   static AdminKeys = {
     0: false,
     1: false,
@@ -506,6 +505,69 @@ class flowService {
     } catch (e) {
       this.DroperKeys[keyIndex] = false
       throw { statusCode: 500, message: `Claim BasicBeasts failed ${e}` }
+    }
+  }
+
+  static async sendBeast(recipient, tokenID) {
+    let keyIndex = null
+    console.log(this.DroperKeys)
+    for (const [key, value] of Object.entries(this.DroperKeys)) {
+      if (value == false) {
+        keyIndex = parseInt(key)
+        break
+      }
+    } 
+
+    if (keyIndex == null) {
+      throw createError.InternalServerError("Server is busy")
+    }
+
+    this.DroperKeys[keyIndex] = true
+    let signer = await this.getDroperWithKeyIndex(keyIndex)
+    let code = `
+    import NonFungibleToken from 0x631e88ae7f1d7c20
+    import BasicBeasts from 0xfa252d0aa22bf86a
+    
+    transaction(recipient: Address, tokenID: UInt64) {
+        let senderCollection: &BasicBeasts.Collection
+        let recipientCollection: &BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}
+    
+        prepare(acct: AuthAccount) {
+            self.senderCollection = acct.borrow<&BasicBeasts.Collection>(from: BasicBeasts.CollectionStoragePath)
+                ?? panic("borrow sender collection failed")
+    
+            self.recipientCollection = getAccount(recipient)
+                .getCapability(BasicBeasts.CollectionPublicPath)
+                .borrow<&BasicBeasts.Collection{BasicBeasts.BeastCollectionPublic}>()
+                ?? panic("borrow recipient collection failed")
+        }
+    
+        execute {
+          if let beast = self.senderCollection.borrowBeast(id: tokenID) {
+              let beast <- self.senderCollection.withdraw(withdrawID: tokenID)
+              self.recipientCollection.deposit(token: <- beast)
+          }
+        }
+    }
+    `
+
+    try {
+      const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(recipient, t.Address),
+        arg(tokenID.toString(), t.UInt64)
+      ])
+
+      if (txid) {
+        let tx = await fcl.tx(txid).onceSealed()
+        this.DroperKeys[keyIndex] = false
+        if (tx.status === 4 && tx.statusCode === 0) {
+          return
+        }
+      }
+      throw "send transaction failed"
+    } catch (e) {
+      this.DroperKeys[keyIndex] = false
+      throw createError.InternalServerError(`Buy BasicBeast failed ${e}`)
     }
   }
 

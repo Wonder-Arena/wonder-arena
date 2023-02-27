@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('./auth');
+const hook = require('./hook');
 const createError = require('http-errors')
 
 router.get('/', (req, res) => {
@@ -8,6 +9,7 @@ router.get('/', (req, res) => {
 })
 
 router.use('/auth', auth);
+router.use('/hooks', hook)
 
 router.use( async (req, res, next) => {
     next(createError.NotFound('Route not Found'))
