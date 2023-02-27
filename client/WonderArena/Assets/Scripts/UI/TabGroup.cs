@@ -72,8 +72,7 @@ public class TabGroup : MonoBehaviour
 
     private void GetPlayerInLeaderBoard(int index)
     {
-        StartCoroutine(currentSceneManager.GetComponent<LeaderBoardManager>().GetPlayer(
-            transform.GetChild(index).GetChild(4).GetComponent<TextMeshProUGUI>().text));
+        currentSceneManager.GetComponent<LeaderBoardManager>().GetPlayer(transform.GetChild(index).GetChild(4).GetComponent<TextMeshProUGUI>().text);
     }
 
     private void GetTeamInDefendTeam(int index)

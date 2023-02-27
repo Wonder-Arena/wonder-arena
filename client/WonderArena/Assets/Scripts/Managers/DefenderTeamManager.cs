@@ -14,30 +14,30 @@ using TMPro;
 
 public class DefenderTeamManager : MonoBehaviour
 {
-    [System.Serializable]
-    public class DefenderGroup
-    {
-        [System.Serializable]
-        public class Request
-        {
-            public string groupName;
-            public List<int> beastIDs;
-        }
+    //[System.Serializable]
+    //public class DefenderGroup
+    //{
+    //    [System.Serializable]
+    //    public class Request
+    //    {
+    //        public string groupName;
+    //        public List<int> beastIDs;
+    //    }
 
-        [System.Serializable]
-        public class Response
-        {
-            public bool status;
-            public string message;
-            public Data data;
-        }
+    //    [System.Serializable]
+    //    public class Response
+    //    {
+    //        public bool status;
+    //        public string message;
+    //        public Data data;
+    //    }
 
-        [System.Serializable]
-        public class Data
-        {
+    //    [System.Serializable]
+    //    public class Data
+    //    {
 
-        }
-    }
+    //    }
+    //}
 
     public List<GameObject> listOfDefenderGroup = new(3);
     public bool haveDefenderComp;
@@ -55,16 +55,16 @@ public class DefenderTeamManager : MonoBehaviour
 
     AudioClip clickSound;
 
-    [SerializeField]
-    TextAsset AddDefenderGroupTxn;
-
     FlowInterfaceBB flowInterface;
+
+    CoroutineHelper coroutineHelper;
 
 
     private void Awake()
     {
+        coroutineHelper = CoroutineHelper.Instance;
         sceneButton = sceneButton.GetComponent<ChangeSceneButton>();
-        flowInterface = FlowInterfaceBB.Instance.GetComponent<FlowInterfaceBB>();
+        flowInterface = FlowInterfaceBB.Instance;
         teamNameField = teamNameField.GetComponent<TMP_InputField>();
         clickSound = transform.GetComponent<AudioSource>().clip;
     }
@@ -74,15 +74,8 @@ public class DefenderTeamManager : MonoBehaviour
         haveDefenderComp = false;
         listOfDefenderGroup = new(3);
         // Waiting for all scripts to be done before trying to get Beasts
-        bool completed = false;
-        while (!completed)
-        {
-            completed = true;
-            completed = completed && flowInterface.isScriptsCompleted;
-            yield return null;
-        }
 
-        yield return StartCoroutine(flowInterface.GetAllBeastsIDs());
+        //coroutineHelper.RunCoroutine("GetAllBeastsInTeamManager", flowInterface.GetAllBeastsIDs());
         SetAllAvailableBeasts();
 
         // Adding Listeners to all Beasts Buttons
@@ -96,6 +89,7 @@ public class DefenderTeamManager : MonoBehaviour
         {
             listOfDefenderGroup.Add(null);
         }
+        yield return null;
     }
 
     // Setting all of out Beasts from Blockchain to UI to let player choose them
@@ -176,13 +170,6 @@ public class DefenderTeamManager : MonoBehaviour
 
     public void ConfirmDefenderTeam()
     {
-        StartCoroutine(SetDefenderTeam());
-        
-        LevelManager.Instance.LoadScene("DefendTeam");
-    }
-
-    private IEnumerator SetDefenderTeam()
-    {
         haveDefenderComp = true;
         for (int i = 0; i < listOfDefenderGroup.Count; i++)
         {
@@ -195,64 +182,14 @@ public class DefenderTeamManager : MonoBehaviour
 
         if (haveDefenderComp)
         {
-            string _teamName = teamNameField.text;
-            List<int> _beastIds = new();
+            coroutineHelper.RunCoroutine("SetDefenderTeam",
+                NetworkManager.Instance.SetDefenderTeam(teamNameField.text, listOfDefenderGroup));
 
-            foreach (GameObject defender in listOfDefenderGroup)
-            {
-                int.TryParse(defender.name.Split("_")[3], out int intID);
-                _beastIds.Add(intID);
-            }
-
-            DefenderGroup.Request defenderGroupRequest = JsonUtility.FromJson<DefenderGroup.Request>(AddDefenderGroupTxn.text);
-
-            defenderGroupRequest.groupName = _teamName;
-            defenderGroupRequest.beastIDs = _beastIds;
-
-            string newJson = JsonUtility.ToJson(defenderGroupRequest);
-
-            yield return StartCoroutine(AddDefenderTeam(GameManager.Instance.endpointPATH + GameManager.Instance.addDefenderTeamPATH,
-                newJson, GameManager.Instance.userAccessToken));
+            LevelManager.Instance.LoadScene("DefendTeam");
         }
         else
         {
             Debug.Log("Select your comp");
         }
-    }
-
-    private IEnumerator AddDefenderTeam(string url, string bodyJsonString, string accessToken)
-    {
-        var request = new UnityWebRequest(url, "POST");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", $"Bearer {accessToken}");
-        yield return request.SendWebRequest();
-
-        while (!request.isDone)
-        {
-            int dots = ((int)(Time.time * 2.0f) % 4);
-            Debug.Log("Making new team" + new string('.', dots));
-            yield return null;
-        }
-
-        Debug.Log("Status Code: " + request.responseCode);
-        Debug.Log(request.downloadHandler.text);
-
-        DefenderGroup.Response response = JsonUtility.FromJson<DefenderGroup.Response>(request.downloadHandler.text);
-
-        if (response.status == true)
-        {
-            Debug.Log(response.message);
-        }
-        else
-        {
-            Debug.Log(response.message);
-        }
-
-        yield return StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
-
-        request.Dispose();
-    }
+    }  
 }

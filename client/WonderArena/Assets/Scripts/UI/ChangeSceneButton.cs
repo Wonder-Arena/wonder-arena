@@ -11,7 +11,7 @@ public class ChangeSceneButton : MonoBehaviour
 
     public void ToDefendGroup()
     {       
-        StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
+        CoroutineHelper.Instance.RunCoroutine("GetUserDefenderGroup", FlowInterfaceBB.Instance.GetUserDefenderGroups());
         LevelManager.Instance.LoadScene("DefendTeam");
     }
 
@@ -20,22 +20,10 @@ public class ChangeSceneButton : MonoBehaviour
 
     }
 
-    public void MakeATeamAndChangeScene(string sceneName)
-    {
-        if (GameManager.Instance.HaveAttackerComp())
-        {
-            LevelManager.Instance.LoadScene(sceneName);
-        }
-        else
-        {
-            Debug.Log("Select your Units");
-        }
-    }
-
     public void ChangeSceneToChallenge()
     {
         string sceneName;
-        if (GameManager.Instance.userDefenderGroups.Count > 0)
+        if (NetworkManager.Instance.userDefenderGroups.Count > 0)
         {
             Debug.Log("Have Defender Comp");
             sceneName = "Leaderboard";

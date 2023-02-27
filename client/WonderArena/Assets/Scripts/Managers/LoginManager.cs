@@ -188,8 +188,9 @@ public class LoginManager : MonoBehaviour
             errorField.text = "";
             PlayerPrefs.SetString("Email", loginResponse.data.email);
             PlayerPrefs.SetString("Username", loginResponse.data.name);
-            GameManager.Instance.userAccessToken = loginResponse.data.accessToken;
-            GameManager.Instance.userFlowAddress = loginResponse.data.flowAccount.address;
+            NetworkManager.Instance.userAccessToken = loginResponse.data.accessToken;
+            NetworkManager.Instance.userFlowAddress = loginResponse.data.flowAccount.address;
+            NetworkManager.Instance.claimedBBs = loginResponse.data.claimedBBs;
             loginObject.SetActive(false);
             registrationObject.SetActive(false);
             LevelManager.Instance.LoadScene("MainMenu");
@@ -238,7 +239,7 @@ public class LoginManager : MonoBehaviour
             PlayerPrefs.Save();
 
             string newJson = JsonUtility.ToJson(user);
-            string path = GameManager.Instance.endpointPATH + GameManager.Instance.registerPATH;
+            string path = NetworkManager.Instance.endpointPATH + NetworkManager.Instance.registerPATH;
 
             StartCoroutine(Register(path, newJson));
         }
@@ -268,7 +269,7 @@ public class LoginManager : MonoBehaviour
         PlayerPrefs.Save();
 
         string newJson = JsonUtility.ToJson(user);
-        string path = GameManager.Instance.endpointPATH + GameManager.Instance.loginPATH;
+        string path = NetworkManager.Instance.endpointPATH + NetworkManager.Instance.loginPATH;
 
         StartCoroutine(LoginPost(path, newJson));
     }
@@ -284,7 +285,7 @@ public class LoginManager : MonoBehaviour
         user.password = _password;
 
         string newJson = JsonUtility.ToJson(user);
-        string path = GameManager.Instance.endpointPATH + GameManager.Instance.loginPATH;
+        string path = NetworkManager.Instance.endpointPATH + NetworkManager.Instance.loginPATH;
 
         StartCoroutine(LoginPost(path, newJson));
     }

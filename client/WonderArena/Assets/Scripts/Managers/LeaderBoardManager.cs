@@ -117,40 +117,18 @@ public class LeaderBoardManager : MonoBehaviour
 
     public void ChallengePlayer()
     {
-        SceneManager.LoadScene("TeamMakingAttacking");
+        LevelManager.Instance.LoadScene("TeamMakingAttacking");
     }
 
-    public IEnumerator GetPlayer(string selectedRightNow)
+    public void GetPlayer(string selectedRightNow)
     {
         gotPlayer = false;
-        string url = GameManager.Instance.endpointPATH + GameManager.Instance.getPlayerPATH + selectedRightNow;
-        UnityWebRequest request = UnityWebRequest.Get(url);
-        request.SetRequestHeader("Authorization", $"Bearer {GameManager.Instance.userAccessToken}");
-        yield return request.SendWebRequest();
-
-        Debug.Log(request.downloadHandler.text);
-
-        Player.Response response = JsonUtility.FromJson<Player.Response>(request.downloadHandler.text);
-
-        if (response.status == true)
-        {
-            gotPlayer = true;
-            selectedFlowAddress = response.data.flowAccount.address;
-            GameManager.Instance.lastDefenderAddress = selectedFlowAddress;
-            SetPlayedData(response.data.challenges, response.data.flowAccount.address);
-            Debug.Log(selectedFlowAddress);
-        }
-        else
-        {
-            GameManager.Instance.lastDefenderAddress = null;
-            Debug.Log(response.message);
-        }
-
-        request.Dispose();
-
+        CoroutineHelper.Instance.RunCoroutine("GetPlayerLeaderBoard", 
+            NetworkManager.Instance.GetPlayerForLeaderBoard(selectedRightNow));
     }
 
-    private void SetPlayedData(List<Player.ChallengeData> challenges, string selectedAddress)
+    public void SetPlayedData(List<NetworkManager.Player.ChallengeData> 
+        challenges, string selectedAddress)
     {
         int battleWonInt = 0;
         foreach (var challenge in challenges)
@@ -163,46 +141,6 @@ public class LeaderBoardManager : MonoBehaviour
         
         battlePlayed.text = challenges.Count().ToString();
         battleWon.text = battleWonInt.ToString();
-    }
-
-    [System.Serializable]
-    public class Player
-    {
-        [System.Serializable]
-        public class Response
-        {
-            public bool status;
-            public string message;
-            public Data data;
-        }
-
-        [System.Serializable]
-        public class Data
-        {
-            public string email;
-            public string name;
-            public bool claimedBBs;
-            public FlowAccount flowAccount;
-            public List<ChallengeData> challenges;
-            public int score;
-        }
-
-        [System.Serializable]
-        public class ChallengeData
-        {
-            public string id;
-            public string winner;
-            public List<string> attackerBeasts;
-            public List<string> defenderBeasts;
-            public string attackerScoreChange;
-            public string defenderScoreChange;
-        }
-
-        [System.Serializable]
-        public class FlowAccount
-        {
-            public string address;
-        }
     }
 }
 

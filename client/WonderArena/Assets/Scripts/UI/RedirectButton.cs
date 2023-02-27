@@ -27,13 +27,13 @@ public class RedirectButton : MonoBehaviour
     {
         if (SceneManager.GetActiveScene().name == "MainMenu")
         {
-            Application.OpenURL("https://www.basicbeasts.io/drop");
+            Application.OpenURL("https://www.bakalabs.com/wonder-arena");
             confirmationWindow.gameObject.SetActive(false);
         }
         else if (SceneManager.GetActiveScene().name == "Profile")
         {
             string address = confirmationWindow.transform.Find("Input address").GetComponent<TMP_InputField>().text;
-            GameManager.Instance.LinkAccount(address);
+            NetworkManager.Instance.LinkAccount(address);
         }
     }
 

@@ -38,27 +38,27 @@ public class ProfileManager : MonoBehaviour
     public void LogOutClicked()
     {
         PlayerPrefs.DeleteAll();
-        GameManager.Instance.ClearUserData();
+        NetworkManager.Instance.ClearUserData();
         LevelManager.Instance.LoadScene("ConnectingWallet");
     }
 
     public void FixedUpdate()
     {
-        totalScore.text = GameManager.Instance.userTotalScore;
-        totalFights.text = GameManager.Instance.userChallengeData.Count.ToString();
+        totalScore.text = NetworkManager.Instance.userTotalScore;
+        totalFights.text = NetworkManager.Instance.userChallengeData.Count.ToString();
         username.text = PlayerPrefs.GetString("Username");
         email.text = PlayerPrefs.GetString("Email");
         int totalWinsInt = 0;
-        foreach (var challenge in GameManager.Instance.userChallengeData)
+        foreach (var challenge in NetworkManager.Instance.userChallengeData)
         {
-            if (GameManager.Instance.userFlowAddress == challenge.winner)
+            if (NetworkManager.Instance.userFlowAddress == challenge.winner)
             {
                 totalWinsInt += 1;
             }
         }
         totalWins.text = totalWinsInt.ToString();
 
-        if (GameManager.Instance.linkedSuccesfully)
+        if (NetworkManager.Instance.linkedSuccesfully)
         {
             confirmButton.SetActive(false);
         }

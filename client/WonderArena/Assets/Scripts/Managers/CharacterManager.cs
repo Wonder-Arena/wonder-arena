@@ -13,34 +13,34 @@ using UnityEngine.UI;
 
 public class CharacterManager : MonoBehaviour
 {
-    public bool isFightDone;
+    //public bool isFightDone;
 
-    [System.Serializable]
-    public class Fight
-    {
-        [System.Serializable]
-        public class Body
-        {
-            public List<int> attackerIDs;
-            public string defenderAddress;
-        }
+    //[System.Serializable]
+    //public class Fight
+    //{
+    //    [System.Serializable]
+    //    public class Body
+    //    {
+    //        public List<int> attackerIDs;
+    //        public string defenderAddress;
+    //    }
 
-        [System.Serializable]
-        public class Response
-        {
-            public bool status;
-            public string message;
-            public ResponseData data;
-        }
+    //    [System.Serializable]
+    //    public class Response
+    //    {
+    //        public bool status;
+    //        public string message;
+    //        public ResponseData data;
+    //    }
 
-        [System.Serializable]
-        public class ResponseData
-        {
-            public string attacker;
-            public string defender;
-            public string challengeUUID;
-        }
-    }
+    //    [System.Serializable]
+    //    public class ResponseData
+    //    {
+    //        public string attacker;
+    //        public string defender;
+    //        public string challengeUUID;
+    //    }
+    //}
 
     public List<GameObject> listOfAttackerGroup = new(3);
     public bool haveAttackerComp;
@@ -52,17 +52,18 @@ public class CharacterManager : MonoBehaviour
     GameObject ui_CharaterSelection;
     [SerializeField]
     GameObject ui_SelectedUnits;
-    [SerializeField]
-    TextAsset FightTxn;
 
 
     [SerializeField]
     List<GameObject> allBeastsPrefabs;
     FlowInterfaceBB flowInterface;
 
+    CoroutineHelper coroutineHelper;
+
 
     private void Awake()
     {
+        coroutineHelper = CoroutineHelper.Instance;
         flowInterface = FlowInterfaceBB.Instance.GetComponent<FlowInterfaceBB>();
         clickSound = transform.GetComponent<AudioSource>().clip;
     }
@@ -159,35 +160,9 @@ public class CharacterManager : MonoBehaviour
         }
 
         PlatformSetter.Instance.SetAllBeast(beastsNames);
-
-        // Deleting all of the previous selected units and refilling it again
-        // foreach (Transform child in ui_SelectedUnits.transform)
-        // {
-        //     foreach (Transform childInChild in child)
-        //     {
-        //         Destroy(childInChild.gameObject);
-        //     }
-        // }
-        // for (int i = 0; i < listOfAttackerGroup.Count; i++)
-        // {
-        //     if (listOfAttackerGroup[i] != null)
-        //     {
-        //         GameObject newSelectedUnit = Instantiate(listOfAttackerGroup[i], ui_SelectedUnits.transform.GetChild(i));
-        //         newSelectedUnit.name = listOfAttackerGroup[i].name;
-        //         newSelectedUnit.transform.Find("SelectedBackground").gameObject.SetActive(false);
-        //         newSelectedUnit.transform.Find("Background").gameObject.SetActive(false);
-        //         newSelectedUnit.transform.Find("Shadow").gameObject.SetActive(false);
-        //         newSelectedUnit.transform.Find("Platform").gameObject.SetActive(true);
-        //     }
-        // }
     }
 
     public void OnConfirmClicked()
-    {
-        StartCoroutine(StartFight());
-    }
-
-    private IEnumerator StartFight()
     {
         haveAttackerComp = true;
         for (int i = 0; i < listOfAttackerGroup.Count; i++)
@@ -202,74 +177,107 @@ public class CharacterManager : MonoBehaviour
         if (haveAttackerComp)
         {
             List<int> attackerCompIntId = new();
-            GameManager.Instance.attackerComp = new();
+            NetworkManager.Instance.attackerComp = new();
             for (int i = 0; i < listOfAttackerGroup.Count; i++)
             {
                 if (listOfAttackerGroup[i] != null)
                 {
-                    GameManager.Instance.attackerComp.Add(listOfAttackerGroup[i].name);
+                    NetworkManager.Instance.attackerComp.Add(listOfAttackerGroup[i].name);
                     attackerCompIntId.Add(int.Parse(listOfAttackerGroup[i].name.Split("_")[3]));
                 }
             }
-
-            Fight.Body fightBody = JsonUtility.FromJson<Fight.Body>(FightTxn.text);
-
-            fightBody.attackerIDs = attackerCompIntId;
-            fightBody.defenderAddress = GameManager.Instance.lastDefenderAddress;
-
-            string newJson = JsonUtility.ToJson(fightBody);
-
-            yield return StartCoroutine(GetFightRecord(GameManager.Instance.endpointPATH + GameManager.Instance.fightPATH,
-                newJson, GameManager.Instance.userAccessToken));
-
-            if (madeANewComp == true)
-            {
-                LevelManager.Instance.LoadScene("FightScene");
-            }
+            coroutineHelper.RunCoroutine("StartFight", 
+                NetworkManager.Instance.StartFight(attackerCompIntId));
         }
         else
         {
             Debug.Log("Select your comp");
-        } 
+        }
     }
 
-    private IEnumerator GetFightRecord(string url, string bodyJsonString, string accessToken)
-    {
-        var request = new UnityWebRequest(url, "POST");
-        byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
-        request.uploadHandler = new UploadHandlerRaw(bodyRaw);
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", $"Bearer {accessToken}");
-        yield return request.SendWebRequest();
+    //private IEnumerator StartFight()
+    //{
+    //    haveAttackerComp = true;
+    //    for (int i = 0; i < listOfAttackerGroup.Count; i++)
+    //    {
+    //        if (listOfAttackerGroup[i] == null)
+    //        {
+    //            haveAttackerComp = false;
+    //            break;
+    //        }
+    //    }
 
-        while (!request.isDone)
-        {
-            int dots = ((int)(Time.time * 2.0f) % 4);
-            Debug.Log("Making new team" + new string('.', dots));
-            yield return null;
-        }
+    //    if (haveAttackerComp)
+    //    {
+    //        List<int> attackerCompIntId = new();
+    //        GameManager.Instance.attackerComp = new();
+    //        for (int i = 0; i < listOfAttackerGroup.Count; i++)
+    //        {
+    //            if (listOfAttackerGroup[i] != null)
+    //            {
+    //                GameManager.Instance.attackerComp.Add(listOfAttackerGroup[i].name);
+    //                attackerCompIntId.Add(int.Parse(listOfAttackerGroup[i].name.Split("_")[3]));
+    //            }
+    //        }
 
-        Debug.Log("Status Code: " + request.responseCode);
-        Debug.Log(request.downloadHandler.text);
+    //        Fight.Body fightBody = JsonUtility.FromJson<Fight.Body>(FightTxn.text);
 
-        Fight.Response response = JsonUtility.FromJson<Fight.Response>(request.downloadHandler.text);
+    //        fightBody.attackerIDs = attackerCompIntId;
+    //        fightBody.defenderAddress = GameManager.Instance.lastDefenderAddress;
 
-        if (response.status == true)
-        {
-            Debug.Log(response.message);
-            madeANewComp = true;
-            GameManager.Instance.lastDefenderAddress = response.data.defender;
-            GameManager.Instance.lastFightRecord = response.data.challengeUUID;     
-            yield return StartCoroutine(flowInterface.GetFightsRecords());
-        }
-        else
-        {
-            Debug.Log(response.message);
-        }
+    //        string newJson = JsonUtility.ToJson(fightBody);
 
-        isFightDone = true;
+    //        yield return StartCoroutine(GetFightRecord(GameManager.Instance.endpointPATH + GameManager.Instance.fightPATH,
+    //            newJson, GameManager.Instance.userAccessToken));
 
-        request.Dispose();
-    }
+    //        if (madeANewComp == true)
+    //        {
+    //            LevelManager.Instance.LoadScene("FightScene");
+    //        }
+    //    }
+    //    else
+    //    {
+    //        Debug.Log("Select your comp");
+    //    } 
+    //}
+
+    //private IEnumerator GetFightRecord(string url, string bodyJsonString, string accessToken)
+    //{
+    //    var request = new UnityWebRequest(url, "POST");
+    //    byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
+    //    request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+    //    request.downloadHandler = new DownloadHandlerBuffer();
+    //    request.SetRequestHeader("Content-Type", "application/json");
+    //    request.SetRequestHeader("Authorization", $"Bearer {accessToken}");
+    //    yield return request.SendWebRequest();
+
+    //    while (!request.isDone)
+    //    {
+    //        int dots = ((int)(Time.time * 2.0f) % 4);
+    //        Debug.Log("Making new team" + new string('.', dots));
+    //        yield return null;
+    //    }
+
+    //    Debug.Log("Status Code: " + request.responseCode);
+    //    Debug.Log(request.downloadHandler.text);
+
+    //    Fight.Response response = JsonUtility.FromJson<Fight.Response>(request.downloadHandler.text);
+
+    //    if (response.status == true)
+    //    {
+    //        Debug.Log(response.message);
+    //        madeANewComp = true;
+    //        GameManager.Instance.lastDefenderAddress = response.data.defender;
+    //        GameManager.Instance.lastFightRecord = response.data.challengeUUID;     
+    //        yield return StartCoroutine(flowInterface.GetFightsRecords());
+    //    }
+    //    else
+    //    {
+    //        Debug.Log(response.message);
+    //    }
+
+    //    isFightDone = true;
+
+    //    request.Dispose();
+    //}
 }

@@ -64,7 +64,7 @@ public class FightManager : MonoBehaviour
             record = null;
             Debug.Log("There's no such Battle Record");
         }
-        attackerCompNames = new(GameManager.Instance.attackerComp);
+        attackerCompNames = new(NetworkManager.Instance.attackerComp);
         SetAllPawns();
         StartCoroutine(SimulateFight());
     }
@@ -96,7 +96,7 @@ public class FightManager : MonoBehaviour
     private void SetDefendersPawns()
     {
         Debug.Log("Start Setting defenders");
-        List<string> defenderCompNames = new(GameManager.Instance.lastDefenderNamesOfPawns);
+        List<string> defenderCompNames = new(NetworkManager.Instance.lastDefenderNamesOfPawns);
         for (int i = 0; i < defenderCompNames.Count; i++)
         {
             GameObject newDefenderObject = null;
@@ -392,7 +392,7 @@ public class FightManager : MonoBehaviour
     private void SetResultScreen()
     {
         resultBeasts.SetActive(true);
-        if (winner == GameManager.Instance.userFlowAddress)
+        if (winner == NetworkManager.Instance.userFlowAddress)
         {
             SetScreen(winScreen);
         }

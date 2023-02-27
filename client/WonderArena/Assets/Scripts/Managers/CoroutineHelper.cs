@@ -2,11 +2,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class CoroutineHelper : MonoBehaviour
 {
     private static CoroutineHelper _instance;
-    private Dictionary<string, IEnumerator> _runningCoroutines = new Dictionary<string, IEnumerator>();
+    private readonly Dictionary<string, IEnumerator> _runningCoroutines = new();
 
     public static CoroutineHelper Instance
     {
@@ -28,18 +27,34 @@ public class CoroutineHelper : MonoBehaviour
 
     public void RunCoroutine(string coroutineName, IEnumerator coroutine)
     {
-        if (IsCoroutineRunning(coroutineName))
-        {
-            StopCoroutine(_runningCoroutines[coroutineName]);
-            _runningCoroutines.Remove(coroutineName);
-        }
+        //if (IsCoroutineRunning(coroutineName))
+        //{
+        //    StopCoroutine(_runningCoroutines[coroutineName]);
+        //    _runningCoroutines.Remove(coroutineName);
+        //}
+        Debug.Log("Coroutine Helper finished " + coroutineName);
         _runningCoroutines.Add(coroutineName, coroutine);
         StartCoroutine(RunCoroutineWrapper(coroutineName, coroutine));
+    }
+
+    public bool AreAllCoroutinesFinished()
+    {
+        return _runningCoroutines.Count == 0;
+    }
+
+    public bool AreAllCoroutinesFinishedExept(string coroutineName)
+    {
+        if (_runningCoroutines.Count == 1 && _runningCoroutines.ContainsKey(coroutineName))
+        {
+            return true;
+        }
+        return _runningCoroutines.Count == 0;
     }
 
     private IEnumerator RunCoroutineWrapper(string coroutineName, IEnumerator coroutine)
     {
         yield return StartCoroutine(coroutine);
+        Debug.Log("Coroutine Helper finished " + coroutineName);
         _runningCoroutines.Remove(coroutineName);
     }
 }

@@ -66,9 +66,9 @@ public class FlowInterfaceBB : MonoBehaviour
             Destroy(this);
         }
 
-        // Register DevWallet
-        FlowSDK.RegisterWalletProvider(ScriptableObject.CreateInstance<DevWalletProvider>());
-        CoroutineHelper coroutineHelper = CoroutineHelper.Instance;
+        //// Register DevWallet
+        //FlowSDK.RegisterWalletProvider(ScriptableObject.CreateInstance<DevWalletProvider>());
+        coroutineHelper = CoroutineHelper.Instance;
     }
 
     private IEnumerator Start()
@@ -84,25 +84,28 @@ public class FlowInterfaceBB : MonoBehaviour
             }
         }
 
-        StartCoroutine(GameManager.Instance.GetPlayerUpdate(5f));
+        StartCoroutine(NetworkManager.Instance.GetPlayerUpdate(5f));
 
         
-        while (GameManager.Instance.userFlowAddress == null)
+        while (NetworkManager.Instance.userFlowAddress == null)
         {
             int dots = ((int)(Time.time * 2.0f) % 4);
             Debug.Log("Registrating Flow Account" + new string('.', dots));
             yield return null;
         }
 
-        //StartCoroutine(GameManager.Instance.ClaimBBs());
-        coroutineHelper.RunCoroutine("ClaimBBs", GameManager.Instance.ClaimBBs());
+        userFlowAddress = NetworkManager.Instance.userFlowAddress;
 
-        userFlowAddress = GameManager.Instance.userFlowAddress;
+        //StartCoroutine(GameManager.Instance.ClaimBBs());
+        if (!NetworkManager.Instance.claimedBBs)
+        {
+            coroutineHelper.RunCoroutine("ClaimBBs", NetworkManager.Instance.ClaimBBs());
+        }      
 
         if (PlayerPrefs.HasKey("Username"))
         {
             coroutineHelper.RunCoroutine("GetAllPlayers", GetAllPlayers());
-            //yield return StartCoroutine(GetAllBeastsIDs());
+            coroutineHelper.RunCoroutine("GetAllBeasts", GetAllBeastsIDs());
         }
         else
         {
@@ -178,10 +181,10 @@ public class FlowInterfaceBB : MonoBehaviour
 
     public IEnumerator GetDefenderPawnsNames(CadenceBase[] beastIds)
     {
-        GameManager.Instance.lastDefenderNamesOfPawns = new();
+        NetworkManager.Instance.lastDefenderNamesOfPawns = new();
         // Executing script to get all Pawns from account
         Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text,
-            new CadenceAddress(GameManager.Instance.lastDefenderAddress), new CadenceArray(beastIds));
+            new CadenceAddress(NetworkManager.Instance.lastDefenderAddress), new CadenceArray(beastIds));
 
         yield return new WaitUntil(() => getPawns.IsCompleted);
 
@@ -210,13 +213,13 @@ public class FlowInterfaceBB : MonoBehaviour
             nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn;
             Debug.Log(nameOfPawn);
 
-            GameManager.Instance.lastDefenderNamesOfPawns.Add(nameOfPawn);
+            NetworkManager.Instance.lastDefenderNamesOfPawns.Add(nameOfPawn);
         }
     }
 
     public IEnumerator GetUserDefenderGroups()
     {
-        GameManager.Instance.userDefenderGroups = new();
+        NetworkManager.Instance.userDefenderGroups = new();
         // Executing script to get all Defenders Id from account
         Task<FlowScriptResponse> getDefendersIds = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text,
             new CadenceAddress(userFlowAddress));
@@ -273,14 +276,14 @@ public class FlowInterfaceBB : MonoBehaviour
                 }
 
                 Debug.Log(name);
-                if (GameManager.Instance.userDefenderGroups.ContainsKey(name))
+                if (NetworkManager.Instance.userDefenderGroups.ContainsKey(name))
                 {
-                    GameManager.Instance.userDefenderGroups[name] = _defenderGroup;
+                    NetworkManager.Instance.userDefenderGroups[name] = _defenderGroup;
                     
                 }
                 else
                 {
-                    GameManager.Instance.userDefenderGroups.Add(name, _defenderGroup);
+                    NetworkManager.Instance.userDefenderGroups.Add(name, _defenderGroup);
                 }   
             }
         }
@@ -293,8 +296,8 @@ public class FlowInterfaceBB : MonoBehaviour
     public IEnumerator GetFightsRecords()
     {
         Task<FlowScriptResponse> getChallengeRecords = FLOW_ACCOUNT.ExecuteScript(GetChallengeRecordsTxn.text,
-            new CadenceAddress(userFlowAddress), new CadenceAddress(GameManager.Instance.lastDefenderAddress), 
-            new CadenceNumber(CadenceNumberType.UInt64, GameManager.Instance.lastFightRecord));
+            new CadenceAddress(userFlowAddress), new CadenceAddress(NetworkManager.Instance.lastDefenderAddress), 
+            new CadenceNumber(CadenceNumberType.UInt64, NetworkManager.Instance.lastFightRecord));
 
         yield return new WaitUntil(() => getChallengeRecords.IsCompleted);
 

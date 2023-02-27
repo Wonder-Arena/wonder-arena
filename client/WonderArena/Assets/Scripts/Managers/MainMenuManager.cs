@@ -15,7 +15,7 @@ public class MainMenuManager : MonoBehaviour
         airDroppingLoadPage.SetActive(true);
         yield return StartCoroutine(WaitForAccount());
         yield return StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
-        if (GameManager.Instance.userDefenderGroups.Count > 0)
+        if (NetworkManager.Instance.userDefenderGroups.Count > 0)
         {
             SetPlatforms();
         }
@@ -29,12 +29,12 @@ public class MainMenuManager : MonoBehaviour
     {
         List<string> beastsNames;
         List<string> teamsNames = new();
-        foreach (KeyValuePair<string, List<string>> defenderGroup in GameManager.Instance.userDefenderGroups)
+        foreach (KeyValuePair<string, List<string>> defenderGroup in NetworkManager.Instance.userDefenderGroups)
         {
             teamsNames.Add(defenderGroup.Key);
         }
-        int randomIndex = Random.Range(0, GameManager.Instance.userDefenderGroups.Count);
-        beastsNames = new(GameManager.Instance.userDefenderGroups[teamsNames[randomIndex]]);
+        int randomIndex = Random.Range(0, NetworkManager.Instance.userDefenderGroups.Count);
+        beastsNames = new(NetworkManager.Instance.userDefenderGroups[teamsNames[randomIndex]]);
 
         PlatformSetter.Instance.SetAllBeast(beastsNames);
     }
@@ -47,7 +47,7 @@ public class MainMenuManager : MonoBehaviour
     private IEnumerator WaitForAccount()
     {
         TextMeshProUGUI airDropTextField = airDroppingLoadPage.transform.Find("Text").GetComponent<TextMeshProUGUI>();
-        while (GameManager.Instance.userFlowAddress == null)
+        while (NetworkManager.Instance.userFlowAddress == null && CoroutineHelper.Instance.IsCoroutineRunning("ClaimBBs"))
         {
             int dots = ((int)(Time.time * 2.0f) % 4);
             airDropTextField.text = $"Registrating Flow Account{new string('.', dots)}\nAnd Airdropping Beasts <3";

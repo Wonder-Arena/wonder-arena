@@ -95,6 +95,7 @@ GameObject:
   - component: {fileID: 1782096061024230515}
   - component: {fileID: 2258891693752422107}
   - component: {fileID: 4303737681345666943}
+  - component: {fileID: 6678068757321192186}
   m_Layer: 0
   m_Name: Azazel_Normal
   m_TagString: Untagged
@@ -159,6 +160,18 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+--- !u!114 &6678068757321192186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782096061024230514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1006892723b6f4442b34fd9bdd75f6f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1783039640054111099
 GameObject:
   m_ObjectHideFlags: 0
