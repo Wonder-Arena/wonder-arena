@@ -1,8 +1,10 @@
 const router = require('express').Router()
 const express = require('express')
+const { handleCheckoutCompleted, handleCheckoutExpired } = require('../services/stripe.service')
 
 const stripe = require('stripe')(process.env.STRIPE_SK)
-router.post('/stripe', express.raw({type: 'application/json'}), (request, response) => {
+
+router.post('/stripe', express.raw({type: 'application/json'}), async (request, response) => {
   const sig = request.headers['stripe-signature'];
 
   let event;
@@ -11,20 +13,20 @@ router.post('/stripe', express.raw({type: 'application/json'}), (request, respon
   try {
     event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
   } catch (err) {
-    console.log(err)
     response.status(400).send(`Webhook Error: ${err.message}`);
     return;
   }
 
   switch (event.type) {
-    case 'payment_intent.succeeded':
-      const paymentIntentSucceeded = event.data.object;
-      console.log(paymentIntentSucceeded.id)
-      break;
     case 'checkout.session.completed':
       const checkoutSessionCompleted = event.data.object;
-      console.log(checkoutSessionCompleted)
+      const completedId = checkoutSessionCompleted.id
+      await handleCheckoutCompleted(completedId)
       break;
+    case 'checkout.session.expired':
+      const checkoutSessionExpired = event.data.object;
+      const expiredId = checkoutSessionExpired.id
+      await handleCheckoutExpired(expiredId)
     default:
       console.log(`Unhandled event type ${event.type}`);
   }

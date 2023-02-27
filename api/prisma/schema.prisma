@@ -34,3 +34,15 @@ model User {
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt @default(now())
 }
+
+model StripeOrder {
+    id Int @id @default(autoincrement())
+    sessionId String @unique
+    tokenId Int
+    recipient String
+    checkoutCompleted Boolean @default(false)
+    checkoutExpired Boolean @default(false)
+
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt @default(now())
+}
