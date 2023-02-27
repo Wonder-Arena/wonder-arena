@@ -42,6 +42,11 @@ export const getRewards = async (account) => {
   return await executeScript({ name: scriptName, args: [account] })
 }
 
+export const getLinkedChildren = async (account) => {
+  const scriptName = "get_linked_children"
+  return await executeScript({ name: scriptName, args: [account] })
+}
+
 // transactions
 
 export const createPlayer = async (signer, name) => {
@@ -56,6 +61,14 @@ export const register = async (signer, address) => {
   const signers = [signer]
   const txName = "register"
   const args = [address]
+
+  return await sendTransaction({ name: txName, signers: signers, args: args }) 
+}
+
+export const addLink = async (signer, parent, child) => {
+  const signers = [signer]
+  const txName = "add_link"
+  const args = [parent, child]
 
   return await sendTransaction({ name: txName, signers: signers, args: args }) 
 }
