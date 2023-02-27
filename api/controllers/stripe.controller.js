@@ -18,8 +18,8 @@ class stripeController {
           },
         ],
         mode: 'payment',
-        success_url: 'http://localhost:4242/success',
-        cancel_url: 'http://localhost:4242/cancel',
+        success_url: 'https://www.bakalabs.com/payment-succeeded',
+        cancel_url: 'https://www.bakalabs.com/payment-cancelled',
       });
     
       res.status(200).json({

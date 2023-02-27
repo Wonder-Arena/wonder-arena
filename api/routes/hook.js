@@ -19,7 +19,11 @@ router.post('/stripe', express.raw({type: 'application/json'}), (request, respon
   switch (event.type) {
     case 'payment_intent.succeeded':
       const paymentIntentSucceeded = event.data.object;
-      console.log(paymentIntentSucceeded)
+      console.log(paymentIntentSucceeded.id)
+      break;
+    case 'checkout.session.completed':
+      const checkoutSessionCompleted = event.data.object;
+      console.log(checkoutSessionCompleted)
       break;
     default:
       console.log(`Unhandled event type ${event.type}`);
