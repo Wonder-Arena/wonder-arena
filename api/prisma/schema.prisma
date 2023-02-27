@@ -17,6 +17,9 @@ model FlowAccount {
 
     user User @relation(fields: [userId], references: [id])
     userId Int @unique
+
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt @default(now())
 }
 
 model User {
@@ -26,4 +29,8 @@ model User {
     password String
     claimedBBs Boolean @default(false)
     flowAccount FlowAccount?
+    generatorIndex Int?
+
+    createdAt          DateTime  @default(now())
+    updatedAt          DateTime  @updatedAt @default(now())
 }

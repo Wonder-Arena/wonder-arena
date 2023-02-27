@@ -24,6 +24,20 @@ class flowService {
     return decrypted
   }
 
+  static async getAdminAccountWithKeyIndex(keyIndex) {
+    const FlowSigner = (await import('../utils/signer.mjs')).default
+    const keys = (process.env.ADMIN_ENCRYPTED_PRIVATE_KEYS).split(",")
+    const key = this.decryptPrivateKey(keys[keyIndex])
+
+    const signer = new FlowSigner(
+      process.env.ADMIN_ADDRESS,
+      key,
+      keyIndex,
+      {}
+    )
+    return signer
+  }
+
   static async getAdminAccount() {
     const FlowSigner = (await import('../utils/signer.mjs')).default
     const keys = (process.env.ADMIN_ENCRYPTED_PRIVATE_KEYS).split(",")
@@ -66,33 +80,75 @@ class flowService {
     return { privateKey: privateKey, publicKey: publicKey }
   }
 
-  static isGeneratingAccounts = false
 
-  static async generateWonderArenaAccounts() {
-    if (this.isGeneratingAccounts) {
-      return
-    }
+  static AdminKeysForRegistration = {
+    0: false,
+    1: false,
+    2: false
+  }
 
-    this.isGeneratingAccounts = true
+  static AdminKeysForFight = {
+    3: false,
+    4: false,
+    5: false
+  }
+
+  static async setGeneratorIndex() {
     const users = await prisma.user.findMany({
-      where: { flowAccount: null }
+      where: { flowAccount: null, generatorIndex: null }
     })
 
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i]
+      const indicies = Object.keys(this.AdminKeysForRegistration)
+      const index = user.id % indicies.length
+      try {
+        await prisma.user.update({
+          where: { email: user.email },
+          data: { generatorIndex: index }
+        }) 
+      } catch (e) {
+        console.log(e)
+      }
+    } 
+  }
+
+  static async generateWonderArenaAccounts() {
+    await this.setGeneratorIndex()
+    const indicies = Object.keys(this.AdminKeysForRegistration) 
+    for (let i = 0; i < indicies.length; i++) {
+      let index = indicies[i]
+      if (this.AdminKeysForRegistration[index] == false) {
+        this.generateWonderArenaAccountsWithKey(index)
+      }
+    }
+  }
+
+  static async generateWonderArenaAccountsWithKey(_keyIndex) {
+    if (this.AdminKeysForRegistration[_keyIndex] == true) {
+      return
+    }
+    this.AdminKeysForRegistration[_keyIndex] = true
+    const keyIndex = parseInt(_keyIndex)
+    const users = await prisma.user.findMany({
+      where: { flowAccount: null, generatorIndex: keyIndex }
+    })
     
     for (let i = 0; i < users.length; i++) {
       let user = users[i]
       try {
-        console.log(`[${user.name}] Generating address`)
-        await this.createWonderArenaAccount(user)
-        console.log(`[${user.name}] Address is generated`)
+        console.log(`[${user.name}] Generating address with key #${keyIndex}`)
+        await this.createWonderArenaAccount(user, keyIndex)
+        console.log(`[${user.name}] Address is generated with key #${keyIndex}`)
       } catch (e) {
         console.log(e)
       }
     }
-    this.isGeneratingAccounts = false
+
+    this.AdminKeysForRegistration[_keyIndex] = false
   }
 
-  static async createWonderArenaAccount(data) {
+  static async createWonderArenaAccount(data, keyIndex) {
     const { name, email } = data
     const user = await prisma.user.findUnique({
       where: { email },
@@ -110,7 +166,7 @@ class flowService {
       return user.flowAccount
     }
 
-    const signer = await this.getAdminAccount()
+    const signer = await this.getAdminAccountWithKeyIndex(keyIndex)
 
     const { privateKey: privateKey, publicKey: publicKeyHex } = this.generateKeypair()
     const code = `
