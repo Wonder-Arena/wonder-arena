@@ -2,7 +2,7 @@ const createError = require('http-errors');
 const stripe = require('stripe')(process.env.STRIPE_SK)
 
 class stripeController {
-  static test = async (req, res, next) => {
+  static createCheckoutSession = async (req, res, next) => {
     try {
       const session = await stripe.checkout.sessions.create({
         line_items: [
