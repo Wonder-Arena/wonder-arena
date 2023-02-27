@@ -54,10 +54,11 @@ class flowService {
   static generateKeypair() {
     const EC = require("elliptic").ec
     const ec = new EC("p256")
-    const keypair = ec.genKeyPair()
 
+    const keypair = ec.genKeyPair()
     let privateKey = keypair.getPrivate().toString('hex')
     while (privateKey.length != 64) {
+      const keypair = ec.genKeyPair()
       privateKey = keypair.getPrivate().toString('hex')
     }
 
@@ -69,7 +70,6 @@ class flowService {
 
   static async generateWonderArenaAccounts() {
     if (this.isGeneratingAccounts) {
-      console.log("is generating address?", this.isGeneratingAccounts)
       return
     }
 
@@ -78,10 +78,13 @@ class flowService {
       where: { flowAccount: null }
     })
 
+    
     for (let i = 0; i < users.length; i++) {
       let user = users[i]
       try {
+        console.log(`[${user.name}] Generating address`)
         await this.createWonderArenaAccount(user)
+        console.log(`[${user.name}] Address is generated`)
       } catch (e) {
         console.log(e)
       }
