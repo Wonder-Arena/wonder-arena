@@ -219,10 +219,10 @@ public class NetworkManager : MonoBehaviour
 
     public IEnumerator GetPlayerUpdate(float seconds)
     {
-        yield return new WaitForSeconds(seconds);
         while (userFlowAddress == null)
         {
             StartCoroutine(GetPlayer());
+            yield return new WaitForSeconds(seconds);
             yield return null;
         }
     }

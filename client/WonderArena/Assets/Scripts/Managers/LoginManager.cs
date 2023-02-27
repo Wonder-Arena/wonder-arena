@@ -198,6 +198,9 @@ public class LoginManager : MonoBehaviour
         else
         {
             errorField.text = loginResponse.message;
+            PlayerPrefs.DeleteAll();
+            nonVideoStartingScreen.SetActive(true);
+            OnLoginClicked();
         }
 
         request.Dispose();
