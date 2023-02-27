@@ -81,13 +81,10 @@ class flowService {
   }
 
 
-  static AdminKeysForRegistration = {
+  static AdminKeys = {
     0: false,
     1: false,
-    2: false
-  }
-
-  static AdminKeysForFight = {
+    2: false,
     3: false,
     4: false,
     5: false
@@ -100,7 +97,7 @@ class flowService {
 
     for (let i = 0; i < users.length; i++) {
       const user = users[i]
-      const indicies = Object.keys(this.AdminKeysForRegistration)
+      const indicies = Object.keys(this.AdminKeys)
       const index = user.id % indicies.length
       try {
         await prisma.user.update({
@@ -115,20 +112,20 @@ class flowService {
 
   static async generateWonderArenaAccounts() {
     await this.setGeneratorIndex()
-    const indicies = Object.keys(this.AdminKeysForRegistration) 
+    const indicies = Object.keys(this.AdminKeys) 
     for (let i = 0; i < indicies.length; i++) {
       let index = indicies[i]
-      if (this.AdminKeysForRegistration[index] == false) {
+      if (this.AdminKeys[index] == false) {
         this.generateWonderArenaAccountsWithKey(index)
       }
     }
   }
 
   static async generateWonderArenaAccountsWithKey(_keyIndex) {
-    if (this.AdminKeysForRegistration[_keyIndex] == true) {
+    if (this.AdminKeys[_keyIndex] == true) {
       return
     }
-    this.AdminKeysForRegistration[_keyIndex] = true
+    this.AdminKeys[_keyIndex] = true
     const keyIndex = parseInt(_keyIndex)
     const users = await prisma.user.findMany({
       where: { flowAccount: null, generatorIndex: keyIndex }
@@ -145,7 +142,7 @@ class flowService {
       }
     }
 
-    this.AdminKeysForRegistration[_keyIndex] = false
+    this.AdminKeys[_keyIndex] = false
   }
 
   static async createWonderArenaAccount(data, keyIndex) {
@@ -573,11 +570,27 @@ class flowService {
       ]
     })
 
-    if (challengeTimes >= 3) {
-      throw { statusCode: 422, message: "Can only challenge a player for 3 times at most" }
+    // TODO:
+    if (challengeTimes >= 100) {
+      throw createError.UnprocessableEntity("Can only challenge a player for 3 times at most")
     }
 
-    let signer = await this.getAdminAccount()
+    let keyIndex = null
+    for (const [key, value] of Object.entries(this.AdminKeys)) {
+      if (value == false) {
+        keyIndex = parseInt(key)
+        break
+      }
+    }
+
+    console.log(keyIndex)
+
+    if (keyIndex == null) {
+      throw createError.InternalServerError("Server is busy")
+    }
+
+    this.AdminKeys[keyIndex] = true
+    let signer = await this.getAdminAccountWithKeyIndex(keyIndex)
     let code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
@@ -613,6 +626,7 @@ class flowService {
 
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
+        this.AdminKeys[keyIndex] = false
         if (tx.status === 4 && tx.statusCode === 0) {
           let event = tx.events.find((e) => e.type.includes('ChallengeHappened'))
           if (!event) {
@@ -623,6 +637,7 @@ class flowService {
       }
       throw "send transaction failed"
     } catch (e) {
+      this.AdminKeys[keyIndex] = false
       throw { statusCode: 500, message: `Fight failed ${e}` }
     }
   }
