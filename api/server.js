@@ -3,13 +3,10 @@ require('@prisma/client');
 const app = express();
 require('dotenv').config();
 const route = require('./routes');
-const bodyParser = require('body-parser');
+
 const morgan = require("morgan");
 
 app.use(morgan('dev'));
-
-app.use(bodyParser.urlencoded({ extended: true }))
-app.use(bodyParser.json())
 
 // redirect to routes/index.js
 app.use('/', route)

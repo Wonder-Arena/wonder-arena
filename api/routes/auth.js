@@ -3,6 +3,10 @@ const user = require('../controllers/auth.controller')
 const flow = require('../controllers/flow.controller')
 const stripe = require('../controllers/stripe.controller')
 const auth = require('../middlewares/auth')
+const bodyParser = require('body-parser');
+
+router.use(bodyParser.urlencoded({ extended: true }))
+router.use(bodyParser.json())
 
 // register
 router.post('/', user.register)
