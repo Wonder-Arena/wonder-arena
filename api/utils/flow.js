@@ -15,7 +15,6 @@ class flowHelper {
       .put("fcl.limit", 9999)
       .put("flow.network", "testnet")
       .put("accessNode.api", "https://rest-testnet.onflow.org")
-      .put("0xWonderArena", "0x2432e062f9f14295")
   }
 
   static isValidFlowAddress = (address) => {

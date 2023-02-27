@@ -1,107 +1,104 @@
 {
-	"emulators": {
-		"default": {
-			"port": 3569,
-			"serviceAccount": "emulator-account"
+	"contracts": {
+		"BasicBeasts": {
+			"source": "./cadence/contracts/basicbeasts/BasicBeasts.cdc",
+			"aliases": {
+				"mainnet": "0x2d4c3caffbeab845",
+				"testnet": "0xfa252d0aa22bf86a"
+			}
+		},
+		"ChildAccount": {
+			"source": "./cadence/contracts/core/ChildAccount.cdc",
+			"aliases": {
+				"mainnet": "0x1d7e57aa55817448",
+				"testnet": "0x1b655847a90e644a"
+			}
+		},
+		"FlowToken": {
+			"source": "./cadence/contracts/core/FlowToken.cdc",
+			"aliases": {
+				"mainnet": "0x1654653399040a61",
+				"testnet": "0x7e60df042a9c0868"
+			}
+		},
+		"FungibleToken": {
+			"source": "./cadence/contracts/core/FungibleToken.cdc",
+			"aliases": {
+				"mainnet": "0xf233dcee88fe0abe",
+				"testnet": "0x9a0766d93b6608b7"
+			}
+		},
+		"MetadataViews": {
+			"source": "./cadence/contracts/core/MetadataViews.cdc",
+			"aliases": {
+				"mainnet": "0x1d7e57aa55817448",
+				"testnet": "0x631e88ae7f1d7c20"
+			}
+		},
+		"NonFungibleToken": {
+			"source": "./cadence/contracts/core/NonFungibleToken.cdc",
+			"aliases": {
+				"mainnet": "0x1d7e57aa55817448",
+				"testnet": "0x631e88ae7f1d7c20"
+			}
+		},
+		"WonderArenaBattleField_BasicBeasts1": {
+			"source": "./cadence/contracts/WonderArenaBattleField_BasicBeasts1.cdc",
+			"aliases": {
+				"mainnet": "0x39b144ab4d348e2b",
+				"testnet": "0xb1891ca866d4647e"
+			}
+		},
+		"WonderArenaPawn_BasicBeasts1": {
+			"source": "./cadence/contracts/WonderArenaPawn_BasicBeasts1.cdc",
+			"aliases": {
+				"mainnet": "0x39b144ab4d348e2b",
+				"testnet": "0xb1891ca866d4647e"
+			}
+		},
+		"WonderArenaReward_BasicBeasts1": {
+			"source": "./cadence/contracts/WonderArenaReward_BasicBeasts1.cdc",
+			"aliases": {
+				"mainnet": "0x39b144ab4d348e2b",
+				"testnet": "0xb1891ca866d4647e"
+			}
+		},
+		"WonderArenaWorldRules_BasicBeasts1": {
+			"source": "./cadence/contracts/WonderArenaWorldRules_BasicBeasts1.cdc",
+			"aliases": {
+				"mainnet": "0x39b144ab4d348e2b",
+				"testnet": "0xb1891ca866d4647e"
+			}
 		}
 	},
-	"contracts": {
-        "FungibleToken": {
-            "source": "./cadence/contracts/core/FungibleToken.cdc",
-            "aliases": {
-                "testnet": "0x9a0766d93b6608b7",
-                "mainnet": "0xf233dcee88fe0abe"
-            }
-        },
-        "FlowToken": {
-            "source": "./cadence/contracts/core/FlowToken.cdc",
-            "aliases": {
-                "testnet": "0x7e60df042a9c0868",
-                "mainnet": "0x1654653399040a61"
-            }
-        },
-        "NonFungibleToken": {
-            "source": "./cadence/contracts/core/NonFungibleToken.cdc",
-            "aliases": {
-                "testnet": "0x631e88ae7f1d7c20",
-                "mainnet": "0x1d7e57aa55817448"
-            } 
-        },
-        "MetadataViews": {
-            "source": "./cadence/contracts/core/MetadataViews.cdc",
-            "aliases": {
-                "testnet": "0x631e88ae7f1d7c20",
-                "mainnet": "0x1d7e57aa55817448"
-            } 
-        },
-        "ChildAccount": {
-            "source": "./cadence/contracts/core/ChildAccount.cdc",
-            "aliases": {
-                "testnet": "0x1b655847a90e644a",
-                "mainnet": "0x1d7e57aa55817448"
-            } 
-        },
-        "BasicBeasts": {
-            "source": "./cadence/contracts/basicbeasts/BasicBeasts.cdc",
-            "aliases": {
-                "testnet": "0xfa252d0aa22bf86a",
-                "mainnet": "0x2d4c3caffbeab845"
-            } 
-        },
-        "WonderArenaWorldRules_BasicBeasts1": {
-            "source": "./cadence/contracts/WonderArenaWorldRules_BasicBeasts1.cdc",
-            "aliases": {
-                "testnet": "0x2432e062f9f14295",
-                "mainnet": "0x39b144ab4d348e2b"
-            }
-        },
-        "WonderArenaPawn_BasicBeasts1": {
-            "source": "./cadence/contracts/WonderArenaPawn_BasicBeasts1.cdc",
-            "aliases": {
-                "testnet": "0x2432e062f9f14295",
-                "mainnet": "0x39b144ab4d348e2b"
-            }
-        },
-        "WonderArenaBattleField_BasicBeasts1": {
-            "source": "./cadence/contracts/WonderArenaBattleField_BasicBeasts1.cdc",
-            "aliases": {
-                "testnet": "0x2432e062f9f14295",
-                "mainnet": "0x39b144ab4d348e2b"
-            }
-        },
-        "WonderArenaRewards_BasicBeasts1": {
-            "source": "./cadence/contracts/WonderArenaRewards_BasicBeasts1.cdc",
-            "aliases": {
-                "testnet": "0x2432e062f9f14295",
-                "mainnet": "0x39b144ab4d348e2b"
-            }
-        }
-    },
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
+		"admin": {
+			"fromFile": "admin.private.json"
+		},
+		"admin-local": {
+			"fromFile": "admin-local.private.json"
+		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
 			"key": "fae10f262a46ca34e438a48daff66d6672340a49e634bb7d0f7f9eeb78d7fa1b"
 		},
-        "admin": {
-            "fromFile": "wonder_arena.private.json"
-        },
-        "old-admin": {
-            "fromFile": "wonder_arena.private.json"
-        }
+		"old-admin": {
+			"fromFile": "old-admin.private.json"
+		}
 	},
 	"deployments": {
-        "testnet": {
-            "admin": [
-                "WonderArenaWorldRules_BasicBeasts1",
-                "WonderArenaPawn_BasicBeasts1",
-                "WonderArenaBattleField_BasicBeasts1",
-                "WonderArenaRewards_BasicBeasts1"
-            ]
-        }
-    }
+		"testnet": {
+			"admin-local": [
+				"WonderArenaWorldRules_BasicBeasts1",
+				"WonderArenaPawn_BasicBeasts1",
+				"WonderArenaBattleField_BasicBeasts1",
+				"WonderArenaReward_BasicBeasts1"
+			]
+		}
+	}
 }

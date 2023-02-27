@@ -26,8 +26,7 @@ class flowService {
 
   static async getAdminAccountWithKeyIndex(keyIndex) {
     const FlowSigner = (await import('../utils/signer.mjs')).default
-    const keys = (process.env.ADMIN_ENCRYPTED_PRIVATE_KEYS).split(",")
-    const key = this.decryptPrivateKey(keys[keyIndex])
+    const key = this.decryptPrivateKey(process.env.ADMIN_ENCRYPTED_PRIVATE_KEY)
 
     const signer = new FlowSigner(
       process.env.ADMIN_ADDRESS,
@@ -38,14 +37,12 @@ class flowService {
     return signer
   }
 
-  static async getAdminAccount() {
+  static async getDroperWithKeyIndex(keyIndex) {
     const FlowSigner = (await import('../utils/signer.mjs')).default
-    const keys = (process.env.ADMIN_ENCRYPTED_PRIVATE_KEYS).split(",")
-    const keyIndex = Math.floor(Math.random() * keys.length)
-    const key = this.decryptPrivateKey(keys[keyIndex])
+    const key = this.decryptPrivateKey(process.env.DROPER_ENCRYPTED_PRIVATE_KEY)
 
     const signer = new FlowSigner(
-      process.env.ADMIN_ADDRESS,
+      process.env.DROPER_ADDRESS,
       key,
       keyIndex,
       {}
@@ -55,9 +52,10 @@ class flowService {
 
   static async getUserSigner(flowAccount) {
     const FlowSigner = (await import('../utils/signer.mjs')).default
+    const privateKey = this.decryptPrivateKey(flowAccount.encryptedPrivateKey)
     const signer = new FlowSigner(
       flowAccount.address,
-      this.decryptPrivateKey(flowAccount.encryptedPrivateKey),
+      privateKey,
       0,
       {}
     )
@@ -69,10 +67,10 @@ class flowService {
     const EC = require("elliptic").ec
     const ec = new EC("p256")
 
-    const keypair = ec.genKeyPair()
+    let keypair = ec.genKeyPair()
     let privateKey = keypair.getPrivate().toString('hex')
     while (privateKey.length != 64) {
-      const keypair = ec.genKeyPair()
+      keypair = ec.genKeyPair()
       privateKey = keypair.getPrivate().toString('hex')
     }
 
@@ -87,7 +85,26 @@ class flowService {
     2: false,
     3: false,
     4: false,
-    5: false
+    5: false,
+    6: false,
+    7: false,
+    8: false,
+    9: false,
+    10: false
+  }
+
+  static DroperKeys = {
+    0: false,
+    1: false,
+    2: false,
+    3: false,
+    4: false,
+    5: false,
+    6: false,
+    7: false,
+    8: false,
+    9: false,
+    10: false
   }
 
   static async setGeneratorIndex() {
@@ -176,6 +193,23 @@ class flowService {
     
     transaction(name: String, publicKeyHex: String) {
         prepare(signer: AuthAccount) {
+            if signer.borrow<&ChildAccount.ChildAccountCreator>(from: ChildAccount.ChildAccountCreatorStoragePath) == nil {
+              signer.save(<-ChildAccount.createChildAccountCreator(), to: ChildAccount.ChildAccountCreatorStoragePath)
+            }
+
+            if !signer.getCapability<
+                &ChildAccount.ChildAccountCreator{ChildAccount.ChildAccountCreatorPublic}
+              >(ChildAccount.ChildAccountCreatorPublicPath).check() {
+              // Unlink & Link
+              signer.unlink(ChildAccount.ChildAccountCreatorPublicPath)
+              signer.link<
+                &ChildAccount.ChildAccountCreator{ChildAccount.ChildAccountCreatorPublic}
+              >(
+                ChildAccount.ChildAccountCreatorPublicPath,
+                target: ChildAccount.ChildAccountCreatorStoragePath
+              )
+            }
+
             let creatorRef = signer.borrow<&ChildAccount.ChildAccountCreator>(
                 from: ChildAccount.ChildAccountCreatorStoragePath
             ) ?? panic("Problem getting a ChildAccountCreator reference!")
@@ -219,7 +253,7 @@ class flowService {
         }
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -245,6 +279,8 @@ class flowService {
         delete flowAccount.id
         delete flowAccount.encryptedPrivateKey
         delete flowAccount.userId
+        delete flowAccount.createdAt
+        delete flowAccount.updatedAt
 
         return flowAccount
       }
@@ -281,7 +317,7 @@ class flowService {
         return 0
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     const groupNumber = await fcl.query({
       cadence: script,
@@ -315,7 +351,7 @@ class flowService {
       }
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -367,7 +403,7 @@ class flowService {
       }
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -405,7 +441,20 @@ class flowService {
       throw createError.UnprocessableEntity('already claimed')
     }
 
-    let signer = await this.getAdminAccount()
+    let keyIndex = null
+    for (const [key, value] of Object.entries(this.DroperKeys)) {
+      if (value == false) {
+        keyIndex = parseInt(key)
+        break
+      }
+    } 
+
+    if (keyIndex == null) {
+      throw createError.InternalServerError("Server is busy")
+    }
+
+    this.DroperKeys[keyIndex] = true
+    let signer = await this.getDroperWithKeyIndex(keyIndex)
     let code = `
     import NonFungibleToken from 0x631e88ae7f1d7c20
     import BasicBeasts from 0xfa252d0aa22bf86a
@@ -444,6 +493,7 @@ class flowService {
 
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
+        this.DroperKeys[keyIndex] = false
         if (tx.status === 4 && tx.statusCode === 0) {
           let updatedUser = await prisma.user.update({
             where: { email },
@@ -454,6 +504,7 @@ class flowService {
       }
       throw "send transaction failed"
     } catch (e) {
+      this.DroperKeys[keyIndex] = false
       throw { statusCode: 500, message: `Claim BasicBeasts failed ${e}` }
     }
   }
@@ -473,7 +524,20 @@ class flowService {
       throw createError.NotFound('flow account not found')
     }
 
-    let signer = await this.getAdminAccount()
+    let keyIndex = null
+    for (const [key, value] of Object.entries(this.DroperKeys)) {
+      if (value == false) {
+        keyIndex = parseInt(key)
+        break
+      }
+    } 
+
+    if (keyIndex == null) {
+      throw createError.InternalServerError("Server is busy")
+    }
+
+    this.DroperKeys[keyIndex] = true
+    let signer = await this.getDroperWithKeyIndex(keyIndex)
     let code = `
     import NonFungibleToken from 0x631e88ae7f1d7c20
     import BasicBeasts from 0xfa252d0aa22bf86a
@@ -509,12 +573,14 @@ class flowService {
 
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
+        this.DroperKeys[keyIndex] = false
         if (tx.status === 4 && tx.statusCode === 0) {
           return
         }
       }
       throw "send transaction failed"
     } catch (e) {
+      this.DroperKeys[keyIndex] = false
       throw createError.InternalServerError(`Buy BasicBeast failed ${e}`)
     }
   }
@@ -560,7 +626,7 @@ class flowService {
         return 0
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     const challengeTimes = await fcl.query({
       cadence: script,
@@ -583,8 +649,6 @@ class flowService {
       }
     }
 
-    console.log(keyIndex)
-
     if (keyIndex == null) {
       throw createError.InternalServerError("Server is busy")
     }
@@ -595,11 +659,16 @@ class flowService {
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
     transaction(
-        attackerAddress: Address,
-        attackerIDs: [UInt64],
-        defenderAddress: Address
+      attackerAddress: Address,
+      attackerIDs: [UInt64],
+      defenderAddress: Address
     ) {
-        prepare(acct: AuthAccount) {}
+        let adminRef: &WonderArenaBattleField_BasicBeasts1.Admin
+        prepare(acct: AuthAccount) {
+            self.adminRef = acct
+                .borrow<&WonderArenaBattleField_BasicBeasts1.Admin>(from: WonderArenaBattleField_BasicBeasts1.AdminStoragePath)
+                ?? panic("borrow battle field admin failed")
+        }
     
         execute {
             let attackerGroup = WonderArenaBattleField_BasicBeasts1.BeastGroup(
@@ -607,7 +676,7 @@ class flowService {
                 beastIDs: attackerIDs
             )
     
-            WonderArenaBattleField_BasicBeasts1.fight(
+            self.adminRef.fight(
                 attackerAddress: attackerAddress,
                 attackerGroup: attackerGroup,
                 defenderAddress: defenderAddress
@@ -615,7 +684,7 @@ class flowService {
         }
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -654,6 +723,9 @@ class flowService {
 
     delete user.password
     delete user.id
+    delete user.createdAt
+    delete user.updatedAt
+    delete user.generatorIndex
 
     if (user.flowAccount) {
       if (withRecords) {
@@ -698,7 +770,7 @@ class flowService {
             )
         }
         `
-          .replace(WonderArenaPath, WonderArenaAddress)
+        .replaceAll(WonderArenaPath, WonderArenaAddress)
 
         const playerInfo = await fcl.query({
           cadence: script,
@@ -732,6 +804,8 @@ class flowService {
       delete user.flowAccount.id
       delete user.flowAccount.encryptedPrivateKey
       delete user.flowAccount.userId
+      delete user.flowAccount.createdAt
+      delete user.flowAccount.updatedAt
     }
 
     return user
@@ -753,13 +827,13 @@ class flowService {
     }
 
     let script = `
-    import WonderArenaRewards_BasicBeasts1 from 0xWonderArena
+    import WonderArenaReward_BasicBeasts1 from 0xWonderArena
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
     pub fun main(host: Address, rewardID: UInt64, claimer: Address): Bool {
         if let rewardCollectionRef = getAccount(host)
-            .getCapability(WonderArenaRewards_BasicBeasts1.RewardCollectionPublicPath)
-            .borrow<&{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}>() {
+            .getCapability(WonderArenaReward_BasicBeasts1.RewardCollectionPublicPath)
+            .borrow<&{WonderArenaReward_BasicBeasts1.IRewardCollectionPublic}>() {
 
             if let reward = rewardCollectionRef.borrowPublicReward(id: rewardID) {
                 if let score = WonderArenaBattleField_BasicBeasts1.scores[claimer] {
@@ -769,12 +843,10 @@ class flowService {
         }
 
         return false
-    }
-    `
-      .replace(WonderArenaPath, WonderArenaAddress)
+    }`
+    .replaceAll(WonderArenaPath, WonderArenaAddress)
 
-    // Hardcoded
-    const rewardID = '133445141'
+    const rewardID = process.env.REWARD_ID
     const isEligible = await fcl.query({
       cadence: script,
       args: (arg, t) => [
@@ -790,19 +862,19 @@ class flowService {
 
     let signer = await this.getUserSigner(user.flowAccount)
     let code = `
-    import WonderArenaRewards_BasicBeasts1 from 0xWonderArena
+    import WonderArenaReward_BasicBeasts1 from 0xWonderArena
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
     transaction(
         host: Address,
         rewardID: UInt64
     ) {
-        let rewardCollectionRef: &{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}
+        let rewardCollectionRef: &{WonderArenaReward_BasicBeasts1.IRewardCollectionPublic}
         let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
         prepare(acct: AuthAccount) {
             self.rewardCollectionRef = getAccount(host)
-                .getCapability(WonderArenaRewards_BasicBeasts1.RewardCollectionPublicPath)
-                .borrow<&{WonderArenaRewards_BasicBeasts1.IRewardCollectionPublic}>()
+                .getCapability(WonderArenaReward_BasicBeasts1.RewardCollectionPublicPath)
+                .borrow<&{WonderArenaReward_BasicBeasts1.IRewardCollectionPublic}>()
                 ?? panic("Borrow reward collection failed")
 
             self.playerRef = acct
@@ -818,7 +890,7 @@ class flowService {
         }
     }
     `
-      .replace(WonderArenaPath, WonderArenaAddress)
+    .replaceAll(WonderArenaPath, WonderArenaAddress)
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [

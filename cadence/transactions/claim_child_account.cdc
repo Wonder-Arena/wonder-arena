@@ -8,7 +8,7 @@ import MetadataViews from "../contracts/core/MetadataViews.cdc"
 /// ChildAccountCreator and the child account already has a ChildAccountTag.
 ///
 transaction(
-    pubkey: String,
+    pubKey: String,
     childAddress: Address
   ) {
   let managerRef: &ChildAccount.ChildAccountManager

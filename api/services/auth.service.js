@@ -55,10 +55,15 @@ class authService {
           delete user.flowAccount.id
           delete user.flowAccount.encryptedPrivateKey
           delete user.flowAccount.userId
+          delete user.flowAccount.createdAt
+          delete user.flowAccount.updatedAt
         }
 
         delete user.password
         delete user.id
+        delete user.createdAt
+        delete user.updatedAt
+        delete user.generatorIndex
 
         const accessToken = await jwt.signAccessToken(user)
 

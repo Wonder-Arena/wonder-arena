@@ -4,4 +4,4 @@
 node_modules
 .DS_Store
 
-wonder_arena.private.json
+*.private.json
