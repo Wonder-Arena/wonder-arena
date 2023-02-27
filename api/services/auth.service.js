@@ -12,6 +12,11 @@ class authService {
         data.password = bcrypt.hashSync(data.password, 8)
 
         try {
+          let _user = await prisma.user.findUnique({
+            where: { email: data.email }
+          })
+          console.log(_user)
+
           let user = await prisma.user.create({
             data
           })
