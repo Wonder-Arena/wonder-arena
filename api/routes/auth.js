@@ -1,6 +1,7 @@
 const router = require('express').Router()
 const user = require('../controllers/auth.controller')
 const flow = require('../controllers/flow.controller')
+const stripe = require('../controllers/stripe.controller')
 const auth = require('../middlewares/auth')
 
 // register
@@ -19,5 +20,8 @@ router.post('/wonder_arena/add_defender_group', auth, flow.addDefenderGroup)
 router.post('/wonder_arena/remove_defender_group', auth, flow.removeDefenderGroup)
 router.post('/wonder_arena/fight', auth, flow.fight)
 router.post('/wonder_arena/claim_reward', auth, flow.claimReward)
+
+var cors = require('cors')
+router.post('/stripe/test', stripe.test)
 
 module.exports = router
