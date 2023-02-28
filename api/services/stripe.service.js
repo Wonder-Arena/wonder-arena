@@ -77,7 +77,7 @@ class stripeService {
             product_data: {
               name: 'Basic Beast',
             },
-            unit_amount: 1000,
+            unit_amount: 1400,
           },
           quantity: 1,
         },
