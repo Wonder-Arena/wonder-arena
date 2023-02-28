@@ -26,8 +26,6 @@ router.post('/flow/account_link', auth, flow.accountLink)
 
 router.get('/wonder_arena/players/:name', auth, flow.getPlayer)
 
-router.post('/wonder_arena/get_bbs', auth, flow.claimBBs)
-router.post('/wonder_arena/buy_bb', auth, flow.buyBB)
 router.post('/wonder_arena/add_defender_group', auth, flow.addDefenderGroup)
 router.post('/wonder_arena/remove_defender_group', auth, flow.removeDefenderGroup)
 router.post('/wonder_arena/fight', auth, flow.fight)

@@ -15,8 +15,8 @@ model FlowAccount {
     address String @unique
     encryptedPrivateKey String
 
-    user User @relation(fields: [userId], references: [id])
-    userId Int @unique
+    user User? @relation(fields: [userId], references: [id])
+    userId Int? @unique
 
     createdAt          DateTime  @default(now())
     updatedAt          DateTime  @updatedAt @default(now())

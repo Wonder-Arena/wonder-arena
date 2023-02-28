@@ -106,6 +106,59 @@ class flowService {
     10: false
   }
 
+  static async generateFlowAccounts() {
+    const accounts = await prisma.flowAccount.findMany({
+      where: { userId: null }
+    })
+
+    if (accounts.length < 15) {
+      let keyIndex = null
+      for (const [key, value] of Object.entries(this.AdminKeys)) {
+        if (value == false) {
+          keyIndex = parseInt(key)
+          break
+        }
+      }
+
+      if (keyIndex == null) {
+        return
+      }
+
+      const signer = await this.getAdminAccountWithKeyIndex(keyIndex)
+      const { privateKey: privateKey, publicKey: publicKeyHex } = this.generateKeypair()
+      const code = this.getAccountCreationWithAirdropCode()
+      try {
+        const txid = await signer.sendTransaction(code, (arg, t) => [
+          arg("WonderArena", t.String),
+          arg(publicKeyHex, t.String)
+        ])
+
+        if (txid) {
+          let tx = await fcl.tx(txid).onceSealed()
+          this.AdminKeys[keyIndex] = false
+          let event = tx.events.find((e) => e.type == 'flow.AccountCreated')
+          if (!event) {
+            console.log("Account prepare failed")
+            return
+          }
+
+          const address = event.data.address
+          await prisma.flowAccount.create({
+            data: {
+              address: address,
+              encryptedPrivateKey: this.encryptPrivateKey(privateKey)
+            }
+          })
+          console.log("Account generated:", address)
+        }
+      } catch (e) {
+        this.AdminKeys[keyIndex] = false
+        console.log(e)
+        return
+      }
+    }
+  }
+
   static async setGeneratorIndex() {
     const users = await prisma.user.findMany({
       where: { flowAccount: null, generatorIndex: null }
@@ -180,79 +233,8 @@ class flowService {
     }
 
     const signer = await this.getAdminAccountWithKeyIndex(keyIndex)
-
     const { privateKey: privateKey, publicKey: publicKeyHex } = this.generateKeypair()
-    const code = `
-    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
-    import FungibleToken from 0x9a0766d93b6608b7
-    import NonFungibleToken from 0x631e88ae7f1d7c20
-    import MetadataViews from 0x631e88ae7f1d7c20
-    import BasicBeasts from 0xfa252d0aa22bf86a
-    import ChildAccount from 0x1b655847a90e644a
-    
-    transaction(name: String, publicKeyHex: String) {
-        prepare(signer: AuthAccount) {
-            if signer.borrow<&ChildAccount.ChildAccountCreator>(from: ChildAccount.ChildAccountCreatorStoragePath) == nil {
-              signer.save(<-ChildAccount.createChildAccountCreator(), to: ChildAccount.ChildAccountCreatorStoragePath)
-            }
-
-            if !signer.getCapability<
-                &ChildAccount.ChildAccountCreator{ChildAccount.ChildAccountCreatorPublic}
-              >(ChildAccount.ChildAccountCreatorPublicPath).check() {
-              // Unlink & Link
-              signer.unlink(ChildAccount.ChildAccountCreatorPublicPath)
-              signer.link<
-                &ChildAccount.ChildAccountCreator{ChildAccount.ChildAccountCreatorPublic}
-              >(
-                ChildAccount.ChildAccountCreatorPublicPath,
-                target: ChildAccount.ChildAccountCreatorStoragePath
-              )
-            }
-
-            let creatorRef = signer.borrow<&ChildAccount.ChildAccountCreator>(
-                from: ChildAccount.ChildAccountCreatorStoragePath
-            ) ?? panic("Problem getting a ChildAccountCreator reference!")
-
-            let info = ChildAccount.ChildAccountInfo(
-                name: name,
-                description: "WonderArena account for ".concat(name),
-                clientIconURL: MetadataViews.HTTPFile(url: ""),
-                clienExternalURL: MetadataViews.ExternalURL(""),
-                originatingPublicKey: publicKeyHex
-            )
-
-            let account: AuthAccount = creatorRef.createChildAccount(
-                signer: signer,
-                initialFundingAmount: 1.0,
-                childAccountInfo: info
-            )
-    
-            // setup WonderArena player
-            let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
-                name: name,
-                address: account.address
-            )
-    
-            account.save(<- player, to: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
-            let playerCap = account.link<&WonderArenaBattleField_BasicBeasts1.Player{WonderArenaBattleField_BasicBeasts1.PlayerPublic}>(
-                WonderArenaBattleField_BasicBeasts1.PlayerPublicPath, 
-                target: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
-                ?? panic("link player failed")
-
-            let adminRef = signer
-                .borrow<&WonderArenaBattleField_BasicBeasts1.Admin>(from: WonderArenaBattleField_BasicBeasts1.AdminStoragePath)
-                ?? panic("borrow battle field admin failed")
-    
-            adminRef.register(playerCap: playerCap)
-    
-            // setup BasicBeasts collection
-            account.save(<-BasicBeasts.createEmptyCollection(), to: BasicBeasts.CollectionStoragePath)
-            account.unlink(BasicBeasts.CollectionPublicPath)
-            account.link<&BasicBeasts.Collection{NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, BasicBeasts.BeastCollectionPublic}>(BasicBeasts.CollectionPublicPath, target: BasicBeasts.CollectionStoragePath)
-        }
-    }
-    `
-      .replaceAll(WonderArenaPath, WonderArenaAddress)
+    const code = this.getAccountCreationWithAirdropCode()
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
@@ -267,12 +249,21 @@ class flowService {
           throw { statusCode: 500, message: "Account generation failed" }
         }
         const address = event.data.address
-        let flowAccount = await prisma.flowAccount.create({
-          data: {
-            address: address,
-            encryptedPrivateKey: this.encryptPrivateKey(privateKey),
-            userId: user.id
-          }
+        let flowAccount = await prisma.$transaction(async (tx) => {
+          let user = await tx.user.update({
+            where: { email: email },
+            data: { claimedBBs: true }
+          })
+
+          let flowAccount = await tx.flowAccount.create({
+            data: {
+              address: address,
+              encryptedPrivateKey: this.encryptPrivateKey(privateKey),
+              userId: user.id
+            }
+          })
+
+          return flowAccount
         })
 
         delete flowAccount.id
@@ -648,6 +639,7 @@ class flowService {
   }
 
 
+  static lastFightKey = 0
   static async fight(userData, attackerIDs, defenderAddress) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
@@ -698,15 +690,15 @@ class flowService {
       ]
     })
 
-    // TODO:
-    if (challengeTimes >= 100) {
+    if (challengeTimes >= 3) {
       throw createError.UnprocessableEntity("Can only challenge a player for 3 times at most")
     }
 
     let keyIndex = null
     for (const [key, value] of Object.entries(this.AdminKeys)) {
-      if (value == false) {
-        keyIndex = parseInt(key)
+      const keyInt = parseInt(key)
+      if (value == false && keyInt != this.lastFightKey) {
+        keyIndex = keyInt
         break
       }
     }
@@ -716,6 +708,8 @@ class flowService {
     }
 
     this.AdminKeys[keyIndex] = true
+    this.lastFightKey = keyIndex
+    console.log("Fight with keyIndex", keyIndex, attackerIDs, defenderAddress)
     let signer = await this.getAdminAccountWithKeyIndex(keyIndex)
     let code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
@@ -1087,6 +1081,92 @@ class flowService {
         this.AdminKeys[keyIndex] = false
       throw createError.InternalServerError(`account linking failed ${e}`)
     }
+  }
+
+  static getAccountCreationWithAirdropCode() {
+    const code = `
+    import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
+    import FungibleToken from 0x9a0766d93b6608b7
+    import NonFungibleToken from 0x631e88ae7f1d7c20
+    import MetadataViews from 0x631e88ae7f1d7c20
+    import BasicBeasts from 0xfa252d0aa22bf86a
+    import ChildAccount from 0x1b655847a90e644a
+    
+    transaction(name: String, publicKeyHex: String) {
+        prepare(signer: AuthAccount) {
+            if signer.borrow<&ChildAccount.ChildAccountCreator>(from: ChildAccount.ChildAccountCreatorStoragePath) == nil {
+              signer.save(<-ChildAccount.createChildAccountCreator(), to: ChildAccount.ChildAccountCreatorStoragePath)
+            }
+
+            if !signer.getCapability<
+                &ChildAccount.ChildAccountCreator{ChildAccount.ChildAccountCreatorPublic}
+              >(ChildAccount.ChildAccountCreatorPublicPath).check() {
+              // Unlink & Link
+              signer.unlink(ChildAccount.ChildAccountCreatorPublicPath)
+              signer.link<
+                &ChildAccount.ChildAccountCreator{ChildAccount.ChildAccountCreatorPublic}
+              >(
+                ChildAccount.ChildAccountCreatorPublicPath,
+                target: ChildAccount.ChildAccountCreatorStoragePath
+              )
+            }
+
+            let creatorRef = signer.borrow<&ChildAccount.ChildAccountCreator>(
+                from: ChildAccount.ChildAccountCreatorStoragePath
+            ) ?? panic("Problem getting a ChildAccountCreator reference!")
+
+            let info = ChildAccount.ChildAccountInfo(
+                name: name,
+                description: "WonderArena account",
+                clientIconURL: MetadataViews.HTTPFile(url: ""),
+                clienExternalURL: MetadataViews.ExternalURL(""),
+                originatingPublicKey: publicKeyHex
+            )
+
+            let account: AuthAccount = creatorRef.createChildAccount(
+                signer: signer,
+                initialFundingAmount: 1.0,
+                childAccountInfo: info
+            )
+    
+            // setup WonderArena player
+            let player <- WonderArenaBattleField_BasicBeasts1.createNewPlayer(
+                name: name,
+                address: account.address
+            )
+    
+            account.save(<- player, to: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+            let playerCap = account.link<&WonderArenaBattleField_BasicBeasts1.Player{WonderArenaBattleField_BasicBeasts1.PlayerPublic}>(
+                WonderArenaBattleField_BasicBeasts1.PlayerPublicPath, 
+                target: WonderArenaBattleField_BasicBeasts1.PlayerStoragePath)
+                ?? panic("link player failed")
+
+            let adminRef = signer
+                .borrow<&WonderArenaBattleField_BasicBeasts1.Admin>(from: WonderArenaBattleField_BasicBeasts1.AdminStoragePath)
+                ?? panic("borrow battle field admin failed")
+    
+            adminRef.register(playerCap: playerCap)
+    
+            // setup BasicBeasts collection
+            account.save(<-BasicBeasts.createEmptyCollection(), to: BasicBeasts.CollectionStoragePath)
+            account.unlink(BasicBeasts.CollectionPublicPath)
+            account.link<&BasicBeasts.Collection{NonFungibleToken.Receiver, NonFungibleToken.CollectionPublic, MetadataViews.ResolverCollection, BasicBeasts.BeastCollectionPublic}>(BasicBeasts.CollectionPublicPath, target: BasicBeasts.CollectionStoragePath)
+
+            // Airdrop
+            let senderCollection = signer.borrow<&BasicBeasts.Collection>(from: BasicBeasts.CollectionStoragePath)!
+            let recipientCollection = account.borrow<&BasicBeasts.Collection>(from: BasicBeasts.CollectionStoragePath)!
+            let ids = senderCollection.getIDs()
+            let tokenIDs = [ids[0], ids[1], ids[2]]
+            for id in tokenIDs {
+              let beast <- senderCollection.withdraw(withdrawID: id)
+              recipientCollection.deposit(token: <- beast)
+            }
+        }
+    }
+    `
+      .replaceAll(WonderArenaPath, WonderArenaAddress)
+
+    return code
   }
 }
 
