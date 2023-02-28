@@ -48,6 +48,7 @@ public class NetworkManager : MonoBehaviour
     public string claimRewardsPATH = "/auth/wonder_arena/claim_reward";
     public string stripePATH = "/auth/stripe/create_checkout_session";
     public string getPlayerWithChallengesPATH = "?basicOnly=false";
+    public string googleLoginPATH = "/auth/google_login";
 
     public string responseStripeURL;
 

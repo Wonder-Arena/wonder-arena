@@ -92,6 +92,14 @@ public class LeaderBoardManager : MonoBehaviour
             newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = $"{name}";
             newRow.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text = $"{score}";
 
+            if (player.Key == PlayerPrefs.GetString("Username"))
+            {
+                newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.green;
+                newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = $"{name} (You)";
+            }
+
+            contentParent.GetComponent<TabGroup>().ResetTabs();
+
             if (place % 2 == 0)
             {
                 newRow.transform.GetComponent<TabButton>().basicIdleSprite = newRow.transform.GetChild(0).GetComponent<Image>().sprite;
@@ -100,8 +108,6 @@ public class LeaderBoardManager : MonoBehaviour
             {
                 newRow.transform.GetComponent<TabButton>().basicIdleSprite = contentParent.GetComponent<TabGroup>().tabIdle;
             }
-
-            contentParent.GetComponent<TabGroup>().ResetTabs();
 
             index += 1;
         }

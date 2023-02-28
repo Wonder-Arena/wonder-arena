@@ -3689,8 +3689,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   matteColor: {r: 0, g: 0, b: 0, a: 1}
   referenceMode: 0
-  x: 16
-  y: 9
+  x: 1920
+  y: 1080
   width: 960
   height: 540
   onAwake: 1
@@ -4465,10 +4465,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 6726349113588955068, guid: 39ce8040dbd36214b85656de5fb85b33, type: 3}
-      propertyPath: m_Volume
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6726349113588955069, guid: 39ce8040dbd36214b85656de5fb85b33, type: 3}
       propertyPath: m_RootOrder
       value: 7
@@ -6212,10 +6208,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 121559869483491557, guid: 16eada610ff424d49839c3e8f0a631ef, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 3711532228837872151, guid: 16eada610ff424d49839c3e8f0a631ef, type: 3}
       propertyPath: m_Name
       value: LevelManager
@@ -7427,28 +7419,3 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
---- !u!1 &2130351972 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 121559869483491557, guid: 16eada610ff424d49839c3e8f0a631ef, type: 3}
-  m_PrefabInstance: {fileID: 1732117370}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &2130351976
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2130351972}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9420f5aea32df7646ab1a75a6346d5df, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  matteColor: {r: 0, g: 0, b: 0, a: 1}
-  referenceMode: 0
-  x: 16
-  y: 9
-  width: 1920
-  height: 540
-  onAwake: 1
-  onUpdate: 1

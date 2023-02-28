@@ -247,11 +247,11 @@ public class FlowInterfaceBB : MonoBehaviour
         }
     }
 
-    public IEnumerator GetDefenderAllPawnsTeams()
+    public IEnumerator GetDefenderAllPawnsTeams(string address)
     {
         // Executing script to get all Pawns from account
         Task<FlowScriptResponse> getGroups = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text,
-            new CadenceAddress(NetworkManager.Instance.lastDefenderAddress));
+            new CadenceAddress(address));
 
         yield return new WaitUntil(() => getGroups.IsCompleted);
 

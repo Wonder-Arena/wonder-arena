@@ -18,9 +18,14 @@ public class BeastStats : MonoBehaviour
     public float hp;
     public int id;
     public float healthVelocity;
+    public string manaText;
+    public string hpText;
+
+
     private bool firstDamage = false;
     private bool firstMana = false;
 
+    
     public float healthTime = 0.1f;
 
     private void Start()
@@ -63,6 +68,9 @@ public class BeastStats : MonoBehaviour
             float newMana = Mathf.SmoothDamp(ManaBar.fillAmount, targetMana, ref healthVelocity, healthTime);
             ManaBar.fillAmount = newMana;
         }
+
+        hpText = $"{currentHp}/{maxHp}";
+        manaText = $"{currentMana}/{manaRequired}";
     }
     
 }

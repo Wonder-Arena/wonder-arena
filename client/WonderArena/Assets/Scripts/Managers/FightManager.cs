@@ -142,14 +142,28 @@ public class FightManager : MonoBehaviour
             attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Attackers")
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Attackers")
+            .GetChild(i).Find("Hp").Find("HpText").GetComponent<TextMeshProUGUI>().text;
+
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Attackers")
+            .GetChild(i).Find("Mana").Find("ManaText").GetComponent<TextMeshProUGUI>().text;
+
             healthBars.transform.Find("Attackers").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
             attackersList[i].transform.GetChild(0).name.Split("_")[0];
+
+
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Hp").Find("HpBar").GetComponent<Image>();
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
+
+            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Defenders")
+            .GetChild(i).Find("Hp").Find("HpText").GetComponent<TextMeshProUGUI>().text;
+
+            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Defenders")
+            .GetChild(i).Find("Mana").Find("ManaText").GetComponent<TextMeshProUGUI>().text;
 
             healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text =
             defendersList[i].transform.GetChild(0).name.Split("_")[0];
@@ -251,6 +265,7 @@ public class FightManager : MonoBehaviour
                     // textLog.text += $"\n {targetName} suffered {(damage.Value as CadenceNumber).Value} damage";
                     yield return StartCoroutine(ChangeAndWaitAnimationStateTime("GetHurt", targetObject));
                     targetStats.TakeDamage(damage);
+                    targetStats.GetMana(damage);
                     
                     // Log that hp changed (temp)
                     // textLog.text += $" and now has this much hp left: {targetStats.hp}";
