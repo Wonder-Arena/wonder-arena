@@ -2,24 +2,56 @@
 <html>
 
 <head>
-    <title>Gooogle Login JavaScript Example</title>
+    <title>Wonder Arena</title>
     <meta charset="UTF-8">
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
+<style>
+    body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #222222;
+        color: white;
+        font-size: 48px;
+        font-family: 'Press Start 2P', cursive;
+        text-align: center;
+        height: 100%;
+        margin: 0;
+        line-height: 1.5;
+        padding-top: 20vh;
+    }
+
+    #container {
+        position: relative;
+    }
+
+    .g_id_signin {
+        position: absolute;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+</style>
+<link href="https://fonts.googleapis.com/css?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <body>
 
-    <div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <div id="container">
+        <p>Login to <br>Wonder Arena</p><br>
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <div id="g_id_onload" data-client_id="1027225502623-ia7qgp31dv4416brudo8italt233g35u.apps.googleusercontent.com"
+            data-context="signup" data-ux_mode="popup" data-login_uri="https://wonder-arena-production.up.railway.app/auth/google_login"
+            data-auto_prompt="false">
+        </div>
 
-    <p>Wonder Arena Login</p>
-    <div id="g_id_onload" data-client_id="1027225502623-ia7qgp31dv4416brudo8italt233g35u.apps.googleusercontent.com"
-        data-context="signup" data-ux_mode="popup" data-login_uri="https://wonder-arena-production.up.railway.app/auth/google_login"
-        data-auto_prompt="false">
+        <br>
+
+        <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with"
+            data-size="large" data-logo_alignment="left">
+        </div>
     </div>
 
-    <div class="g_id_signin" data-type="standard" data-shape="rectangular" data-theme="outline" data-text="signin_with"
-        data-size="large" data-logo_alignment="left">
-    </div>
 </body>
 
 </html>

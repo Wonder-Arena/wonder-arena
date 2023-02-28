@@ -46,11 +46,7 @@ class authController {
         const name = payload.name
         const email = payload.email
         const data = await auth.registerOrLogin({name: name, email: email})
-        res.status(200).json({
-          status: true,
-          message: "Account login successful",
-          data
-        }) 
+        res.sendFile(__dirname + '/back.html')
       } catch (e) {
         console.log(e)
         next(createError(e.statusCode, e.message))
