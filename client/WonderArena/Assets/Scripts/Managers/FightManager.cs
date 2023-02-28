@@ -143,10 +143,10 @@ public class FightManager : MonoBehaviour
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
             attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Attackers")
-            .GetChild(i).Find("Hp").Find("HpText").GetComponent<TextMeshProUGUI>().text;
+            .GetChild(i).Find("Hp").Find("HpNumber").GetComponent<TextMeshProUGUI>();
 
             attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Attackers")
-            .GetChild(i).Find("Mana").Find("ManaText").GetComponent<TextMeshProUGUI>().text;
+            .GetChild(i).Find("Mana").Find("ManaNumber").GetComponent<TextMeshProUGUI>();
 
             healthBars.transform.Find("Attackers").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
             attackersList[i].transform.GetChild(0).name.Split("_")[0];
@@ -160,10 +160,10 @@ public class FightManager : MonoBehaviour
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Defenders")
-            .GetChild(i).Find("Hp").Find("HpText").GetComponent<TextMeshProUGUI>().text;
+            .GetChild(i).Find("Hp").Find("HpNumber").GetComponent<TextMeshProUGUI>().text;
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Defenders")
-            .GetChild(i).Find("Mana").Find("ManaText").GetComponent<TextMeshProUGUI>().text;
+            .GetChild(i).Find("Mana").Find("ManaNumber").GetComponent<TextMeshProUGUI>().text;
 
             healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text =
             defendersList[i].transform.GetChild(0).name.Split("_")[0];
@@ -236,6 +236,7 @@ public class FightManager : MonoBehaviour
             bool isSkillUsed = !IsOptionalNull(withSkill);
             if (isSkillUsed) // 1.1.1 log("NAME used")
             {
+                byBeastObject.GetComponent<BeastStats>().currentMana = 0;
                 string skillName = (withSkill.Value as CadenceString).Value;
                 if (!isSideEffect)
                 {

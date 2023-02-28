@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using DapperLabs.Flow.Sdk.Cadence;
+using TMPro;
 
 public class BeastStats : MonoBehaviour
 {
@@ -18,8 +19,10 @@ public class BeastStats : MonoBehaviour
     public float hp;
     public int id;
     public float healthVelocity;
-    public string manaText;
-    public string hpText;
+    public float manaVelocity;
+
+    public TextMeshProUGUI manaText;
+    public TextMeshProUGUI hpText;
 
 
     private bool firstDamage = false;
@@ -27,6 +30,7 @@ public class BeastStats : MonoBehaviour
 
     
     public float healthTime = 0.1f;
+    public float manaTime = 0.2f;
 
     private void Start()
     {
@@ -48,10 +52,6 @@ public class BeastStats : MonoBehaviour
         float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
         currentMana += damageFloat;
         currentMana = Mathf.Clamp(currentMana, 0f, manaRequired);
-        if (currentMana == manaRequired)
-        {
-            currentMana = 0;
-        }
     }
 
     private void Update()
@@ -65,12 +65,12 @@ public class BeastStats : MonoBehaviour
         if (firstMana)
         {
             float targetMana = currentMana / manaRequired;
-            float newMana = Mathf.SmoothDamp(ManaBar.fillAmount, targetMana, ref healthVelocity, healthTime);
+            float newMana = Mathf.SmoothDamp(ManaBar.fillAmount, targetMana, ref manaVelocity, healthTime);
             ManaBar.fillAmount = newMana;
         }
 
-        hpText = $"{currentHp}/{maxHp}";
-        manaText = $"{currentMana}/{manaRequired}";
+        hpText.text = $"{currentHp}/{maxHp}";
+        manaText.text = $"{currentMana}/{manaRequired}";
     }
     
 }

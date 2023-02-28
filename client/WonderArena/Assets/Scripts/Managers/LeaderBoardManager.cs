@@ -94,8 +94,8 @@ public class LeaderBoardManager : MonoBehaviour
 
             if (player.Key == PlayerPrefs.GetString("Username"))
             {
-                newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.green;
                 newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = $"{name} (You)";
+                newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.green;
             }
 
             contentParent.GetComponent<TabGroup>().ResetTabs();
@@ -120,9 +120,17 @@ public class LeaderBoardManager : MonoBehaviour
 
     public void GetPlayer(string selectedRightNow)
     {
-        gotPlayer = false;
-        CoroutineHelper.Instance.RunCoroutine("GetPlayerLeaderBoard", 
-            NetworkManager.Instance.GetPlayerForLeaderBoard(selectedRightNow));
+        if (selectedRightNow == PlayerPrefs.GetString("Username"))
+        {
+            challengePlayerButton.gameObject.SetActive(false);
+        }
+        else
+        {
+            challengePlayerButton.gameObject.SetActive(false);
+            gotPlayer = false;
+            CoroutineHelper.Instance.RunCoroutine("GetPlayerLeaderBoard",
+                NetworkManager.Instance.GetPlayerForLeaderBoard(selectedRightNow));
+        }
     }
 
     public void SetPlayedData(List<NetworkManager.Player.ChallengeData> 

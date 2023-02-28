@@ -48,8 +48,6 @@ public class LevelManager : MonoBehaviour
         var scene = SceneManager.LoadSceneAsync(sceneName);
         scene.allowSceneActivation = false;
 
-        _loaderCanvas.SetActive(true);
-
         // Set the video to loop
         videoPlayer.isLooping = true;
 
@@ -58,7 +56,9 @@ public class LevelManager : MonoBehaviour
         videoPlayer.time = startPoints[randomIndex];
 
         // Play the video
-        videoPlayer.Play();
+        //videoPlayer.Play();
+
+        _loaderCanvas.SetActive(true);
 
         do
         {

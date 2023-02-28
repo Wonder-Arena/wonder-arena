@@ -5,13 +5,8 @@ using TMPro;
 using UnityEngine.Networking;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Net;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Auth.OAuth2.Flows;
-using Google.Apis.Auth.OAuth2.Responses;
-using Google.Apis.Util;
-using System.IO;
-using System.Threading.Tasks;
+//using Google;
+//using GoogleSignIn;
 
 public class LoginManager : MonoBehaviour
 {
@@ -321,135 +316,45 @@ public class LoginManager : MonoBehaviour
 
     }
 
+
+
     public class GoogleSignIn : MonoBehaviour
     {
-        // Replace with your Google Client ID
-        private string clientId = "YOUR_GOOGLE_CLIENT_ID";
+        
+    }
 
-        // Replace with your API endpoint for Google Log In
-        private string apiPath = "http://your-api-endpoint.com/auth/google_login";
 
-        private async void GoogleSignIn()
+    public void OnVideoClicked()
+    {
+        isVideoClicked = true;
+
+        StartCoroutine(WaitForAlpha());
+    }
+
+    private IEnumerator WaitForAlpha()
+    {
+        while (videoStartingScreen.transform.Find("ClickGameStart").GetComponent<CanvasGroup>().alpha > 0.001f)
         {
-            try
-            {
-                // Create the Google Authorization Code Flow with client ID and secret
-                GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow(new GoogleAuthorizationCodeFlow.Initializer
-                {
-                    ClientSecrets = new ClientSecrets
-                    {
-                        ClientId = clientId
-                    },
-                    Scopes = new[] { "email", "profile" }
-                });
-
-                // Get the authorization URL
-                string authUrl = flow.CreateAuthorizationCodeRequest("urn:ietf:wg:oauth:2.0:oob").Build().AbsoluteUri;
-
-                // Open the URL in the default browser to sign in to Google account
-                Application.OpenURL(authUrl);
-
-                // Wait for the user to sign in to their Google account and grant permission
-                string authCode = await WaitForGoogleAuthorizationCode();
-
-                // Exchange the authorization code for a token
-                TokenResponse token = await flow.ExchangeCodeForTokenAsync("user", authCode, "urn:ietf:wg:oauth:2.0:oob");
-
-                // Send the token to the server
-                await SendTokenToServer(token);
-            }
-            catch (System.Exception e)
-            {
-                Debug.Log("Google Sign-In Error: " + e.Message);
-            }
+            yield return null;
         }
-
-        private async Task<string> WaitForGoogleAuthorizationCode()
+        videoStartingScreen.transform.Find("ClickGameStart").gameObject.SetActive(false);
+        if (PlayerPrefs.HasKey("Email"))
         {
-            // Wait for the authorization code to be received from the server
-            while (true)
-            {
-                string authorizationCode = PlayerPrefs.GetString("GoogleAuthorizationCode");
-                if (!string.IsNullOrEmpty(authorizationCode))
-                {
-                    PlayerPrefs.DeleteKey("GoogleAuthorizationCode");
-                    return authorizationCode;
-                }
-                await Task.Delay(1000);
-            }
+            OnSecondLoginButtonClicked();
         }
-
-        private async Task SendTokenToServer(TokenResponse token)
+        else
         {
-            // Create the JSON data to send to the server
-            Dictionary<string, string> headers = new Dictionary<string, string>();
-            headers.Add("Content-Type", "application/json");
-            Dictionary<string, string> data = new Dictionary<string, string>();
-            data.Add("access_token", token.AccessToken);
-            data.Add("id_token", token.IdToken);
-
-            // Convert the JSON data to a byte array
-            byte[] jsonData = System.Text.Encoding.UTF8.GetBytes(Json.Serialize(data));
-
-            // Send a POST request to the server with the token data
-            using (UnityWebRequest request = UnityWebRequest.Post(apiPath, ""))
-            {
-                foreach (KeyValuePair<string, string> header in headers)
-                {
-                    request.SetRequestHeader(header.Key, header.Value);
-                }
-                request.uploadHandler = new UploadHandlerRaw(jsonData);
-                request.downloadHandler = new DownloadHandlerBuffer();
-                await request.SendWebRequest();
-
-                // Check if the request succeeded
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.Log("Google Sign-In Error: " + request.error);
-                    return;
-                }
-
-                // Handle the server response
-                string response = request.downloadHandler.text;
-                if (response == "Success")
-                {
-                    Debug.Log("Google Sign-In Successful!");
-                }
-            }
+            nonVideoStartingScreen.SetActive(true);
+            OnRegisterClicked();
         }
+    }
 
-        public void OnVideoClicked()
+    private void Update()
+    {
+        if (isVideoClicked)
         {
-            isVideoClicked = true;
-
-            StartCoroutine(WaitForAlpha());
-        }
-
-        private IEnumerator WaitForAlpha()
-        {
-            while (videoStartingScreen.transform.Find("ClickGameStart").GetComponent<CanvasGroup>().alpha > 0.001f)
-            {
-                yield return null;
-            }
-            videoStartingScreen.transform.Find("ClickGameStart").gameObject.SetActive(false);
-            if (PlayerPrefs.HasKey("Email"))
-            {
-                OnSecondLoginButtonClicked();
-            }
-            else
-            {
-                nonVideoStartingScreen.SetActive(true);
-                OnRegisterClicked();
-            }
-        }
-
-        private void Update()
-        {
-            if (isVideoClicked)
-            {
-                UpdateAlphaVideo();
-            }      
-        }
+            UpdateAlphaVideo();
+        }      
     }
 
     private void UpdateAlphaVideo()
