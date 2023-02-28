@@ -152,18 +152,18 @@ describe("BattleField", () => {
     const beastIDs = await bb_getBeastIDs(alice)
 
     const group1 = [beastIDs[0], beastIDs[1], beastIDs[2]]
-    const [, error1] = await addDefenderGroup(alice, "AliceGroup1", group1)
+    const [, error1] = await addDefenderGroup(alice, "alice", "AliceGroup1", group1)
     expect(error1).toBeNull()
     const group2 = [beastIDs[2], beastIDs[1], beastIDs[0]]
-    const [, error2] = await addDefenderGroup(alice, "AliceGroup2", group2)
+    const [, error2] = await addDefenderGroup(alice, "alice", "AliceGroup2", group2)
     expect(error2).toBeNull()
 
     const groups = await getDefenderGroups(alice)
     expect(groups.length).toBe(2)
 
-    const [, error3] = await addDefenderGroup(alice, "AliceGroup3", [])
+    const [, error3] = await addDefenderGroup(alice, "alice", "AliceGroup3", [])
     expect(error3).not.toBeNull()
-    const [, error4] = await addDefenderGroup(alice, "AliceGroup4", [beastIDs[0], beastIDs[1], beastIDs[2], beastIDs[1]])
+    const [, error4] = await addDefenderGroup(alice, "alice", "AliceGroup4", [beastIDs[0], beastIDs[1], beastIDs[2], beastIDs[1]])
     expect(error4).not.toBeNull()
 
     const [, error5] = await removeDefenderGroup(alice, "AliceGroup1")
@@ -189,15 +189,15 @@ describe("BattleField", () => {
 
     const bobBeastIDs = await bb_getBeastIDs(bob)
     const group1 = [bobBeastIDs[0], bobBeastIDs[1], bobBeastIDs[2]]
-    const [, error1] = await addDefenderGroup(bob, "BobGroup1", group1) 
+    const [, error1] = await addDefenderGroup(bob, "bob", "BobGroup1", group1) 
     expect(error1).toBeNull()
     const group2 = [bobBeastIDs[3], bobBeastIDs[4], bobBeastIDs[5]]
-    const [, error2] = await addDefenderGroup(bob, "BobGroup2", group2) 
+    const [, error2] = await addDefenderGroup(bob, "bob", "BobGroup2", group2) 
     expect(error2).toBeNull()
 
     const aliceBeastIDs = await bb_getBeastIDs(alice)
     const attackers = [aliceBeastIDs[0], aliceBeastIDs[1], aliceBeastIDs[2]]
-    const [, error3] = await addDefenderGroup(alice, "AliceGroup1", attackers) 
+    const [, error3] = await addDefenderGroup(alice, "alice", "AliceGroup1", attackers) 
     expect(error3).toBeNull()
 
     let [, error] = await fight(admin, alice, attackers, bob)

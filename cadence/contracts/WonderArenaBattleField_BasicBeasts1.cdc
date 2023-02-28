@@ -93,7 +93,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     }
 
     pub resource interface PlayerPublic {
-	    pub let name: String
+	    pub var name: String
 	    pub let address: Address
         pub fun getDefenderGroups(): [BeastGroup]
     }
@@ -112,7 +112,7 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
     }
 
     pub resource Player: PlayerPublic {
-	    pub let name: String
+	    pub var name: String
 	    pub let address: Address
         pub let defenderGroups: {String: BeastGroup}
 
@@ -120,6 +120,10 @@ pub contract WonderArenaBattleField_BasicBeasts1 {
             self.name = name
             self.address = address
             self.defenderGroups = {}
+        }
+
+        pub fun updateName(_ name: String) {
+            self.name = name
         }
 
         pub fun getDefenderGroups(): [BeastGroup] {

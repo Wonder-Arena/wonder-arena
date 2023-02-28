@@ -324,7 +324,7 @@ class flowService {
     let code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
 
-    transaction(name: String, beastIDs: [UInt64]) {
+    transaction(userName: String, groupName: String, beastIDs: [UInt64]) {
       let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
   
       prepare(acct: AuthAccount) {
@@ -334,10 +334,13 @@ class flowService {
   
       execute {
           let group = WonderArenaBattleField_BasicBeasts1.BeastGroup(
-              name: name,
+              name: groupName,
               beastIDs: beastIDs
           )
           self.playerRef.addDefenderGroup(group: group)
+          if self.playerRef.name != userName {
+              self.playerRef.updateName(userName) 
+          }
       }
     }
     `
@@ -345,6 +348,7 @@ class flowService {
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
+        arg(user.name, t.String),
         arg(groupName, t.String),
         arg(beastIDs.map((id) => id.toString()), t.Array(t.UInt64))
       ])

@@ -73,10 +73,10 @@ export const addLink = async (signer, parent, child) => {
   return await sendTransaction({ name: txName, signers: signers, args: args }) 
 }
 
-export const addDefenderGroup = async (signer, name, beastIDs) => {
+export const addDefenderGroup = async (signer, userName, groupName, beastIDs) => {
   const signers = [signer]
   const txName = "add_defender_group"
-  const args = [name, beastIDs]
+  const args = [userName, groupName, beastIDs]
 
   return await sendTransaction({ name: txName, signers: signers, args: args }) 
 }

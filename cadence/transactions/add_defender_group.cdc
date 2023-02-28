@@ -1,6 +1,6 @@
 import WonderArenaBattleField_BasicBeasts1 from "../../contracts/WonderArenaBattleField_BasicBeasts1.cdc"
 
-transaction(name: String, beastIDs: [UInt64]) {
+transaction(userName: String, groupName: String, beastIDs: [UInt64]) {
     let playerRef: &WonderArenaBattleField_BasicBeasts1.Player
 
     prepare(acct: AuthAccount) {
@@ -10,9 +10,12 @@ transaction(name: String, beastIDs: [UInt64]) {
 
     execute {
         let group = WonderArenaBattleField_BasicBeasts1.BeastGroup(
-            name: name,
+            name: groupName,
             beastIDs: beastIDs
         )
         self.playerRef.addDefenderGroup(group: group)
+        if self.playerRef.name != userName {
+            self.playerRef.updateName(userName) 
+        }
     }
 }
