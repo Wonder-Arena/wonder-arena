@@ -505,7 +505,6 @@ class flowService {
 
   static async sendBeast(recipient, tokenID) {
     let keyIndex = null
-    console.log(this.DroperKeys)
     for (const [key, value] of Object.entries(this.DroperKeys)) {
       if (value == false) {
         keyIndex = parseInt(key)
