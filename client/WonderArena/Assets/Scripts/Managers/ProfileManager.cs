@@ -56,7 +56,8 @@ public class ProfileManager : MonoBehaviour
             confirmButton.SetActive(false);
             linkAccountButton.SetActive(false);
             custodyButton.SetActive(true);
-            bloctoAddress.text = NetworkManager.Instance.parentAddressPublic;
+            //bloctoAddress.text = NetworkManager.Instance.parentAddressPublic;
+            bloctoAddress.text = PlayerPrefs.GetString("ParentAddress");
         }
         else
         {

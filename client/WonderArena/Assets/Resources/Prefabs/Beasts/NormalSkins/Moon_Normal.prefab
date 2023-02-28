@@ -95,6 +95,7 @@ GameObject:
   - component: {fileID: 1782096061024230515}
   - component: {fileID: -7360593309881604327}
   - component: {fileID: 601948250377965159}
+  - component: {fileID: -2134442157030092398}
   m_Layer: 0
   m_Name: Moon_Normal
   m_TagString: Untagged
@@ -132,13 +133,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   HpBar: {fileID: 0}
+  ManaBar: {fileID: 0}
   maxHp: 0
+  manaRequired: 0
+  currentMana: 0
   currentHp: 0
   hp: 0
   id: 0
   healthVelocity: 0
-  newHp: 0
+  manaVelocity: 0
+  manaText: {fileID: 0}
+  hpText: {fileID: 0}
   healthTime: 0.1
+  manaTime: 0.2
 --- !u!95 &601948250377965159
 Animator:
   serializedVersion: 5
@@ -159,6 +166,18 @@ Animator:
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
+--- !u!114 &-2134442157030092398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1782096061024230514}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c44a69e0d94434649a97d54f2530eeda, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4922053840281238076
 GameObject:
   m_ObjectHideFlags: 0

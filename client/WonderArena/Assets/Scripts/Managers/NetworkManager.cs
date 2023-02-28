@@ -294,6 +294,7 @@ public class NetworkManager : MonoBehaviour
         {
             linkedSuccesfully = true;
             message = "Succesfully linked accounts!";
+            PlayerPrefs.SetString("ParentAddress", parentAddressPublic);
         }
         else
         {
