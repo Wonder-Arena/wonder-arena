@@ -35,10 +35,6 @@ public class BeastStats : MonoBehaviour
         float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
         hp -= damageFloat;
         hp = Mathf.Clamp(hp, 0f, maxHp);
-        if (hp == 0f)
-        {
-            Destroy(gameObject);
-        }
     }
 
     public void GetMana(CadenceOptional damage) 

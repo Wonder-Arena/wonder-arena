@@ -15,7 +15,6 @@ public class NetworkManager : MonoBehaviour
     public string lastFightRecord = null;
     public string lastDefenderAddress = null;
     public string userTotalScore = null;
-    public bool claimedBBs = false;
     public string parentAddressPublic = null;
 
     public List<string> attackerComp = new();
@@ -42,7 +41,6 @@ public class NetworkManager : MonoBehaviour
     public string registerPATH = "/auth";
     public string loginPATH = "/auth/login";
     public string getPlayerPATH = "/auth/wonder_arena/players/";
-    public string claimBBsPATH = "/auth/wonder_arena/get_bbs";
     public string addDefenderTeamPATH = "/auth/wonder_arena/add_defender_group";
     public string removeDefenderTeamPATH = "/auth/wonder_arena/remove_defender_group";
     public string fightPATH = "/auth/wonder_arena/fight";
@@ -266,23 +264,6 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
-    public IEnumerator ClaimBBs()
-    {
-        var request = new UnityWebRequest(endpointPATH + claimBBsPATH, "POST");
-        request.downloadHandler = new DownloadHandlerBuffer();
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
-        yield return request.SendWebRequest();
-
-        Debug.Log(request.downloadHandler.text);
-
-        ClaimedBeast.Response response = JsonUtility.FromJson<ClaimedBeast.Response>(request.downloadHandler.text);
-
-        Debug.Log(response.message);
-
-        request.Dispose();
-    }
-
     public IEnumerator LinkAccountPost(string url, string bodyJsonString)
     {
         GameObject confirmationWindow = GameObject.Find("Confirmation Window");
@@ -335,13 +316,9 @@ public class NetworkManager : MonoBehaviour
 
         string newJson = JsonUtility.ToJson(fightBody);
 
-        yield return StartCoroutine(GetFightRecord(endpointPATH + fightPATH,
+        CoroutineHelper.Instance.RunCoroutine("GetFightRecord", GetFightRecord(endpointPATH + fightPATH,
             newJson, userAccessToken));
-
-        if (madeANewComp == true)
-        {
-            LevelManager.Instance.LoadScene("FightScene");
-        }
+        yield return null;
     }
 
     public IEnumerator GetFightRecord(string url, string bodyJsonString, string accessToken)
@@ -372,11 +349,13 @@ public class NetworkManager : MonoBehaviour
             madeANewComp = true;
             lastDefenderAddress = response.data.defender;
             lastFightRecord = response.data.challengeUUID;
-            yield return StartCoroutine(FlowInterfaceBB.Instance.GetFightsRecords());
+            CoroutineHelper.Instance.RunCoroutine("GetFightRecordsInsideFlowInterface", FlowInterfaceBB.Instance.GetFightsRecords());
         }
         else
         {
-            Debug.Log(response.message);
+            MessageManager.Instance.SendMessage("Something went wrong: " + response.message);
+            yield return new WaitForSeconds(1f);
+            LevelManager.Instance.LoadScene("MainMenu");
         }
 
         request.Dispose();
@@ -446,7 +425,7 @@ public class NetworkManager : MonoBehaviour
     // Leaderboard
     public IEnumerator GetPlayerForLeaderBoard(string selectedRightNow)
     {
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
         string url = endpointPATH + getPlayerPATH + selectedRightNow  + getPlayerWithChallengesPATH;
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
@@ -608,7 +587,6 @@ public class NetworkManager : MonoBehaviour
         lastFightRecord = null;
         lastDefenderAddress = null;
         userTotalScore = null;
-        claimedBBs = false;
         responseStripeURL = null;
         parentAddressPublic = null;
 

@@ -2185,8 +2185,8 @@ MonoBehaviour:
   - {fileID: 1782096061024230514, guid: cac20d81d4484fd4aa30fae4dcd5c281, type: 3}
   - {fileID: 1782096061024230514, guid: fe15ff071abdbe244950c5fbba1d994e, type: 3}
   attackersList:
-  - {fileID: 481458381}
   - {fileID: 896751334}
+  - {fileID: 481458381}
   - {fileID: 921970275}
   defendersList:
   - {fileID: 2125129797}
@@ -3170,7 +3170,7 @@ GameObject:
   m_Component:
   - component: {fileID: 481458382}
   m_Layer: 0
-  m_Name: First
+  m_Name: Second
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3189,7 +3189,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 857862389}
-  m_RootOrder: 0
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &485022922
 GameObject:
@@ -5672,8 +5672,8 @@ Transform:
   m_LocalScale: {x: -1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 481458382}
   - {fileID: 896751335}
+  - {fileID: 481458382}
   - {fileID: 921970276}
   m_Father: {fileID: 144428261}
   m_RootOrder: 0
@@ -6095,7 +6095,7 @@ GameObject:
   m_Component:
   - component: {fileID: 896751335}
   m_Layer: 0
-  m_Name: Second
+  m_Name: First
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -6114,7 +6114,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 857862389}
-  m_RootOrder: 1
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &902140031
 GameObject:

@@ -18,7 +18,7 @@ public class LevelManager : MonoBehaviour
     private TextMeshProUGUI _progressText;
     private float _target;
     private CanvasGroup canvasGroup;
-    private bool isLoadedScene;
+    public bool isLoadedScene;
     private float _targedAplpha;
 
     private void Awake()

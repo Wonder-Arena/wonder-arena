@@ -27,11 +27,11 @@ public class CoroutineHelper : MonoBehaviour
 
     public void RunCoroutine(string coroutineName, IEnumerator coroutine)
     {
-        //if (IsCoroutineRunning(coroutineName))
-        //{
-        //    StopCoroutine(_runningCoroutines[coroutineName]);
-        //    _runningCoroutines.Remove(coroutineName);
-        //}
+        if (IsCoroutineRunning(coroutineName))
+        {
+           StopCoroutine(_runningCoroutines[coroutineName]);
+           _runningCoroutines.Remove(coroutineName);
+        }
         Debug.Log("Coroutine Helper started " + coroutineName);
         _runningCoroutines.Add(coroutineName, coroutine);
         StartCoroutine(RunCoroutineWrapper(coroutineName, coroutine));

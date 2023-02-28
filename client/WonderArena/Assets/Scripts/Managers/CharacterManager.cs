@@ -71,14 +71,6 @@ public class CharacterManager : MonoBehaviour
     private IEnumerator Start()
     {
         madeANewComp = false;
-        // Waiting for all scripts to be done before trying to get Beasts
-        bool completed = false;
-        while (!completed)
-        {
-            completed = true;
-            completed = completed && flowInterface.isScriptsCompleted;
-            yield return null;
-        }
 
         yield return StartCoroutine(flowInterface.GetAllBeastsIDs());
 
@@ -190,6 +182,8 @@ public class CharacterManager : MonoBehaviour
             }
             coroutineHelper.RunCoroutine("StartFight", 
                 NetworkManager.Instance.StartFight(attackerCompIntId));
+            LevelManager.Instance.LoadScene("FightScene");
+            
         }
         else
         {

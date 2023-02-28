@@ -35,7 +35,7 @@ public class FightManager : MonoBehaviour
     GameObject defeatScreen;
     string defenderScoreChange;
     [SerializeField]
-    float secondsBetweenEvents = 2; 
+    float secondsBetweenEvents = 1f; 
 
     [SerializeField]
     TextMeshProUGUI textLog;
@@ -49,11 +49,16 @@ public class FightManager : MonoBehaviour
         textLog = textLog.GetComponent<TextMeshProUGUI>();
     }
 
-    private void Start()
+    private IEnumerator Start()
     {   
         winScreen.SetActive(false);
         defeatScreen.SetActive(false);
         resultBeasts.SetActive(false);
+        
+        while (!CoroutineHelper.Instance.AreAllCoroutinesFinished())
+        {
+            yield return null;
+        }
 
         if (FlowInterfaceBB.Instance.challengeRecords.Value != null)
         {
@@ -141,7 +146,7 @@ public class FightManager : MonoBehaviour
             attackersList[i].transform.GetChild(0).name.Split("_")[0];
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
-            .GetChild(i).Find("HpBar").GetComponent<Image>();
+            .GetChild(i).Find("Hp").Find("HpBar").GetComponent<Image>();
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
@@ -204,7 +209,7 @@ public class FightManager : MonoBehaviour
         //// case 1: if attacker exists
         //
         //
-        if (!IsOptionalNull(byBeastId)) 
+        if (!IsOptionalNull(byBeastId))
         {
             GameObject byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
             BeastStats byBeastStats = byBeastObject.GetComponent<BeastStats>();
@@ -221,7 +226,7 @@ public class FightManager : MonoBehaviour
                 if (!isSideEffect)
                 {
                     textLog.text += $"{byBeastName} used \"{skillName}\"";
-                    yield return StartCoroutine(ChangeAndWaitAnimationStateTime("Skill", byBeastObject));
+                    //yield return StartCoroutine(ChangeAndWaitAnimationStateTime("Skill", byBeastObject));
                     //TODO: Change the state of the beast GetObjectById(beastId).SetAnimation(skill)
                 }
             }

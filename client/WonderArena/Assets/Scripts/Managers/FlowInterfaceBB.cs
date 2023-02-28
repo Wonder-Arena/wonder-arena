@@ -98,12 +98,6 @@ public class FlowInterfaceBB : MonoBehaviour
 
         userFlowAddress = NetworkManager.Instance.userFlowAddress;
 
-        //StartCoroutine(GameManager.Instance.ClaimBBs());
-        if (!NetworkManager.Instance.claimedBBs)
-        {
-            coroutineHelper.RunCoroutine("ClaimBBs", NetworkManager.Instance.ClaimBBs());
-        }
-
         if (PlayerPrefs.HasKey("Username"))
         {
             if (allPlayers_ListDictionaryItems.Count == 0 || allPlayers_ListDictionaryItems == null)
