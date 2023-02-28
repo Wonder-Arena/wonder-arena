@@ -13,13 +13,11 @@ class stripeController {
         return
       }
 
-      const sessionId = await stripe.createCheckoutSession(req.user.payload, tokenId)
+      const data = await stripe.createCheckoutSession(req.user.payload, tokenId)
       res.status(200).json({
         status: true,
         message: "",
-        data: {
-          sessionID: sessionId
-        }
+        data: data
       })
     }
     catch (e) {

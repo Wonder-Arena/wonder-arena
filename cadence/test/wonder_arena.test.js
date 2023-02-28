@@ -10,7 +10,7 @@ import {
   getAdmin,
   deployBasicBeastsContracts,
 } from "./src/common";
-import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward, getAttackRecords, setPawnTemplates, getPlayersWithScore } from "./src/wonder_arena";
+import { createPlayer, getDefenderGroups, getPawns, getPlayers, getRules, register, updateGroupSize, updateMaxGroupNumber, addDefenderGroup, removeDefenderGroup, getAttackerChallenges, fight, getScores, setupRewardCollection, createReward, getRewards, claimReward, getAttackRecords, setPawnTemplates, getPlayersWithScore, addLink, getLinkedChildren } from "./src/wonder_arena";
 import { bb_createTemplate, bb_getBeastIDs, bb_mintBeast, bb_setupAccount } from "./src/basicbeasts";
 
 jest.setTimeout(1000000)
@@ -23,6 +23,7 @@ const deployContracts = async () => {
   await deployByName(deployer, "WonderArenaPawn_BasicBeasts1")
   await deployByName(deployer, "WonderArenaBattleField_BasicBeasts1")
   await deployByName(deployer, "WonderArenaReward_BasicBeasts1")
+  await deployByName(deployer, "WonderArenaLinkedAccounts_BasicBeasts1")
 }
 
 describe("Deployment", () => {
@@ -263,6 +264,33 @@ describe("Reward", () => {
     expect(error2).toBeNull()
   })
 })
+
+describe("Link", () => {
+  beforeEach(async () => {
+    const basePath = path.resolve(__dirname, "..")
+    await init(basePath)
+    await emulator.start()
+    return await new Promise(r => setTimeout(r, 2000));
+  })
+
+  afterEach(async () => {
+    await emulator.stop();
+    return await new Promise(r => setTimeout(r, 2000));
+  })
+
+  it("Add link", async () => {
+    await deployContracts()
+    const admin = await getAdmin()
+    const alice = await getAccountAddress("Alice")
+    const [res, err] = await addLink(admin, admin, alice)
+    expect(err).toBeNull()
+    const [res1, err1] = await getLinkedChildren(admin)
+    expect(err1).toBeNull()
+    expect(res1.length).toBe(1)
+    expect(res1[0]).toBe(alice)
+  })
+})
+
 
 const adminCreateReward = async () => {
   const admin = await getAdmin()

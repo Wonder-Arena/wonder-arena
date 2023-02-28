@@ -35,10 +35,10 @@ class stripeService {
       recipient: user.flowAccount.address
     }
     const order = await prisma.stripeOrder.create({
-      data 
+      data
     })
 
-    return session.id
+    return {sessionID: session.id, sessionURL: session.url}
   }
 
   static async handleCheckoutCompleted(sessionId) {

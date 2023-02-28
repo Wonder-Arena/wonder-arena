@@ -1024,6 +1024,7 @@ class flowService {
     let signer = await this.getUserSigner(user.flowAccount)
     let code = `
     import ChildAccount from 0x1b655847a90e644a
+    import WonderArenaLinkedAccounts_BasicBeasts1 from 0xWonderArena
 
     /// Signing account publishes a Capability to its AuthAccount for
     /// the specified parentAddress to claim
@@ -1031,8 +1032,9 @@ class flowService {
     transaction(parentAddress: Address) {
     
         let authAccountCap: Capability<&AuthAccount>
-    
-        prepare(signer: AuthAccount) {
+        let adminRef: &WonderArenaLinkedAccounts_BasicBeasts1.Admin
+
+        prepare(signer: AuthAccount, admin: AuthAccount) {
             // Get the AuthAccount Capability, linking if necessary
             if !signer.getCapability<&AuthAccount>(ChildAccount.AuthAccountCapabilityPath).check() {
                 self.authAccountCap = signer.linkAccount(ChildAccount.AuthAccountCapabilityPath)!
@@ -1041,23 +1043,48 @@ class flowService {
             }
             // Publish for the specified Address
             signer.inbox.publish(self.authAccountCap!, name: "AuthAccountCapability", recipient: parentAddress)
+
+            self.adminRef = admin
+              .borrow<&WonderArenaLinkedAccounts_BasicBeasts1.Admin>(from: WonderArenaLinkedAccounts_BasicBeasts1.AdminStoragePath)
+              ?? panic("borrow linked accounts admin failed")
+
+            self.adminRef.addLink(parent: parentAddress, child: signer.address)
         }
     }
     `
+    .replaceAll(WonderArenaPath, WonderArenaAddress)
+
+    let keyIndex = null
+    for (const [key, value] of Object.entries(this.AdminKeys)) {
+      if (value == false) {
+        keyIndex = parseInt(key)
+        break
+      }
+    }
+
+    if (keyIndex == null) {
+      throw createError.InternalServerError("Server is busy")
+    }
+
+    this.AdminKeys[keyIndex] = true
+    let adminSigner = await this.getAdminAccountWithKeyIndex(keyIndex)
+    let adminAuthz = adminSigner.buildAuthorization()
 
     try {
       const txid = await signer.sendTransaction(code, (arg, t) => [
         arg(parentAddress, t.Address)
-      ])
+      ], undefined, [adminAuthz])
 
       if (txid) {
         let tx = await fcl.tx(txid).onceSealed()
+        this.AdminKeys[keyIndex] = false
         if (tx.status === 4 && tx.statusCode === 0) {
           return
         }
       }
       throw "send transaction failed"
     } catch (e) {
+        this.AdminKeys[keyIndex] = false
       throw createError.InternalServerError(`account linking failed ${e}`)
     }
   }
