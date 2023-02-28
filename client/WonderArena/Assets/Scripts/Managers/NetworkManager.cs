@@ -4,6 +4,7 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using TMPro;
+using Newtonsoft.Json;
 
 public class NetworkManager : MonoBehaviour
 {
@@ -15,6 +16,7 @@ public class NetworkManager : MonoBehaviour
     public string lastDefenderAddress = null;
     public string userTotalScore = null;
     public bool claimedBBs = false;
+    public string parentAddressPublic = null;
 
     public List<string> attackerComp = new();
     public List<string> lastDefenderNamesOfPawns = new();
@@ -39,7 +41,7 @@ public class NetworkManager : MonoBehaviour
     public string endpointPATH = "https://wonder-arena-production.up.railway.app";
     public string registerPATH = "/auth";
     public string loginPATH = "/auth/login";
-    public string getPlayerPATH = "/auth/wonder_arena/players/";
+    public string getPlayerPATH = "/auth/wonder_arena/players/:";
     public string claimBBsPATH = "/auth/wonder_arena/get_bbs";
     public string addDefenderTeamPATH = "/auth/wonder_arena/add_defender_group";
     public string removeDefenderTeamPATH = "/auth/wonder_arena/remove_defender_group";
@@ -47,6 +49,7 @@ public class NetworkManager : MonoBehaviour
     public string accountLinkingPATH = "/auth/flow/account_link";
     public string claimRewardsPATH = "/auth/wonder_arena/claim_reward";
     public string stripePATH = "/auth/stripe/create_checkout_session";
+    public string getPlayerWithChallengesPATH = "?basicOnly=false";
 
     public string responseStripeURL;
 
@@ -99,7 +102,9 @@ public class NetworkManager : MonoBehaviour
         {
             public string id;
             public string winner;
+            public Attacker attacker;
             public List<string> attackerBeasts;
+            public Defender defender;
             public List<string> defenderBeasts;
             public string attackerScoreChange;
             public string defenderScoreChange;
@@ -108,6 +113,20 @@ public class NetworkManager : MonoBehaviour
         [System.Serializable]
         public class FlowAccount
         {
+            public string address;
+        }
+
+        [System.Serializable]
+        public class Attacker
+        {
+            public string name;
+            public string address;
+        }
+
+        [System.Serializable]
+        public class Defender
+        {
+            public string name;
             public string address;
         }
     }
@@ -188,6 +207,25 @@ public class NetworkManager : MonoBehaviour
         }
     }
 
+    [System.Serializable]
+    public class Stripe
+    {
+        [System.Serializable]
+        public class Response
+        {
+            public bool status;
+            public string message;
+            public Data data;
+        }
+
+        [System.Serializable]
+        public class Data
+        {
+            public string sessionID;
+            public string sessionURL;
+        }
+    }
+
     #endregion
 
     #region JsonUtility
@@ -195,7 +233,7 @@ public class NetworkManager : MonoBehaviour
     // Get player's information
     public IEnumerator GetPlayer()
     {
-        string url = endpointPATH + getPlayerPATH + PlayerPrefs.GetString("Username");
+        string url = endpointPATH + PlayerPrefs.GetString("Username") + getPlayerWithChallengesPATH;
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
         yield return request.SendWebRequest();
@@ -408,7 +446,8 @@ public class NetworkManager : MonoBehaviour
     // Leaderboard
     public IEnumerator GetPlayerForLeaderBoard(string selectedRightNow)
     {
-        string url = endpointPATH + getPlayerPATH + selectedRightNow;
+        yield return new WaitForSeconds(1f);
+        string url = endpointPATH + selectedRightNow + getPlayerWithChallengesPATH;
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
         yield return request.SendWebRequest();
@@ -502,10 +541,9 @@ public class NetworkManager : MonoBehaviour
         // Create a dictionary with the "tokenId" key and the given value
         var data = new Dictionary<string, int>();
         data.Add("tokenId", int.Parse(tokenId));
-        Debug.Log(JsonUtility.ToJson(data));
 
         // Serialize the dictionary as a JSON string
-        var jsonData = JsonUtility.ToJson(data);
+        var jsonData = JsonConvert.SerializeObject(data);
 
         Debug.Log(jsonData);
 
@@ -528,18 +566,18 @@ public class NetworkManager : MonoBehaviour
             Debug.Log(request.downloadHandler.text);
 
             // Parse the response JSON as a dictionary
-            var responseDict = JsonUtility.FromJson<Dictionary<string, string>>(
+            Stripe.Response response = JsonConvert.DeserializeObject<Stripe.Response>(
                 request.downloadHandler.text);
 
             // Get the "sessionURL" value from the dictionary
-            if (responseDict.ContainsKey("sessionURL"))
+            if (response.status == true)
             {
-                responseStripeURL = responseDict["sessionURL"];
+                responseStripeURL = response.data.sessionURL;
                 Debug.Log("Session URL: " + responseStripeURL);
             }
             else
             {
-                Debug.Log("Response does not contain a sessionURL");
+                Debug.Log(response.message);
             }
         }
     }
@@ -552,6 +590,7 @@ public class NetworkManager : MonoBehaviour
     {
         ParentAddress parentAddress = JsonUtility.FromJson<ParentAddress>(@"{ ""parentAddress"": ""0xbca26f5091cd39ec""}");
         parentAddress.parentAddress = address;
+        parentAddressPublic = address;
 
         string newJson = JsonUtility.ToJson(parentAddress);
         Debug.Log(newJson);
@@ -568,6 +607,7 @@ public class NetworkManager : MonoBehaviour
         userTotalScore = null;
         claimedBBs = false;
         responseStripeURL = null;
+        parentAddressPublic = null;
 
         attackerComp = new();
         lastDefenderNamesOfPawns = new();

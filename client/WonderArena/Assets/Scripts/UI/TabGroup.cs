@@ -95,8 +95,10 @@ public class TabGroup : MonoBehaviour
             {
                 Debug.Log(beast.Value + " " + beast.Key);
                 currentSceneManager.GetComponent<ShopManager>().idOfBeast = beast.Key;
+                return;
             }
         }
+        currentSceneManager.GetComponent<ShopManager>().idOfBeast = null;
     }
 
     public void ResetTabs()

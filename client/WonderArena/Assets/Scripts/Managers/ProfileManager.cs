@@ -22,7 +22,14 @@ public class ProfileManager : MonoBehaviour
     TextMeshProUGUI email;
 
     [SerializeField]
+    TextMeshProUGUI bloctoAddress;
+
+    [SerializeField]
     GameObject confirmButton;
+    [SerializeField]
+    GameObject custodyButton;
+    [SerializeField]
+    GameObject linkAccountButton;
 
     private void Awake()
     {
@@ -42,31 +49,53 @@ public class ProfileManager : MonoBehaviour
         LevelManager.Instance.LoadScene("ConnectingWallet");
     }
 
-    public void FixedUpdate()
+    private void FixedUpdate()
     {
-        totalScore.text = NetworkManager.Instance.userTotalScore;
-        totalFights.text = NetworkManager.Instance.userChallengeData.Count.ToString();
-        username.text = PlayerPrefs.GetString("Username");
-        email.text = PlayerPrefs.GetString("Email");
+        if (NetworkManager.Instance.linkedSuccesfully)
+        {
+            confirmButton.SetActive(false);
+            linkAccountButton.SetActive(false);
+            custodyButton.SetActive(true);
+            bloctoAddress.text = NetworkManager.Instance.parentAddressPublic;
+        }
+        else
+        {
+            confirmButton.SetActive(true);
+            linkAccountButton.SetActive(true);
+            bloctoAddress.text = null;
+        }
+    }
+
+    private IEnumerator Start()
+    {
+        while (!CoroutineHelper.Instance.AreAllCoroutinesFinished())
+        {
+            yield return null;
+        }
         int totalWinsInt = 0;
+        int attackerRecordsInt = 0;
+        int defenderRecordsInt = 0;
         foreach (var challenge in NetworkManager.Instance.userChallengeData)
         {
             if (NetworkManager.Instance.userFlowAddress == challenge.winner)
             {
                 totalWinsInt += 1;
             }
+            if (NetworkManager.Instance.userFlowAddress == challenge.attacker.address)
+            {
+                attackerRecordsInt += 1;
+            }
+            else
+            {
+                defenderRecordsInt += 1;
+            }
         }
         totalWins.text = totalWinsInt.ToString();
-
-        if (NetworkManager.Instance.linkedSuccesfully)
-        {
-            confirmButton.SetActive(false);
-        }
-        else
-        {
-            confirmButton.SetActive(true);
-        }
-
+        attackRecords.text = attackerRecordsInt.ToString();
+        defendRecords.text = defenderRecordsInt.ToString();
+        totalScore.text = NetworkManager.Instance.userTotalScore;
+        totalFights.text = NetworkManager.Instance.userChallengeData.Count.ToString();
+        username.text = PlayerPrefs.GetString("Username");
+        email.text = PlayerPrefs.GetString("Email");
     }
-
 }

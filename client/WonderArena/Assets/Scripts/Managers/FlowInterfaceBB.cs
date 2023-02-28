@@ -205,8 +205,48 @@ public class FlowInterfaceBB : MonoBehaviour
             string nameOfPawn = null;
             string idOfPawn = null;
             string hpOfPawn = null;
+            string manaRequired = null;
             hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+            CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
+            manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
             CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
+            idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+            CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
+            nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+
+            nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn + "_" + manaRequired;
+            Debug.Log(nameOfPawn);
+
+            NetworkManager.Instance.lastDefenderNamesOfPawns.Add(nameOfPawn);
+        }
+    }
+
+    public IEnumerator GetDefenderAllPawnsTeams()
+    {
+        // Executing script to get all Pawns from account
+        Task<FlowScriptResponse> getGroups = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text,
+            new CadenceAddress(NetworkManager.Instance.lastDefenderAddress));
+
+        yield return new WaitUntil(() => getGroups.IsCompleted);
+
+        if (getGroups.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getGroups.Result.Error.Message}");
+            yield break;
+        }
+
+        CadenceBase[] allGroups = (getGroups.Result.Value as CadenceArray).Value;
+
+        Debug.Log("Start adding names");
+        // Adding all pawns to List of all pawns that user has
+        foreach (CadenceComposite group in allGroups)
+        {
+            string nameOfPawn = null;
+            string idOfPawn = null;
+            string hpOfPawn = null;
+            hpOfPawn = group.CompositeFieldAs<CadenceNumber>("hp").Value;
+            CadenceComposite nft = group.CompositeFieldAs<CadenceComposite>("nft");
             idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
             CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
             nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;

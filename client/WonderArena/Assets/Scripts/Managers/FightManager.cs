@@ -65,18 +65,19 @@ public class FightManager : MonoBehaviour
             Debug.Log("There's no such Battle Record");
         }
         attackerCompNames = new(NetworkManager.Instance.attackerComp);
-        SetAllPawns();
         StartCoroutine(SimulateFight());
     }
 
     private void SetAllPawns()
     {
+        List<string> defenderCompNames = new(NetworkManager.Instance.lastDefenderNamesOfPawns);
         for (int i = 0; i < attackerCompNames.Count; i++)
         {
             GameObject newAttackerObject = null;
             string attackerNameAndSkinWithoutId = attackerCompNames[i].Split("_")[0] + "_" + attackerCompNames[i].Split("_")[1];
             string attackerHp = attackerCompNames[i].Split("_")[2];
             string attackerId = attackerCompNames[i].Split("_")[3];
+            string attackerManaRequired = attackerCompNames[i].Split("_")[4];
             for (int j = 0; j < allPawnsPrefabs.Count; j++)
             {
                 if (allPawnsPrefabs[j].name == attackerNameAndSkinWithoutId)
@@ -90,19 +91,15 @@ public class FightManager : MonoBehaviour
             attackerObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(attackerHp);
             attackerObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(attackerHp);
             attackerObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(attackerId);
-        }
-    }
+            attackerObjectOnField.transform.GetComponent<BeastStats>().manaRequired = int.Parse(attackerManaRequired);
 
-    private void SetDefendersPawns()
-    {
-        Debug.Log("Start Setting defenders");
-        List<string> defenderCompNames = new(NetworkManager.Instance.lastDefenderNamesOfPawns);
-        for (int i = 0; i < defenderCompNames.Count; i++)
-        {
+            // Defenders:
+
             GameObject newDefenderObject = null;
             string defenderNameAndSkinWithoutId = defenderCompNames[i].Split("_")[0] + "_" + defenderCompNames[i].Split("_")[1];
             string defenderHp = defenderCompNames[i].Split("_")[2];
             string defenderId = defenderCompNames[i].Split("_")[3];
+            string defenderManaRequired = defenderCompNames[i].Split("_")[4];
             for (int j = 0; j < allPawnsPrefabs.Count; j++)
             {
                 if (allPawnsPrefabs[j].name == defenderNameAndSkinWithoutId)
@@ -116,7 +113,7 @@ public class FightManager : MonoBehaviour
             defenderObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(defenderHp);
             defenderObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(defenderHp);
             defenderObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(defenderId);
-
+            defenderObjectOnField.transform.GetComponent<BeastStats>().manaRequired = int.Parse(defenderManaRequired);
         }
     }
 
@@ -130,23 +127,26 @@ public class FightManager : MonoBehaviour
 
         yield return StartCoroutine(FlowInterfaceBB.Instance.GetDefenderPawnsNames(defenders));
 
-        SetDefendersPawns();
+        SetAllPawns();
 
         for (int i = 0; i < attackersList.Count; i++)
         {
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
-            .GetChild(i).Find("HpBar").GetComponent<Image>();
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
+            .GetChild(i).Find("Hp").Find("HpBar").GetComponent<Image>();
 
-            healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
-            attackersList[i].transform.GetChild(0).name.Split("_")[0];
-        }
-
-        for (int i = 0; i < defendersList.Count; i++)
-        {
-            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
-            .GetChild(i).Find("HpBar").GetComponent<Image>();
+            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Attackers")
+            .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
             healthBars.transform.Find("Attackers").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
+            attackersList[i].transform.GetChild(0).name.Split("_")[0];
+
+            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
+            .GetChild(i).Find("HpBar").GetComponent<Image>();
+
+            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Defenders")
+            .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
+
+            healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text =
             defendersList[i].transform.GetChild(0).name.Split("_")[0];
         }
 
@@ -245,7 +245,7 @@ public class FightManager : MonoBehaviour
                 {
                     // textLog.text += $"\n {targetName} suffered {(damage.Value as CadenceNumber).Value} damage";
                     yield return StartCoroutine(ChangeAndWaitAnimationStateTime("GetHurt", targetObject));
-                    targetStats.DoDamage(damage);
+                    targetStats.TakeDamage(damage);
                     
                     // Log that hp changed (temp)
                     // textLog.text += $" and now has this much hp left: {targetStats.hp}";
@@ -274,7 +274,7 @@ public class FightManager : MonoBehaviour
                 {
                     // float damageInt = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
                     // targetStats.hp -= damageInt; // subtract damage from beast class
-                    targetStats.DoDamage(damage);
+                    targetStats.TakeDamage(damage);
                     
                     string damageFloat = (damage.Value as CadenceNumber).Value;
                     

@@ -8,28 +8,49 @@ public class BeastStats : MonoBehaviour
 {
     [SerializeField]
     public Image HpBar;
+    [SerializeField]
+    public Image ManaBar;
 
     public float maxHp;
+    public float manaRequired;
+    public float currentMana;
     public float currentHp;
     public float hp;
     public int id;
     public float healthVelocity;
     private bool firstDamage = false;
-    [SerializeField] float newHp;
+    private bool firstMana = false;
 
     public float healthTime = 0.1f;
 
     private void Start()
     {
         currentHp = maxHp;
+        currentMana = 0;
     }
 
-    public void DoDamage(CadenceOptional damage) 
+    public void TakeDamage(CadenceOptional damage) 
     {
         firstDamage = true;
         float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
         hp -= damageFloat;
         hp = Mathf.Clamp(hp, 0f, maxHp);
+        if (hp == 0f)
+        {
+            Destroy(gameObject);
+        }
+    }
+
+    public void GetMana(CadenceOptional damage) 
+    {
+        firstMana = true;
+        float damageFloat = float.Parse((damage.Value as CadenceNumber).Value); // fetch damage
+        currentMana += damageFloat;
+        currentMana = Mathf.Clamp(currentMana, 0f, manaRequired);
+        if (currentMana == manaRequired)
+        {
+            currentMana = 0;
+        }
     }
 
     private void Update()
@@ -37,9 +58,15 @@ public class BeastStats : MonoBehaviour
         if (firstDamage)
         {
             float targetHp = hp / maxHp;
-            newHp = Mathf.SmoothDamp(HpBar.fillAmount, targetHp, ref healthVelocity, healthTime);
+            float newHp = Mathf.SmoothDamp(HpBar.fillAmount, targetHp, ref healthVelocity, healthTime);
             HpBar.fillAmount = newHp;
-        } 
+        }
+        if (firstMana)
+        {
+            float targetMana = currentMana / manaRequired;
+            float newMana = Mathf.SmoothDamp(ManaBar.fillAmount, targetMana, ref healthVelocity, healthTime);
+            ManaBar.fillAmount = newMana;
+        }
     }
     
 }

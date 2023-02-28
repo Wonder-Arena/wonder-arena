@@ -105,6 +105,8 @@ public class CharacterManager : MonoBehaviour
         {
             string hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;          
             CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
+            CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
+            string manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
             string nftId = nft.CompositeFieldAs<CadenceNumber>("id").Value;
             CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
             string nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
@@ -114,7 +116,7 @@ public class CharacterManager : MonoBehaviour
                 if (selectionBeast.name == nameOfPawn)
                 {
                     GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
-                    newSelectionBeast.name = $"{selectionBeast.name}_{hpOfPawn}_{nftId}";
+                    newSelectionBeast.name = $"{selectionBeast.name}_{hpOfPawn}_{nftId}_{manaRequired}";
                     newSelectionBeast.transform.Find("Platform").gameObject.SetActive(false);
                 }
             }

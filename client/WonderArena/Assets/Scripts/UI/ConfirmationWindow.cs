@@ -12,4 +12,6 @@ public class ConfirmationWindow : MonoBehaviour
     public Button noButton;
     [SerializeField]
     public TextMeshProUGUI messageText;
+    [SerializeField]
+    public Button custodialButton;
 }

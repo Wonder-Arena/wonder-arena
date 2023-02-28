@@ -37,6 +37,20 @@ public class RedirectButton : MonoBehaviour
         }
     }
 
+    public void CustodialOpenConfirmation(string message)
+    {
+        confirmationWindow.gameObject.SetActive(true);
+        confirmationWindow.yesButton.onClick.AddListener(CustodialYesClicked);
+        confirmationWindow.noButton.onClick.AddListener(NoClicked);
+        confirmationWindow.messageText.text = Regex.Unescape(message);
+    }
+
+    private void CustodialYesClicked()
+    {
+        Application.OpenURL("https://www.bakalabs.com/wonder-arena");
+        confirmationWindow.gameObject.SetActive(false);
+    }
+
     private void NoClicked()
     {
         confirmationWindow.gameObject.SetActive(false);
