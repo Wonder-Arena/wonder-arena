@@ -4,6 +4,7 @@ const flow = require('../controllers/flow.controller')
 const stripe = require('../controllers/stripe.controller')
 const auth = require('../middlewares/auth')
 const bodyParser = require('body-parser');
+const cors = require('cors')
 
 router.use(bodyParser.urlencoded({ extended: true }))
 router.use(bodyParser.json())
@@ -16,7 +17,7 @@ router.post('/login', user.login)
 // app.get('/',function(req,res) {
   // res.sendFile('index.html');
 // });
-router.get('/google_auth', function (req, res) {
+router.get('/google_auth', cors(), function (req, res) {
   res.sendFile(__dirname + '/index.html')
 })
 
@@ -31,7 +32,6 @@ router.post('/wonder_arena/remove_defender_group', auth, flow.removeDefenderGrou
 router.post('/wonder_arena/fight', auth, flow.fight)
 router.post('/wonder_arena/claim_reward', auth, flow.claimReward)
 
-var cors = require('cors')
 router.post('/stripe/create_checkout_session', auth, cors(), stripe.createCheckoutSession)
 
 module.exports = router
