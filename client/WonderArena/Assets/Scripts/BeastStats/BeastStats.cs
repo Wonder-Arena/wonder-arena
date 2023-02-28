@@ -34,7 +34,7 @@ public class BeastStats : MonoBehaviour
 
     private void Start()
     {
-        currentHp = maxHp;
+        hp = maxHp;
         currentMana = 0;
     }
 
@@ -69,7 +69,7 @@ public class BeastStats : MonoBehaviour
             ManaBar.fillAmount = newMana;
         }
 
-        hpText.text = $"{currentHp}/{maxHp}";
+        hpText.text = $"{hp}/{maxHp}";
         manaText.text = $"{currentMana}/{manaRequired}";
     }
     
