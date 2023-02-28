@@ -180,16 +180,35 @@ public class DefenderTeamManager : MonoBehaviour
             }
         }
 
-        if (haveDefenderComp)
+        if (NetworkManager.Instance.userDefenderGroups.Count > 3)
         {
-            coroutineHelper.RunCoroutine("SetDefenderTeam",
-                NetworkManager.Instance.SetDefenderTeam(teamNameField.text, listOfDefenderGroup));
-
-            LevelManager.Instance.LoadScene("DefendTeam");
+            MessageManager.Instance.ShowMessage("You can only have maximum of 4 teams!", 2f);
         }
+
+        else if (haveDefenderComp)
+        {
+            StartCoroutine(WaitForDefenders());
+        }
+
         else
         {
             Debug.Log("Select your comp");
         }
     }  
+
+    private IEnumerator WaitForDefenders()
+    {
+        coroutineHelper.RunCoroutine("SetDefenderTeam",
+                NetworkManager.Instance.SetDefenderTeam(teamNameField.text, listOfDefenderGroup));
+                
+        LevelManager.Instance.LoadScene("DefendTeam");
+
+        while (coroutineHelper.IsCoroutineRunning("SetDefenderTeam"))
+        {
+            yield return null;
+        }
+            
+        coroutineHelper.RunCoroutine("GetUserDefenderGroup", FlowInterfaceBB.Instance.GetUserDefenderGroups());   
+    }
+
 }

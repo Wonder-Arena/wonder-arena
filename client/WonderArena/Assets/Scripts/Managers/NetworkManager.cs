@@ -41,7 +41,7 @@ public class NetworkManager : MonoBehaviour
     public string endpointPATH = "https://wonder-arena-production.up.railway.app";
     public string registerPATH = "/auth";
     public string loginPATH = "/auth/login";
-    public string getPlayerPATH = "/auth/wonder_arena/players/:";
+    public string getPlayerPATH = "/auth/wonder_arena/players/";
     public string claimBBsPATH = "/auth/wonder_arena/get_bbs";
     public string addDefenderTeamPATH = "/auth/wonder_arena/add_defender_group";
     public string removeDefenderTeamPATH = "/auth/wonder_arena/remove_defender_group";
@@ -233,7 +233,7 @@ public class NetworkManager : MonoBehaviour
     // Get player's information
     public IEnumerator GetPlayer()
     {
-        string url = endpointPATH + PlayerPrefs.GetString("Username") + getPlayerWithChallengesPATH;
+        string url = endpointPATH + getPlayerPATH + PlayerPrefs.GetString("Username") + getPlayerWithChallengesPATH;
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
         yield return request.SendWebRequest();
@@ -285,7 +285,6 @@ public class NetworkManager : MonoBehaviour
 
     public IEnumerator LinkAccountPost(string url, string bodyJsonString)
     {
-        linkedSuccesfully = true;
         GameObject confirmationWindow = GameObject.Find("Confirmation Window");
         var request = new UnityWebRequest(url, "POST");
         byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
@@ -311,6 +310,7 @@ public class NetworkManager : MonoBehaviour
         string message;
         if (response.status == true)
         {
+            linkedSuccesfully = true;
             message = "Succesfully linked accounts!";
         }
         else
@@ -447,14 +447,14 @@ public class NetworkManager : MonoBehaviour
     public IEnumerator GetPlayerForLeaderBoard(string selectedRightNow)
     {
         yield return new WaitForSeconds(1f);
-        string url = endpointPATH + selectedRightNow + getPlayerWithChallengesPATH;
+        string url = endpointPATH + getPlayerPATH + selectedRightNow  + getPlayerWithChallengesPATH;
         UnityWebRequest request = UnityWebRequest.Get(url);
         request.SetRequestHeader("Authorization", $"Bearer {userAccessToken}");
         yield return request.SendWebRequest();
 
         Debug.Log(request.downloadHandler.text);
 
-        Player.Response response = JsonUtility.FromJson<Player.Response>(request.downloadHandler.text);
+        Player.Response response = JsonConvert.DeserializeObject<Player.Response>(request.downloadHandler.text);
 
         if (response.status == true)
         {
@@ -524,7 +524,10 @@ public class NetworkManager : MonoBehaviour
 
         if (response.status == true)
         {
-            Destroy(selectedTeam.gameObject);
+            if (selectedTeam != null)
+            {
+                Destroy(selectedTeam.gameObject);
+            }
             Debug.Log(response.message);
         }
         else

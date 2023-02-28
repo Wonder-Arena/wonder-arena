@@ -51,7 +51,7 @@ public class ProfileManager : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if (NetworkManager.Instance.linkedSuccesfully)
+        if (NetworkManager.Instance.linkedSuccesfully || FlowInterfaceBB.Instance.hasParentAddress)
         {
             confirmButton.SetActive(false);
             linkAccountButton.SetActive(false);

@@ -56,6 +56,8 @@ public class LevelManager : MonoBehaviour
 
         scene.allowSceneActivation = true;
 
+        await Task.Delay(500);
+
         StartCoroutine(WaitForEnumerators(scene));
     }
 
@@ -63,12 +65,14 @@ public class LevelManager : MonoBehaviour
     {
         while (!CoroutineHelper.Instance.AreAllCoroutinesFinished())
         {
+            if (_target < 0.99f)
+            {
+                _target += 0.0008f;
+            }
             yield return null;
         }
 
         _target = 1;
-
-        yield return new WaitForSeconds(0.5f);
 
         isLoadedScene = true;
     }

@@ -61,6 +61,10 @@ public class TeamsManager : MonoBehaviour
                 }
             }           
         }
+        else
+        {
+            userDefenderTeam = NetworkManager.Instance.userDefenderGroups;
+        }
     }
 
     public void SetPlatforms()
@@ -76,7 +80,8 @@ public class TeamsManager : MonoBehaviour
 
     public void DeleteTeam()
     {
-        CoroutineHelper.Instance.RunCoroutine("RemoveDefenderGroup", 
+        coroutineHelper.RunCoroutine("RemoveDefenderGroup", 
             NetworkManager.Instance.RemoveDefenderGroup(selectedTeam));
+        LevelManager.Instance.LoadScene("DefendTeam");
     }
 }

@@ -1960,6 +1960,7 @@ MonoBehaviour:
   yesButton: {fileID: 249694115}
   noButton: {fileID: 1549337575}
   messageText: {fileID: 859489277}
+  custodialButton: {fileID: 0}
 --- !u!1 &859489275
 GameObject:
   m_ObjectHideFlags: 0

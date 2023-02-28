@@ -21,13 +21,12 @@ public class FlowInterfaceBB : MonoBehaviour
     CoroutineHelper coroutineHelper;
 
     public CadenceOptional challengeRecords;
-    public List<CadenceComposite> allPlayers_ListCadenceComposite = new();
     public List<CadenceDictionaryItem> allPlayers_ListDictionaryItems = new();
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
-    public Dictionary<string, bool> isScriptsCompletedDictionary = new();
     public Dictionary<string, string> beastsForListingDictionary = new();
+    public bool hasParentAddress;
 
     // FLOW account object - set via Login screen.
     [Header("FLOW Account")]
@@ -42,6 +41,7 @@ public class FlowInterfaceBB : MonoBehaviour
     [SerializeField] TextAsset GetPlayerTxn;
     [SerializeField] TextAsset GetPawnsTxn;
     [SerializeField] TextAsset GetListingBeastsTxn;
+    [SerializeField] TextAsset HasParentAccountTxn;
 
     private static FlowInterfaceBB m_instance = null;
     public static FlowInterfaceBB Instance
@@ -102,12 +102,19 @@ public class FlowInterfaceBB : MonoBehaviour
         if (!NetworkManager.Instance.claimedBBs)
         {
             coroutineHelper.RunCoroutine("ClaimBBs", NetworkManager.Instance.ClaimBBs());
-        }      
+        }
 
         if (PlayerPrefs.HasKey("Username"))
         {
-            coroutineHelper.RunCoroutine("GetAllPlayers", GetAllPlayers());
+            if (allPlayers_ListDictionaryItems.Count == 0 || allPlayers_ListDictionaryItems == null)
+            {
+                coroutineHelper.RunCoroutine("GetAllPlayers", GetAllPlayers());
+            }
             coroutineHelper.RunCoroutine("GetAllBeasts", GetAllBeastsIDs());
+            if (!hasParentAddress)
+            {
+                coroutineHelper.RunCoroutine("HasParentAccount", HasParentAccount());
+            }            
         }
         else
         {
@@ -154,6 +161,22 @@ public class FlowInterfaceBB : MonoBehaviour
         playerAllBeastsIDs_CadenceBaseArray = (getBeastsIDs.Result.Value as CadenceArray).Value;
 
         yield return StartCoroutine(GetAllPlayerPawns());
+    }
+
+    public IEnumerator HasParentAccount()
+    {
+        Task<FlowScriptResponse> getIsParentAccount = FLOW_ACCOUNT.ExecuteScript(HasParentAccountTxn.text, new CadenceAddress(userFlowAddress));
+        
+        yield return new WaitUntil(() => getIsParentAccount.IsCompleted);
+
+        if (getIsParentAccount.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getIsParentAccount.Result.Error.Message}");
+            yield break;
+        }
+
+        hasParentAddress = (getIsParentAccount.Result.Value as CadenceBool).Value;
+        Debug.Log(hasParentAddress);
     }
 
     private IEnumerator GetAllPlayerPawns()
@@ -345,14 +368,11 @@ public class FlowInterfaceBB : MonoBehaviour
                     nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn;
 
                     _defenderGroup.Add(nameOfPawn);
-                    Debug.Log(nameOfPawn);
                 }
 
-                Debug.Log(name);
                 if (NetworkManager.Instance.userDefenderGroups.ContainsKey(name))
                 {
-                    NetworkManager.Instance.userDefenderGroups[name] = _defenderGroup;
-                    
+                    NetworkManager.Instance.userDefenderGroups[name] = _defenderGroup;       
                 }
                 else
                 {

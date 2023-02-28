@@ -9,8 +9,6 @@ public class ShopManager : MonoBehaviour
     [SerializeField]
     GameObject confirmationWindow;
     [SerializeField]
-    TextMeshProUGUI waitingText;
-    [SerializeField]
     GameObject buyButton;
 
     public string idOfBeast;

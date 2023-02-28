@@ -48,6 +48,7 @@ MonoBehaviour:
   bobsAddress: 0x771519260bbe1ee6
   userFlowAddress: 
   isScriptsCompleted: 0
+  hasParentAddress: 0
   FLOW_ACCOUNT:
     _name: 
     infoKeys: []
@@ -60,3 +61,4 @@ MonoBehaviour:
   GetPlayerTxn: {fileID: 2811297602134710623, guid: bdef7c9703bcc1048ab2f491f2a7b335, type: 3}
   GetPawnsTxn: {fileID: 2811297602134710623, guid: 67bf829760a190e4fbf867e659f5f929, type: 3}
   GetListingBeastsTxn: {fileID: 2811297602134710623, guid: 6961e85851d01124b80e1d16321a1e9a, type: 3}
+  HasParentAccountTxn: {fileID: 2811297602134710623, guid: a0bc17b69148abd4ab87050962f86b02, type: 3}

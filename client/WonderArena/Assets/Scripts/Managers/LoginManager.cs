@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine.Networking;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Net;
 
 public class LoginManager : MonoBehaviour
 {
@@ -121,6 +122,8 @@ public class LoginManager : MonoBehaviour
 
     private void Awake()
     {
+        // Enable HTTP/2
+        System.Net.ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls13;
         isVideoClicked = false;
         nonVideoStartingScreen.SetActive(false);
         usernameRegistrationField = usernameRegistrationField.GetComponent<TMP_InputField>();
@@ -172,6 +175,7 @@ public class LoginManager : MonoBehaviour
     private IEnumerator LoginPost(string url, string bodyJsonString)
     {
         var request = new UnityWebRequest(url, "POST");
+        request.timeout += 1;
         byte[] bodyRaw = Encoding.UTF8.GetBytes(bodyJsonString);
         request.uploadHandler = new UploadHandlerRaw(bodyRaw);
         request.downloadHandler = new DownloadHandlerBuffer();

@@ -32,7 +32,7 @@ public class CoroutineHelper : MonoBehaviour
         //    StopCoroutine(_runningCoroutines[coroutineName]);
         //    _runningCoroutines.Remove(coroutineName);
         //}
-        Debug.Log("Coroutine Helper finished " + coroutineName);
+        Debug.Log("Coroutine Helper started " + coroutineName);
         _runningCoroutines.Add(coroutineName, coroutine);
         StartCoroutine(RunCoroutineWrapper(coroutineName, coroutine));
     }

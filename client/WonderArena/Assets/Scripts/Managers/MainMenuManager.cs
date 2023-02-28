@@ -14,7 +14,11 @@ public class MainMenuManager : MonoBehaviour
     {
         airDroppingLoadPage.SetActive(true);
         yield return StartCoroutine(WaitForAccount());
-        yield return StartCoroutine(FlowInterfaceBB.Instance.GetUserDefenderGroups());
+        CoroutineHelper.Instance.RunCoroutine("GetUserDefenderGroups", FlowInterfaceBB.Instance.GetUserDefenderGroups());
+        while (CoroutineHelper.Instance.IsCoroutineRunning("GetUserDefenderGroups"))
+        {
+            yield return null;
+        }
         if (NetworkManager.Instance.userDefenderGroups.Count > 0)
         {
             SetPlatforms();
