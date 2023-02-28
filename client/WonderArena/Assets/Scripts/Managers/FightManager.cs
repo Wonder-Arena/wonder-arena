@@ -160,10 +160,10 @@ public class FightManager : MonoBehaviour
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Defenders")
-            .GetChild(i).Find("Hp").Find("HpNumber").GetComponent<TextMeshProUGUI>().text;
+            .GetChild(i).Find("Hp").Find("HpNumber").GetComponent<TextMeshProUGUI>();
 
             defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Defenders")
-            .GetChild(i).Find("Mana").Find("ManaNumber").GetComponent<TextMeshProUGUI>().text;
+            .GetChild(i).Find("Mana").Find("ManaNumber").GetComponent<TextMeshProUGUI>();
 
             healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text =
             defendersList[i].transform.GetChild(0).name.Split("_")[0];
@@ -173,6 +173,7 @@ public class FightManager : MonoBehaviour
 
 
         int index = 0;
+        yield return new WaitForSeconds(0.5f);
         foreach (CadenceComposite _event in events)
         {
             index += 1;
