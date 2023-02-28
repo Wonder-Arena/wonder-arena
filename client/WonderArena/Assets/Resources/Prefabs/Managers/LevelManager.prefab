@@ -479,9 +479,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 901f132a7fed30f4e9e7dd66f2fe639a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  videoPlayer: {fileID: 6278137734395276283}
+  startPoints:
+  - 0
+  - 4
+  - 7
+  - 9
   _loaderCanvas: {fileID: 3711532229308536043}
   _progressBar: {fileID: 3711532227743287795}
   _progressText: {fileID: 0}
+  isLoadedScene: 0
 --- !u!1 &3711532229273772324
 GameObject:
   m_ObjectHideFlags: 0
@@ -594,7 +601,7 @@ Canvas:
   m_GameObject: {fileID: 3711532229308536043}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
+  m_RenderMode: 1
   m_Camera: {fileID: 0}
   m_PlaneDistance: 100
   m_PixelPerfect: 0

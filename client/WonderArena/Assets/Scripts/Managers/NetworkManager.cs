@@ -256,12 +256,12 @@ public class NetworkManager : MonoBehaviour
 
     public IEnumerator GetPlayerUpdate(float seconds)
     {
-        while (userFlowAddress == null)
+        do
         {
             StartCoroutine(GetPlayer());
             yield return new WaitForSeconds(seconds);
             yield return null;
-        }
+        } while (userFlowAddress == null);
     }
 
     public IEnumerator LinkAccountPost(string url, string bodyJsonString)

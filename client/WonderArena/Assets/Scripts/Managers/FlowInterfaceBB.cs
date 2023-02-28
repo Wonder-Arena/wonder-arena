@@ -26,7 +26,7 @@ public class FlowInterfaceBB : MonoBehaviour
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
     public Dictionary<string, string> beastsForListingDictionary = new();
-    public bool hasParentAddress;
+    public bool hasParentAddress = false;
 
     // FLOW account object - set via Login screen.
     [Header("FLOW Account")]
@@ -63,7 +63,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance != this || (SceneManager.GetActiveScene().name == "ConnectingWallet"))
+        if (Instance != this)
         {
             Destroy(this);
         }
@@ -71,6 +71,14 @@ public class FlowInterfaceBB : MonoBehaviour
         //// Register DevWallet
         //FlowSDK.RegisterWalletProvider(ScriptableObject.CreateInstance<DevWalletProvider>());
         coroutineHelper = CoroutineHelper.Instance;
+    }
+
+    private void Update()
+    {
+        if(SceneManager.GetActiveScene().name == "ConnectingWallet")
+        {
+            Destroy(gameObject);
+        }
     }
 
     private IEnumerator Start()

@@ -1,6 +1,6 @@
 using UnityEngine.SceneManagement;
 using System.Collections;
-using System.Collections.Generic;
+using UnityEngine.Video;
 using UnityEngine;
 using UnityEngine.UI;
 using System.Threading.Tasks;
@@ -9,6 +9,9 @@ using TMPro;
 public class LevelManager : MonoBehaviour
 {
     public static LevelManager Instance;
+
+    public VideoPlayer videoPlayer;
+    public float[] startPoints = new float[4];
 
     [SerializeField]
     private GameObject _loaderCanvas;
@@ -46,6 +49,16 @@ public class LevelManager : MonoBehaviour
         scene.allowSceneActivation = false;
 
         _loaderCanvas.SetActive(true);
+
+        // Set the video to loop
+        videoPlayer.isLooping = true;
+
+        // Set a random start time
+        int randomIndex = Random.Range(0, startPoints.Length);
+        videoPlayer.time = startPoints[randomIndex];
+
+        // Play the video
+        videoPlayer.Play();
 
         do
         {
@@ -112,6 +125,10 @@ public class LevelManager : MonoBehaviour
                 canvasGroup.alpha = 1;
                 isLoadedScene = false;
             }
+        }
+        if (_loaderCanvas.GetComponent<Canvas>().worldCamera == null)
+        {
+            _loaderCanvas.GetComponent<Canvas>().worldCamera = Camera.main;
         }
     }
 }
