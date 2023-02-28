@@ -38,24 +38,19 @@ class authService {
           let user = null
           if (flowAccount) {
             data.claimedBBs = true
-            try {
-              let _user = await prisma.$transaction(async (tx) => {
-                let user = await tx.user.create({
-                  data
-                })
-  
-                await tx.flowAccount.update({
-                  where: { address: flowAccount.address },
-                  data: { userId: user.id }
-                })
-  
-                return user
+            let _user = await prisma.$transaction(async (tx) => {
+              let user = await tx.user.create({
+                data
               })
-              user = _user
-            } catch (e) {
-              console.log(e)
-              throw createError.InternalServerError("register failed")
-            }
+
+              await tx.flowAccount.update({
+                where: { address: flowAccount.address },
+                data: { userId: user.id }
+              })
+
+              return user
+            })
+            user = _user
           } else {
             user = await prisma.user.create({
               data
