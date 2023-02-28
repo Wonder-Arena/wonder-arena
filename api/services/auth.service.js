@@ -31,21 +31,44 @@ class authService {
         data.password = bcrypt.hashSync(data.password, 8)
 
         try {
-          let _user = await prisma.user.findUnique({
-            where: { email: data.email }
+          let flowAccount = await prisma.flowAccount.findFirst({
+            where: { userId: null }
           })
-          console.log(_user)
 
-          let user = await prisma.user.create({
-            data
-          })
+          let user = null
+          if (flowAccount) {
+            data.claimedBBs = true
+            try {
+              let _user = await prisma.$transaction(async (tx) => {
+                let user = await tx.user.create({
+                  data
+                })
+  
+                await tx.flowAccount.update({
+                  where: { address: flowAccount.address },
+                  data: { userId: user.id }
+                })
+  
+                return user
+              })
+              user = _user
+            } catch (e) {
+              console.log(e)
+              throw createError.InternalServerError("register failed")
+            }
+          } else {
+            user = await prisma.user.create({
+              data
+            }) 
+          }
+
           data.accessToken = await jwt.signAccessToken(user);
         } catch (e) {
           if (e instanceof Prisma.PrismaClientKnownRequestError) {
             // P2022: Unique constraint failed
             // Prisma error codes: https://www.prisma.io/docs/reference/api-reference/error-reference#error-codes
             if (e.code === 'P2002') {
-              throw {statusCode: 422, message: 'The email or username already registered'}
+              throw createError.UnprocessableEntity('The email or username already registered')
             }
           }
           throw e

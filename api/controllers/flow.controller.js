@@ -193,4 +193,12 @@ setInterval(async function() {
     }
 }, 6000);
 
+setInterval(async function() {
+    try {
+        await flow.generateFlowAccounts()
+    } catch (e) {
+        console.log(e)
+    }
+}, 30000);
+
 module.exports = flowController
