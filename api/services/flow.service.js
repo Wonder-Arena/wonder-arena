@@ -639,6 +639,7 @@ class flowService {
   }
 
 
+  static lastFightKey = 0
   static async fight(userData, attackerIDs, defenderAddress) {
     const { name, email } = userData
     const user = await prisma.user.findUnique({
@@ -689,15 +690,15 @@ class flowService {
       ]
     })
 
-    // TODO:
-    if (challengeTimes >= 100) {
+    if (challengeTimes >= 3) {
       throw createError.UnprocessableEntity("Can only challenge a player for 3 times at most")
     }
 
     let keyIndex = null
     for (const [key, value] of Object.entries(this.AdminKeys)) {
-      if (value == false) {
-        keyIndex = parseInt(key)
+      const keyInt = parseInt(key)
+      if (value == false && keyInt != this.lastFightKey) {
+        keyIndex = keyInt
         break
       }
     }
@@ -707,6 +708,8 @@ class flowService {
     }
 
     this.AdminKeys[keyIndex] = true
+    this.lastFightKey = keyIndex
+    console.log("Fight with keyIndex", keyIndex, attackerIDs, defenderAddress)
     let signer = await this.getAdminAccountWithKeyIndex(keyIndex)
     let code = `
     import WonderArenaBattleField_BasicBeasts1 from 0xWonderArena
