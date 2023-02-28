@@ -59,6 +59,4 @@ MonoBehaviour:
   GetDefenderGroupsTxn: {fileID: 2811297602134710623, guid: ad8104a03b7d4b741a35901b95e894c4, type: 3}
   GetPlayerTxn: {fileID: 2811297602134710623, guid: bdef7c9703bcc1048ab2f491f2a7b335, type: 3}
   GetPawnsTxn: {fileID: 2811297602134710623, guid: 67bf829760a190e4fbf867e659f5f929, type: 3}
-  endpointPATH: https://wonder-arena-production.up.railway.app
-  getPlayerPath: /auth/players/
-  loginPATH: /auth/login
+  GetListingBeastsTxn: {fileID: 2811297602134710623, guid: 6961e85851d01124b80e1d16321a1e9a, type: 3}

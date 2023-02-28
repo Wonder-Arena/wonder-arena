@@ -21,8 +21,6 @@ public class NetworkManager : MonoBehaviour
     public List<Player.ChallengeData> userChallengeData = new();
     public Dictionary<string, List<string>> userDefenderGroups = new();
 
-    public Dictionary<string, bool> gameManagerEnumerators = new();
-
     public bool linkedSuccesfully;
 
     private bool madeANewComp;
@@ -48,6 +46,9 @@ public class NetworkManager : MonoBehaviour
     public string fightPATH = "/auth/wonder_arena/fight";
     public string accountLinkingPATH = "/auth/flow/account_link";
     public string claimRewardsPATH = "/auth/wonder_arena/claim_reward";
+    public string stripePATH = "/auth/stripe/create_checkout_session";
+
+    public string responseStripeURL;
 
     #endregion
 
@@ -418,12 +419,10 @@ public class NetworkManager : MonoBehaviour
 
         if (response.status == true)
         {
-            GameObject.Find("LeaderBoardManager").
-                GetComponent<LeaderBoardManager>().gotPlayer = true;
+            GameObject.FindObjectOfType<LeaderBoardManager>().gotPlayer = true;
             string selectedFlowAddress = response.data.flowAccount.address;
             lastDefenderAddress = selectedFlowAddress;
-            GameObject.Find("LeaderBoardManager").
-                GetComponent<LeaderBoardManager>().SetPlayedData(response.data.challenges,
+            GameObject.FindObjectOfType<LeaderBoardManager>().SetPlayedData(response.data.challenges,
                 selectedFlowAddress);
             Debug.Log(selectedFlowAddress);
         }
@@ -498,6 +497,53 @@ public class NetworkManager : MonoBehaviour
         request.Dispose();
     }
 
+    public IEnumerator GetStripeCheckout(string tokenId)
+    {
+        // Create a dictionary with the "tokenId" key and the given value
+        var data = new Dictionary<string, int>();
+        data.Add("tokenId", int.Parse(tokenId));
+        Debug.Log(JsonUtility.ToJson(data));
+
+        // Serialize the dictionary as a JSON string
+        var jsonData = JsonUtility.ToJson(data);
+
+        Debug.Log(jsonData);
+
+        var request = new UnityWebRequest(endpointPATH + stripePATH, "POST");
+        byte[] bodyRaw = new System.Text.UTF8Encoding().GetBytes(jsonData);
+        request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
+        request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+        request.SetRequestHeader("Content-Type", "application/json");
+        request.SetRequestHeader("Authorization", "Bearer " + userAccessToken);
+
+        yield return request.SendWebRequest();
+
+        if (request.result != UnityWebRequest.Result.Success)
+        {
+            Debug.Log("Error posting JSON: " + request.error);
+        }
+        else
+        {
+            Debug.Log("JSON posted successfully!");
+            Debug.Log(request.downloadHandler.text);
+
+            // Parse the response JSON as a dictionary
+            var responseDict = JsonUtility.FromJson<Dictionary<string, string>>(
+                request.downloadHandler.text);
+
+            // Get the "sessionURL" value from the dictionary
+            if (responseDict.ContainsKey("sessionURL"))
+            {
+                responseStripeURL = responseDict["sessionURL"];
+                Debug.Log("Session URL: " + responseStripeURL);
+            }
+            else
+            {
+                Debug.Log("Response does not contain a sessionURL");
+            }
+        }
+    }
+
     #endregion
 
     #region Functions
@@ -521,6 +567,7 @@ public class NetworkManager : MonoBehaviour
         lastDefenderAddress = null;
         userTotalScore = null;
         claimedBBs = false;
+        responseStripeURL = null;
 
         attackerComp = new();
         lastDefenderNamesOfPawns = new();

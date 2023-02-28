@@ -27,6 +27,7 @@ public class FlowInterfaceBB : MonoBehaviour
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
     public Dictionary<string, bool> isScriptsCompletedDictionary = new();
+    public Dictionary<string, string> beastsForListingDictionary = new();
 
     // FLOW account object - set via Login screen.
     [Header("FLOW Account")]
@@ -40,6 +41,7 @@ public class FlowInterfaceBB : MonoBehaviour
     [SerializeField] TextAsset GetDefenderGroupsTxn;
     [SerializeField] TextAsset GetPlayerTxn;
     [SerializeField] TextAsset GetPawnsTxn;
+    [SerializeField] TextAsset GetListingBeastsTxn;
 
     private static FlowInterfaceBB m_instance = null;
     public static FlowInterfaceBB Instance
@@ -214,6 +216,37 @@ public class FlowInterfaceBB : MonoBehaviour
             Debug.Log(nameOfPawn);
 
             NetworkManager.Instance.lastDefenderNamesOfPawns.Add(nameOfPawn);
+        }
+    }
+
+    public IEnumerator GetListingBeasts()
+    {
+        beastsForListingDictionary = new();
+        // Executing script to get all Pawns from account
+        Task<FlowScriptResponse> getListingBeasts = FLOW_ACCOUNT.ExecuteScript(GetListingBeastsTxn.text);
+
+        yield return new WaitUntil(() => getListingBeasts.IsCompleted);
+
+        if (getListingBeasts.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getListingBeasts.Result.Error.Message}");
+            yield break;
+        }
+
+        CadenceDictionary allListingBeasts = getListingBeasts.Result.Value as CadenceDictionary;
+
+        // Adding all pawns to List of all pawns that user has
+        foreach (CadenceDictionaryItem listingBeast in allListingBeasts.Value)
+        {
+            string id = (listingBeast.Key as CadenceNumber).Value;
+            CadenceComposite beastNft = listingBeast.Value as CadenceComposite;
+            CadenceComposite beastTemplate = beastNft.CompositeFieldAs<CadenceComposite>("beastTemplate");
+            string name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            string skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+
+            string fullName = name + "_" + skin;
+
+            beastsForListingDictionary.Add(id, fullName);
         }
     }
 

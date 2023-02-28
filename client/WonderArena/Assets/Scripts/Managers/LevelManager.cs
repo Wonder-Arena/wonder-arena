@@ -53,7 +53,8 @@ public class LevelManager : MonoBehaviour
             _target = scene.progress;
 
         } while (scene.progress < 0.9f);
-        
+
+        scene.allowSceneActivation = true;
 
         StartCoroutine(WaitForEnumerators(scene));
     }
@@ -65,10 +66,10 @@ public class LevelManager : MonoBehaviour
             yield return null;
         }
 
+        _target = 1;
+
         yield return new WaitForSeconds(0.5f);
 
-        scene.allowSceneActivation = true;
-        _target = 1;
         isLoadedScene = true;
     }
 

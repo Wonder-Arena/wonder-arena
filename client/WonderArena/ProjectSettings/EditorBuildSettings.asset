@@ -35,4 +35,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Profile.unity
     guid: e6ce3dc60ad25874186c57d1f87b1a69
+  - enabled: 1
+    path: Assets/Scenes/BuyBeasts.unity
+    guid: 2b3738b1a78f21647ac197835b33e5b0
   m_configObjects: {}

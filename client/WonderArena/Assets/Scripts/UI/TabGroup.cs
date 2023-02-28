@@ -65,7 +65,11 @@ public class TabGroup : MonoBehaviour
                 {
                     GetTeamInDefendTeam(i);
                 }
-                
+                else if (SceneManager.GetActiveScene().name == "BuyBeasts")
+                {
+                    GetToBuyBeast(i);
+                }
+
             }
         }
     }
@@ -79,6 +83,20 @@ public class TabGroup : MonoBehaviour
     {
         currentSceneManager.transform.GetComponent<TeamsManager>().selectedTeam = transform.GetChild(index).transform;
         currentSceneManager.transform.GetComponent<TeamsManager>().SetPlatforms();
+    }
+
+    private void GetToBuyBeast(int index)
+    {  
+        string nameOfBeast = transform.GetChild(index).name.Split("_")[0] + "_" + transform.GetChild(index).name.Split("_")[1];
+        Debug.Log(nameOfBeast);
+        foreach (KeyValuePair<string, string> beast in FlowInterfaceBB.Instance.beastsForListingDictionary)
+        {
+            if (beast.Value == nameOfBeast)
+            {
+                Debug.Log(beast.Value + " " + beast.Key);
+                currentSceneManager.GetComponent<ShopManager>().idOfBeast = beast.Key;
+            }
+        }
     }
 
     public void ResetTabs()

@@ -51,14 +51,6 @@ public class LeaderBoardManager : MonoBehaviour
 
     private IEnumerator Start()
     {
-        bool completed = false;
-        while (!completed)
-        {
-            completed = true;
-            completed = completed && flowInterface.isScriptsCompleted;
-            yield return null;
-        }
-
         yield return StartCoroutine(FlowInterfaceBB.Instance.GetAllPlayers());
 
         foreach (CadenceDictionaryItem player in flowInterface.allPlayers_ListDictionaryItems)
