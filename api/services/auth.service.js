@@ -8,6 +8,25 @@ const createError = require('http-errors')
 
 class authService {
 
+    static async registerOrLogin(userData) {
+      const { name, email } = userData
+      try {
+        let user = await prisma.user.findUnique({
+          where: { email: email }
+        })
+
+        userData.password = email
+        if (user) {
+          console.log("Login")
+          return this.login(userData)
+        }
+        console.log("Sign up")
+        return this.register(userData)
+      } catch (e) {
+        throw createError.UnprocessableEntity("auth failed")
+      }
+    }
+
     static async register(data) {
         data.password = bcrypt.hashSync(data.password, 8)
 

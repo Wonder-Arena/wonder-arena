@@ -13,6 +13,14 @@ router.post('/', user.register)
 
 // login
 router.post('/login', user.login)
+// app.get('/',function(req,res) {
+  // res.sendFile('index.html');
+// });
+router.get('/google_auth', function (req, res) {
+  res.sendFile(__dirname + '/index.html')
+})
+
+router.post('/google_login', user.googleLogin)
 
 router.post('/flow/account_link', auth, flow.accountLink)
 
