@@ -1,5 +1,6 @@
 const auth = require('../services/auth.service');
 const createError = require('http-errors');
+const {OAuth2Client} = require('google-auth-library');
 
 class authController {
 
@@ -31,6 +32,29 @@ class authController {
             console.log(e)
             next(createError(e.statusCode, e.message))
         }
+    }
+
+    static googleLogin = async (req, res, next) => {
+      const CLIENT_ID = process.env.GOOGLE_CLIENT_ID 
+      const client = new OAuth2Client(CLIENT_ID);
+      try {
+        const ticket = await client.verifyIdToken({
+          idToken: req.body.credential,
+          audience: CLIENT_ID, 
+        });
+        const payload = ticket.getPayload()
+        const name = payload.name
+        const email = payload.email
+        const data = await auth.registerOrLogin({name: name, email: email})
+        res.status(200).json({
+          status: true,
+          message: "Account login successful",
+          data
+        }) 
+      } catch (e) {
+        console.log(e)
+        next(createError(e.statusCode, e.message))
+      }
     }
 
     static login = async (req, res, next) => {

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Gooogle Login JavaScript Example</title>
+<meta charset="UTF-8">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<div class="g-signin2" data-onsuccess="onSignIn"></div>
+
+<p>hello</p>
+<div id="g_id_onload"
+     data-client_id="1027225502623-ia7qgp31dv4416brudo8italt233g35u.apps.googleusercontent.com"
+     data-context="signup"
+     data-ux_mode="popup"
+     data-login_uri="http://localhost:5000/auth/google_login"
+     data-auto_prompt="false">
+</div>
+
+<div class="g_id_signin"
+     data-type="standard"
+     data-shape="rectangular"
+     data-theme="outline"
+     data-text="signin_with"
+     data-size="large"
+     data-logo_alignment="left">
+</div>
+</body>
+</html>
