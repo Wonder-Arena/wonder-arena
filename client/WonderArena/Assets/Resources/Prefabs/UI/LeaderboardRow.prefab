@@ -375,7 +375,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Name
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
   m_sharedMaterial: {fileID: 8846435766180450591, guid: 7994168a19565cc4abddd12e560356ef, type: 2}
@@ -405,7 +405,7 @@ MonoBehaviour:
   m_fontSize: 63
   m_fontSizeBase: 63
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0

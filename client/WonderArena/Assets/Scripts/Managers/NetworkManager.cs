@@ -259,7 +259,7 @@ public class NetworkManager : MonoBehaviour
     {
         do
         {
-            StartCoroutine(GetPlayer());
+            CoroutineHelper.Instance.RunCoroutine("GetPlayerUpdate", GetPlayer());
             yield return new WaitForSeconds(seconds);
             yield return null;
         } while (userFlowAddress == null);
