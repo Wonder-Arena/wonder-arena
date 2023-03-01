@@ -1,65 +1,43 @@
-### 👋 Welcome Flow Developer!
-Welcome to your new Flow project. We've created the basic folder structure you will need to develop your project and provided some examples of contracts and transactions you can modify. We've also added some of the most common contracts, transactions and scripts but feel free to just delete what you don't need. 
+# Wonder Arena
 
-### 🔨 Getting started
-Getting started can feel overwhelming, but we are here for you. Depending on how accustomed you are to Flow here's a list of resources you might find useful:
-- **[Cadence documentation](https://developers.flow.com/cadence/language)**: here you will find language reference for Cadence, which will be the language in which you develop your smart contracts,
-- **[Visual Studio Code](https://code.visualstudio.com/?wt.mc_id=DX_841432)** and **[Cadence extension](https://marketplace.visualstudio.com/items?itemName=onflow.cadence)**: we suggest using Visual Studio Code IDE for writing Cadence with the Cadence extension installed, that will give you nice syntax highlitning and additional smart features,
-- **[SDKs](https://developers.flow.com/tools#sdks)**: here you will find a list of SDKs you can use to ease the interaction with Flow network (sending transactions, fetching accounts etc),
-- **[Tools](https://developers.flow.com/tools#development-tools)**: development tools you can use to make your development easier, [Flowser](https://docs.flowser.dev/) can be super handy to see what's going on the blockchain while you develop
+<div style="text-align: center;">
+<img src="https://user-images.githubusercontent.com/88026162/222029643-4928b605-8189-4c47-960a-2ebff959290c.png" width="500">
+</div>
 
+Wonder Arena Contract Address
 
-### 📦 Project Structure
-Your project comes with some standard folders which have a special purpose:
-- `/cadence` inside here is where your Cadence smart contracts code lives
-- `/web` put your web client if needed inside this folder, remove if not needed
-- `/api` put your backend code if needed inside this folder, remove if not needed
-- `flow.json` configuration file for your project, you can think of it as package.json, but you don't need to worry, flow dev command will configure it for you
+- Testnet: `0x469d7a2394a488bb`
 
-Inside `cadence` folder you will find:
-- `/contracts` location for Cadence contracts go in this folder
-- `/scripts` location for Cadence scripts goes here
-- `/transactions` location for Cadence transactions goes in this folder
-- `/tests` all the integration tests for your dapp and Cadence tests go into this folder
+## Walletless Onboarding
 
+<img src="https://user-images.githubusercontent.com/88026162/222029341-b8c4c4a7-f981-4219-a404-c588d0805271.png">
+We are committed to achieving a frictionless experience for WonderArena, making it accessible to mainstream audiences. Therefore, we have implemented the Walletless Onboarding Approach.  
 
-### 👨‍💻 Start Developing
-After creating the project using the `flow setup` you should then start the emulator by running `flow emulator` and start the development command by running:
-```shell
-> flow dev
-```
-After the command is started it will automatically watch any changes you make to Cadence files and make sure to continiously sync those changes on the emulator network. If you make any mistakes it will report the errors as well. Read more [about the command here](https://developers.flow.com/tools/flow-cli/super-commands)
+In WonderArena, the basic process is as follows: first, the user logs in using their email / google accounts, and we generate a Flow account dedicated to Wonder Arena for that user. When the user needs to perform operations on the Flow blockchain, WonderArena's server will call the encrypted private key stored in the WonderArena database to sign transactions on behalf of the user. If users need to make payments, we also support payment through Stripe, so users do not need to hold any cryptocurrency.
 
-**Importing Contracts**
+This approach enables users to interact with WonderArena without needing to connect their wallets or sign transactions, making it a walletless and user-friendly experience for the mainstream. Here are a few things to note:
 
-When you want to import the contracts you've just created you can simply do so by writing the import statement:
-```
-import "Foo"
-```
-We will automatically find your project contract named `Foo` and handle the importing for you. 
+### Pre-made Flow accounts
 
-**Deploying to specific accounts**
+**It takes about 10 seconds for a Flow blockchain transaction to be sealed. How can we ensure that users get their Flow accounts as soon as possible?**
 
-By default all contracts are deployed to a default account. If you want to seperate contracts to different accounts you can easily do so by creating a folder inside the contracts folder and we will create the account for you which will have the same name as the folder you just created. All the contracts inside that folder will be deployed automatically to the newly created account.
+To address this issue, we generate a batch of Flow accounts in advance and bind them to users after they register. This way, users can use their Flow accounts without waiting. Additionally, when the number of unallocated Flow accounts falls below a certain level, we will automatically replenish them. If a user consumes all the pre-generated Flow accounts in a short period of time, new Flow accounts will be generated immediately.
 
-Example deploying to charlie account:
+<img src="https://user-images.githubusercontent.com/88026162/222029002-875f750f-d9b4-4cdb-8408-16a5f1eee299.png" width="400">
 
-_folder structure_
-```
-/contracts
-    Bar.cdc
-    /charlie
-        Foo.cdc
-```
+### Key rotation
 
-You can then import the `Foo` contract in `Bar` contract the same way as any other contract:
-```
-import "Foo"
-```
+**Some on-chain operations require the administrator account of WonderArena to perform. If there are a large number of users simultaneously making multiple requests, how can we avoid users' requests from queuing up?**
 
+In Flow, an account can have multiple keys, and each key has its own independent sequence number. Using different keys from the same account to initiate transactions simultaneously will not block each other. Thanks to this feature, we have generated many keys for the WonderArena administrator account, allowing administrators to handle multiple requests at the same time.
 
-### Further Reading
+<img src="https://user-images.githubusercontent.com/88026162/222030181-12ca3eb0-e08e-4785-8d35-1fcda3069062.png" width="400">
 
-- Cadence Language Reference https://developers.flow.com/cadence/language
-- Flow Smart Contract Project Development Standards https://developers.flow.com/cadence/style-guide/project-development-tips
-- Cadence anti-patterns https://developers.flow.com/cadence/anti-patterns
+### Hybrid Custody
+
+**Since the keys are managed by WonderArena, users do not actually have control over the assets in their WonderArena accounts. How can this problem be solved?**
+
+A complete walletless experience does not exclude Web3 Native users. By using the latest Account Linking feature from Flow, we allow users to set their WonderArena accounts as child accounts of their own wallets. This turns their WonderArena accounts into Hybrid Custody Accounts, giving users the freedom to control assets in their WonderArena accounts.
+
+<img src="https://user-images.githubusercontent.com/88026162/222030311-61e397e5-f885-4dad-b38a-528e799ee0a1.png" width="400">
+
