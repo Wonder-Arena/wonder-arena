@@ -8,6 +8,10 @@ Wonder Arena Contract Address
 
 - Testnet: `0x469d7a2394a488bb`
 
+To receive an app invite on iPhone, please email: bz.vanity@gmail.com  
+
+Android APK: https://drive.google.com/drive/folders/1lOPrFZH4YDGPzWAX0iemCo_i-Iuta2zi?usp=share_link
+
 ## Walletless Onboarding
 
 <img src="https://user-images.githubusercontent.com/88026162/222029341-b8c4c4a7-f981-4219-a404-c588d0805271.png">
