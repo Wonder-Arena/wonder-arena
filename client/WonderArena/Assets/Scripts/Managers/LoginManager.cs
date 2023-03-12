@@ -5,8 +5,6 @@ using TMPro;
 using UnityEngine.Networking;
 using System.Text;
 using System.Text.RegularExpressions;
-//using Google;
-//using GoogleSignIn;
 
 public class LoginManager : MonoBehaviour
 {
@@ -157,6 +155,7 @@ public class LoginManager : MonoBehaviour
             errorField.text = "";
             PlayerPrefs.SetString("Email", registerResponse.data.email);
             PlayerPrefs.SetString("Username", registerResponse.data.name);
+            NetworkManager.Instance.userUsername = registerResponse.data.name;
             PlayerPrefs.Save();
             registrationObject.SetActive(false);
             OnSecondLoginButtonClicked();
@@ -192,6 +191,7 @@ public class LoginManager : MonoBehaviour
             PlayerPrefs.SetString("Username", loginResponse.data.name);
             NetworkManager.Instance.userAccessToken = loginResponse.data.accessToken;
             NetworkManager.Instance.userFlowAddress = loginResponse.data.flowAccount.address;
+            NetworkManager.Instance.userUsername = loginResponse.data.name;
             loginObject.SetActive(false);
             registrationObject.SetActive(false);
             LevelManager.Instance.LoadScene("MainMenu");

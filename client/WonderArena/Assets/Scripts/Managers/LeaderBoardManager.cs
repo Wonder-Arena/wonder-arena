@@ -24,7 +24,7 @@ public class LeaderBoardManager : MonoBehaviour
     TextMeshProUGUI battleWon;
 
     Dictionary<string, int> allPlayersScore = new();
-    string selectedFlowAddress;
+    //string selectedFlowAddress;
     public bool gotPlayer;
     
     FlowInterfaceBB flowInterface;
@@ -57,19 +57,24 @@ public class LeaderBoardManager : MonoBehaviour
         {
             string name = (player.Value as CadenceComposite).CompositeFieldAs<CadenceString>("name").Value;
             int score = int.Parse((player.Value as CadenceComposite).CompositeFieldAs<CadenceNumber>("score").Value);
+            bool isChallengable = (player.Value as CadenceComposite).CompositeFieldAs<CadenceBool>("isChallengable").Value;
 
-            if (allPlayersScore.ContainsKey(name))
+
+            if (isChallengable)
             {
-                allPlayersScore[name] = score;
-            }
-            else
-            {
-                allPlayersScore.Add(name, score);
-            }
-            
+                if (allPlayersScore.ContainsKey(name))
+                {
+                    allPlayersScore[name] = score;
+                }
+                else
+                {
+                    allPlayersScore.Add(name, score);
+                }
+            }  
         }
 
         int index = 0;
+        GameObject userRow = null;
         foreach (KeyValuePair<string, int> player in allPlayersScore.OrderBy(key => key.Value))
         {
             GameObject newRow = Instantiate(leaderboardRowPrefab, contentParent.transform);
@@ -92,13 +97,10 @@ public class LeaderBoardManager : MonoBehaviour
             newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = $"{name}";
             newRow.transform.GetChild(5).GetComponent<TextMeshProUGUI>().text = $"{score}";
 
-            if (player.Key == PlayerPrefs.GetString("Username"))
+            if (player.Key == NetworkManager.Instance.userUsername)
             {
-                newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = $"{name} (You)";
-                newRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.green;
+                userRow = newRow;
             }
-
-            contentParent.GetComponent<TabGroup>().ResetTabs();
 
             if (place % 2 == 0)
             {
@@ -111,6 +113,11 @@ public class LeaderBoardManager : MonoBehaviour
 
             index += 1;
         }
+
+        contentParent.GetComponent<TabGroup>().ResetTabs();
+
+        userRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().text = $"{NetworkManager.Instance.userUsername} (You)";
+        userRow.transform.GetChild(4).GetComponent<TextMeshProUGUI>().color = Color.green;
     }
 
     public void ChallengePlayer()

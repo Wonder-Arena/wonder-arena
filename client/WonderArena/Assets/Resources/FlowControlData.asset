@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: FlowControlData
   m_EditorClassIdentifier: 
   _emulatorSettings:
-    emulatorDataDirectory: G:/Unity/projects/WonderArenaGIT/wonder-arena/client/WonderArena/FLowEmulator
+    emulatorDataDirectory: 
     flowExecutablePathOverride: 
     runEmulatorInPlayMode: 0
     persistData: 1
@@ -22,19 +22,11 @@ MonoBehaviour:
     emulatorEndpoint: http://127.0.0.1:8888/v1
   _textReplacements: []
   _accounts:
-  - _name: emulator_service_account
-    infoKeys:
-    - Private Key
-    - Address
-    infoValues:
-    - 59dffd06a93fc6c2e84ad7283d695a45f7f17defc2abfcde274eeba364293bdf
-    - 0xf8d6e0586b0a20c7
-    _gatewayName: Emulator
   - _name: testnet_service_account
     infoKeys:
     - Address
     - Private Key
     infoValues:
     - 0xee03d719e59cf7af
-    - 5a6edd35be36ff78ed98a02e2251dc2381cfab20d6cbbc353c6549631def19d8
+    - '5a6edd35be36ff78ed98a02e2251dc2381cfab20d6cbbc353c6549631def19d8 '
     _gatewayName: Flow Testnet

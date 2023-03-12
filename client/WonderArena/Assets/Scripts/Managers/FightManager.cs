@@ -35,7 +35,7 @@ public class FightManager : MonoBehaviour
     GameObject defeatScreen;
     string defenderScoreChange;
     [SerializeField]
-    float secondsBetweenEvents = 1f; 
+    float secondsBetweenEvents = 0.5f;
 
     [SerializeField]
     TextMeshProUGUI textLog;
@@ -427,6 +427,14 @@ public class FightManager : MonoBehaviour
     private void SetScreen(GameObject screen)
     {
         screen.SetActive(true);
+        if (int.Parse(attackerScoreChange) > 0)
+        {
+            attackerScoreChange = $"+{attackerScoreChange}";
+        }
+        if (int.Parse(defenderScoreChange) > 0)
+        {
+            defenderScoreChange = $"+{defenderScoreChange}";
+        }
         screen.transform.Find("Score").Find("Value").GetComponent<TextMeshProUGUI>().text = attackerScoreChange;
         screen.transform.Find("EnemyScore").Find("Value").GetComponent<TextMeshProUGUI>().text = defenderScoreChange;
     }

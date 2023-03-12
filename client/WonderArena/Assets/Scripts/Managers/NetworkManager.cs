@@ -16,6 +16,7 @@ public class NetworkManager : MonoBehaviour
     public string lastDefenderAddress = null;
     public string userTotalScore = null;
     public string parentAddressPublic = null;
+    public string userUsername = null;
 
     public List<string> attackerComp = new();
     public List<string> lastDefenderNamesOfPawns = new();
@@ -591,6 +592,7 @@ public class NetworkManager : MonoBehaviour
         userTotalScore = null;
         responseStripeURL = null;
         parentAddressPublic = null;
+        userUsername = null;
 
         attackerComp = new();
         lastDefenderNamesOfPawns = new();

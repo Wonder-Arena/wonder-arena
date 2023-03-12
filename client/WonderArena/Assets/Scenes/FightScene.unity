@@ -2195,7 +2195,7 @@ MonoBehaviour:
   winScreen: {fileID: 2079214697}
   resultBeasts: {fileID: 846215746}
   defeatScreen: {fileID: 341746352}
-  secondsBetweenEvents: 2
+  secondsBetweenEvents: 1.5
   textLog: {fileID: 902428452}
   healthBars: {fileID: 349790329}
   groupsParentObject: {fileID: 144428260}
@@ -9686,7 +9686,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.050656386, y: 0}
   m_AnchorMax: {x: 0.34300002, y: 0.7877004}
-  m_AnchoredPosition: {x: 163, y: 61}
+  m_AnchoredPosition: {x: 163.00003, y: 61}
   m_SizeDelta: {x: -0.6772995, y: -2.3643951}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1597459189
