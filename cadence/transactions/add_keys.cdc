@@ -8,7 +8,7 @@ transaction(publicKeyHex: String) {
         )
 
         var counter = 0
-        while counter < 10 {
+        while counter < 15 {
             signer.keys.add(
                 publicKey: key,
                 hashAlgorithm: HashAlgorithm.SHA3_256,
