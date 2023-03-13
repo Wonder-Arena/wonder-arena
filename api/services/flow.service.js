@@ -111,7 +111,7 @@ class flowService {
       where: { userId: null }
     })
 
-    if (accounts.length < 15) {
+    if (accounts.length < 10) {
       let keyIndex = null
       for (const [key, value] of Object.entries(this.AdminKeys)) {
         if (value == false) {
