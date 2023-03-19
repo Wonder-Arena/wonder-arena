@@ -279,6 +279,7 @@ public class NetworkManager : MonoBehaviour
 
         while (!request.isDone)
         {
+            confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().color = Color.white;
             int dots = ((int)(Time.time * 2.0f) % 4);
             confirmationWindow.transform.Find("MessageField").transform.GetComponent<TextMeshProUGUI>().text
                 = "Linking accounts" + new string('.', dots);
