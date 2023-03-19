@@ -544,7 +544,7 @@ public class NetworkManager : MonoBehaviour
 
         if (request.result != UnityWebRequest.Result.Success)
         {
-            Debug.Log("Error posting JSON: " + request.error);
+            Debug.Log("Error posting JSON: " + request.downloadHandler.text);
         }
         else
         {
@@ -552,8 +552,7 @@ public class NetworkManager : MonoBehaviour
             Debug.Log(request.downloadHandler.text);
 
             // Parse the response JSON as a dictionary
-            Stripe.Response response = JsonConvert.DeserializeObject<Stripe.Response>(
-                request.downloadHandler.text);
+            Stripe.Response response = JsonConvert.DeserializeObject<Stripe.Response>(request.downloadHandler.text);
 
             // Get the "sessionURL" value from the dictionary
             if (response.status == true)
