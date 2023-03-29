@@ -25,7 +25,7 @@ public class FlowInterfaceBB : MonoBehaviour
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
-    public Dictionary<string, string> beastsForListingDictionary = new();
+    public List<Beast> beastsForListingList = new();
     public bool hasParentAddress = false;
 
     // FLOW account object - set via Login screen.
@@ -208,7 +208,7 @@ public class FlowInterfaceBB : MonoBehaviour
 
     public IEnumerator GetDefenderPawnsNames(CadenceBase[] beastIds)
     {
-        NetworkManager.Instance.lastDefenderNamesOfPawns = new();
+        NetworkManager.Instance.lastDefenderBeasts = new();
         // Executing script to get all Pawns from account
         Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text,
             new CadenceAddress(NetworkManager.Instance.lastDefenderAddress), new CadenceArray(beastIds));
@@ -227,66 +227,43 @@ public class FlowInterfaceBB : MonoBehaviour
         // Adding all pawns to List of all pawns that user has
         foreach (CadenceComposite pawn in allPawns)
         {
-            string nameOfPawn = null;
-            string idOfPawn = null;
-            string hpOfPawn = null;
-            string manaRequired = null;
-            hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+            //string nameOfPawn = null;
+            //string idOfPawn = null;
+            //string hpOfPawn = null;
+            //string manaRequired = null;
+            //hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+            //CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
+            //manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
+            //CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
+            //idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+            //CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
+            //nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            //nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+
+            //nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn + "_" + manaRequired;
+            //Debug.Log(nameOfPawn);
+
+            Beast beast = new();
+
+            beast.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+
             CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
-            manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
+            beast.manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
+
             CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
-            idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+            beast.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+
             CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+            beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
 
-            nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn + "_" + manaRequired;
-            Debug.Log(nameOfPawn);
-
-            NetworkManager.Instance.lastDefenderNamesOfPawns.Add(nameOfPawn);
-        }
-    }
-
-    public IEnumerator GetDefenderAllPawnsTeams(string address)
-    {
-        // Executing script to get all Pawns from account
-        Task<FlowScriptResponse> getGroups = FLOW_ACCOUNT.ExecuteScript(GetDefenderGroupsTxn.text,
-            new CadenceAddress(address));
-
-        yield return new WaitUntil(() => getGroups.IsCompleted);
-
-        if (getGroups.Result.Error != null)
-        {
-            Debug.LogError($"Error:  {getGroups.Result.Error.Message}");
-            yield break;
-        }
-
-        CadenceBase[] allGroups = (getGroups.Result.Value as CadenceArray).Value;
-
-        Debug.Log("Start adding names");
-        // Adding all pawns to List of all pawns that user has
-        foreach (CadenceComposite group in allGroups)
-        {
-            string nameOfPawn = null;
-            string idOfPawn = null;
-            string hpOfPawn = null;
-            hpOfPawn = group.CompositeFieldAs<CadenceNumber>("hp").Value;
-            CadenceComposite nft = group.CompositeFieldAs<CadenceComposite>("nft");
-            idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
-            CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
-
-            nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn;
-            Debug.Log(nameOfPawn);
-
-            NetworkManager.Instance.lastDefenderNamesOfPawns.Add(nameOfPawn);
+            NetworkManager.Instance.lastDefenderBeasts.Add(beast);
         }
     }
 
     public IEnumerator GetListingBeasts()
     {
-        beastsForListingDictionary = new();
+        beastsForListingList = new();
         // Executing script to get all Pawns from account
         Task<FlowScriptResponse> getListingBeasts = FLOW_ACCOUNT.ExecuteScript(GetListingBeastsTxn.text);
 
@@ -303,15 +280,15 @@ public class FlowInterfaceBB : MonoBehaviour
         // Adding all pawns to List of all pawns that user has
         foreach (CadenceDictionaryItem listingBeast in allListingBeasts.Value)
         {
-            string id = (listingBeast.Key as CadenceNumber).Value;
+            Beast beast = new();
+
+            beast.id = (listingBeast.Key as CadenceNumber).Value;
             CadenceComposite beastNft = listingBeast.Value as CadenceComposite;
             CadenceComposite beastTemplate = beastNft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            string name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            string skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+            beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
 
-            string fullName = name + "_" + skin;
-
-            beastsForListingDictionary.Add(id, fullName);
+            beastsForListingList.Add(beast);
         }
     }
 

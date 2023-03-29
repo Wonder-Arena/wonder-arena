@@ -19,7 +19,7 @@ public class NetworkManager : MonoBehaviour
     public string userUsername = null;
 
     public List<string> attackerComp = new();
-    public List<string> lastDefenderNamesOfPawns = new();
+    public List<Beast> lastDefenderBeasts = new();
     public List<Player.ChallengeData> userChallengeData = new();
     public Dictionary<string, List<string>> userDefenderGroups = new();
 
