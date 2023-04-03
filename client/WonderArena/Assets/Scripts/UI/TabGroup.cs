@@ -89,12 +89,11 @@ public class TabGroup : MonoBehaviour
     {  
         string nameOfBeast = transform.GetChild(index).name.Split("_")[0] + "_" + transform.GetChild(index).name.Split("_")[1];
         Debug.Log(nameOfBeast);
-        foreach (KeyValuePair<string, string> beast in FlowInterfaceBB.Instance.beastsForListingDictionary)
+        foreach (var beast in FlowInterfaceBB.Instance.beastsForListingList)
         {
-            if (beast.Value == nameOfBeast)
+            if (beast.name == nameOfBeast)
             {
-                Debug.Log(beast.Value + " " + beast.Key);
-                currentSceneManager.GetComponent<ShopManager>().idOfBeast = beast.Key;
+                currentSceneManager.GetComponent<ShopManager>().idOfBeast = beast.id;
                 return;
             }
         }

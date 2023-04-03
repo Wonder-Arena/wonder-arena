@@ -313,7 +313,7 @@ public class FlowInterfaceBB : MonoBehaviour
         {
             foreach (CadenceComposite defenderGroup in allDefendersIds)
             {
-                List<string> _defenderGroup = new();
+                List<Beast> _defenderGroup = new();
                 string name = defenderGroup.CompositeFieldAs<CadenceString>("name").Value;
                 CadenceBase[] beastIDs = defenderGroup.CompositeFieldAs<CadenceArray>("beastIDs").Value;
 
@@ -334,19 +334,16 @@ public class FlowInterfaceBB : MonoBehaviour
                 // Adding all pawns to List of all pawns that user has
                 foreach (CadenceComposite pawn in allPawns)
                 {
-                    string nameOfPawn = null;
-                    string idOfPawn = null;
-                    string hpOfPawn = null;
-                    hpOfPawn = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+                    Beast beast = new();
+
+                    beast.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
                     CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
-                    idOfPawn = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+                    beast.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
                     CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-                    nameOfPawn = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-                    nameOfPawn += "_" + beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+                    beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+                    beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
 
-                    nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn;
-
-                    _defenderGroup.Add(nameOfPawn);
+                    _defenderGroup.Add(beast);
                 }
 
                 if (NetworkManager.Instance.userDefenderGroups.ContainsKey(name))

@@ -31,9 +31,9 @@ public class MainMenuManager : MonoBehaviour
 
     private void SetPlatforms()
     {
-        List<string> beastsNames;
+        List<Beast> beastsNames;
         List<string> teamsNames = new();
-        foreach (KeyValuePair<string, List<string>> defenderGroup in NetworkManager.Instance.userDefenderGroups)
+        foreach (KeyValuePair<string, List<Beast>> defenderGroup in NetworkManager.Instance.userDefenderGroups)
         {
             teamsNames.Add(defenderGroup.Key);
         }

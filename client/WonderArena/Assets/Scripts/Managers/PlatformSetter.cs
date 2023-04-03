@@ -25,7 +25,7 @@ public class PlatformSetter : MonoBehaviour
         //}
     }
 
-    public void SetAllBeast(List<string> namesOfBeasts)
+    public void SetAllBeast(List<Beast> beasts)
     {
         foreach (Transform child in platformsParent.transform)
         {
@@ -38,17 +38,16 @@ public class PlatformSetter : MonoBehaviour
             }
         }
 
-        foreach (var beast in beastsPrefabs)
+        foreach (var beastPrefab in beastsPrefabs)
         {
-            for (int i = 0; i < namesOfBeasts.Count; i++)
+            for (int i = 0; i < beasts.Count; i++)
             {
-                if (namesOfBeasts[i] != null)
+                if (beasts[i].name != null)
                 {
-                    if (beast.name == namesOfBeasts[i].Split("_")[0] + "_" + namesOfBeasts[i].Split("_")[1])
+                    if (beastPrefab.name == beasts[i].name + "_" + beasts[i].skin)
                     {
-                        GameObject newBeastObject = Instantiate(beast, 
-                            platformsParent.transform.GetChild(i));
-                        newBeastObject.name = namesOfBeasts[i];
+                        GameObject newBeastObject = Instantiate(beastPrefab, platformsParent.transform.GetChild(i));
+                        newBeastObject.name = beastPrefab.name;
                     }
                 }
             }

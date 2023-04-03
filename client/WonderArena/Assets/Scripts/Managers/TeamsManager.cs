@@ -19,7 +19,7 @@ public class TeamsManager : MonoBehaviour
 
     public Transform selectedTeam = null;
 
-    public Dictionary<string, List<string>> userDefenderTeam = new();
+    public Dictionary<string, List<Beast>> userDefenderTeam = new();
 
     private void Awake()
     {
@@ -41,7 +41,7 @@ public class TeamsManager : MonoBehaviour
                 Destroy(child.gameObject);
             }
 
-            foreach (KeyValuePair<string, List<string>> defenderGroup in userDefenderTeam)
+            foreach (KeyValuePair<string, List<Beast>> defenderGroup in userDefenderTeam)
             {
                 GameObject newTeamCard = Instantiate(teamCardPrefab, teamCardsParent.transform);
                 newTeamCard.transform.Find("TeamName").GetComponent<TextMeshProUGUI>().text = defenderGroup.Key;
@@ -50,7 +50,7 @@ public class TeamsManager : MonoBehaviour
                 {
                     foreach (GameObject beastPrefab in allBeastsPrefabs)
                     {
-                        if (defenderGroup.Value[i].Split("_")[0] + "_" + defenderGroup.Value[i].Split("_")[1] == beastPrefab.name)
+                        if (defenderGroup.Value[i].name + "_" + defenderGroup.Value[i].skin == beastPrefab.name)
                         {
                             GameObject newBeastIcon = Instantiate(beastPrefab, newTeamCard.transform.Find("BeastGroup").GetChild(i));
                             Destroy(newBeastIcon.transform.Find("Background").gameObject);
@@ -69,13 +69,13 @@ public class TeamsManager : MonoBehaviour
 
     public void SetPlatforms()
     {
-        List<string> beastsNames = new();
+        List<Beast> beasts = new();
         Transform beastGroup = selectedTeam.Find("BeastGroup");
         for (int i = 0; i < beastGroup.childCount; i++)
         {
-            beastsNames.Add(beastGroup.GetChild(i).GetChild(0).name);
+            beasts.Add(beastGroup.GetChild(i).GetChild(0).GetComponent<Beast>());
         }
-        PlatformSetter.Instance.SetAllBeast(beastsNames);
+        PlatformSetter.Instance.SetAllBeast(beasts);
     }
 
     public void DeleteTeam()

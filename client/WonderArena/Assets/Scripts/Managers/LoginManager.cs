@@ -181,6 +181,7 @@ public class LoginManager : MonoBehaviour
 
         Debug.Log("Status Code: " + request.responseCode);
         Debug.Log(request.downloadHandler.text);
+        Debug.Log(request.error);
 
         Login.LoginResponse loginResponse = JsonUtility.FromJson<Login.LoginResponse>(request.downloadHandler.text);
 

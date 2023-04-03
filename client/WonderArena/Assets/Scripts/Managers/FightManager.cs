@@ -12,7 +12,7 @@ using TMPro;
 
 public class FightManager : MonoBehaviour
 {
-    public List<string> attackerCompNames = new();
+    public List<Beast> _attackerComp = new();
     public List<CadenceComposite> allPlayerPawns = new();
     public List<CadenceComposite> allAttackerPawns = new();
     public CadenceComposite record;
@@ -69,30 +69,30 @@ public class FightManager : MonoBehaviour
             record = null;
             Debug.Log("There's no such Battle Record");
         }
-        attackerCompNames = new(NetworkManager.Instance.attackerComp);
+        _attackerComp = new(NetworkManager.Instance.attackerComp);
         StartCoroutine(SimulateFight());
     }
 
     private void SetAllPawns()
     {
-        List<string> defenderCompNames = new(NetworkManager.Instance.lastDefenderNamesOfPawns);
-        for (int i = 0; i < attackerCompNames.Count; i++)
+        List<Beast> defenderComp = new(NetworkManager.Instance.lastDefenderBeasts);
+        for (int i = 0; i < _attackerComp.Count; i++)
         {
             GameObject newAttackerObject = null;
-            string attackerNameAndSkinWithoutId = attackerCompNames[i].Split("_")[0] + "_" + attackerCompNames[i].Split("_")[1];
-            string attackerHp = attackerCompNames[i].Split("_")[2];
-            string attackerId = attackerCompNames[i].Split("_")[3];
-            string attackerManaRequired = attackerCompNames[i].Split("_")[4];
+            string attackerNameAndSkin = _attackerComp[i].name + "_" + _attackerComp[i].skin;
+            string attackerHp = _attackerComp[i].hp;
+            string attackerId = _attackerComp[i].id;
+            string attackerManaRequired = _attackerComp[i].manaRequired;
             for (int j = 0; j < allPawnsPrefabs.Count; j++)
             {
-                if (allPawnsPrefabs[j].name == attackerNameAndSkinWithoutId)
+                if (allPawnsPrefabs[j].name == attackerNameAndSkin)
                 {
                     newAttackerObject = allPawnsPrefabs[j];
                     break;
                 }
             }
             GameObject attackerObjectOnField = Instantiate(newAttackerObject, attackersList[i].transform);
-            attackerObjectOnField.name = $"{attackerNameAndSkinWithoutId}";
+            attackerObjectOnField.name = attackerNameAndSkin;
             attackerObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(attackerHp);
             attackerObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(attackerHp);
             attackerObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(attackerId);
@@ -101,20 +101,20 @@ public class FightManager : MonoBehaviour
             // Defenders:
 
             GameObject newDefenderObject = null;
-            string defenderNameAndSkinWithoutId = defenderCompNames[i].Split("_")[0] + "_" + defenderCompNames[i].Split("_")[1];
-            string defenderHp = defenderCompNames[i].Split("_")[2];
-            string defenderId = defenderCompNames[i].Split("_")[3];
-            string defenderManaRequired = defenderCompNames[i].Split("_")[4];
+            string defenderNameAndSkin = defenderComp[i].name + "_" + defenderComp[i].skin;
+            string defenderHp = defenderComp[i].hp;
+            string defenderId = defenderComp[i].id;
+            string defenderManaRequired = defenderComp[i].manaRequired;
             for (int j = 0; j < allPawnsPrefabs.Count; j++)
             {
-                if (allPawnsPrefabs[j].name == defenderNameAndSkinWithoutId)
+                if (allPawnsPrefabs[j].name == defenderNameAndSkin)
                 {
                     newDefenderObject = allPawnsPrefabs[j];
                     break;
                 }
             }
             GameObject defenderObjectOnField = Instantiate(newDefenderObject, defendersList[i].transform);
-            defenderObjectOnField.name = $"{defenderNameAndSkinWithoutId}";
+            defenderObjectOnField.name = defenderNameAndSkin;
             defenderObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(defenderHp);
             defenderObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(defenderHp);
             defenderObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(defenderId);
@@ -194,7 +194,7 @@ public class FightManager : MonoBehaviour
         }
 
         SetResultScreen();
-        PlatformSetter.Instance.SetAllBeast(attackerCompNames);
+        PlatformSetter.Instance.SetAllBeast(_attackerComp);
     }
 
 

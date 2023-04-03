@@ -18,10 +18,10 @@ public class NetworkManager : MonoBehaviour
     public string parentAddressPublic = null;
     public string userUsername = null;
 
-    public List<string> attackerComp = new();
+    public List<Beast> attackerComp = new();
     public List<Beast> lastDefenderBeasts = new();
     public List<Player.ChallengeData> userChallengeData = new();
-    public Dictionary<string, List<string>> userDefenderGroups = new();
+    public Dictionary<string, List<Beast>> userDefenderGroups = new();
 
     public bool linkedSuccesfully;
 
@@ -595,7 +595,7 @@ public class NetworkManager : MonoBehaviour
         userUsername = null;
 
         attackerComp = new();
-        lastDefenderNamesOfPawns = new();
+        lastDefenderBeasts = new();
         userDefenderGroups = new();
         userChallengeData = new();
     }
