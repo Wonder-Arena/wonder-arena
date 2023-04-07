@@ -25,7 +25,7 @@ public class FlowInterfaceBB : MonoBehaviour
     public CadenceBase[] playerAllBeastsIDs_CadenceBaseArray;
     public List<CadenceComposite> playerAllPawns_ListCadenceComposite = new();
     public bool isScriptsCompleted = false;
-    public List<Beast> beastsForListingList = new();
+    public List<Beast.BeastStats> beastsForListingList = new();
     public bool hasParentAddress = false;
 
     // FLOW account object - set via Login screen.
@@ -243,21 +243,21 @@ public class FlowInterfaceBB : MonoBehaviour
             //nameOfPawn += "_" + hpOfPawn + "_" + idOfPawn + "_" + manaRequired;
             //Debug.Log(nameOfPawn);
 
-            Beast beast = new();
+            Beast.BeastStats beastStats = new();
 
-            beast.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+            beastStats.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
 
             CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
-            beast.manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
+            beastStats.manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
 
             CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
-            beast.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+            beastStats.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
 
             CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+            beastStats.nameOfBeast = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            beastStats.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
 
-            NetworkManager.Instance.lastDefenderBeasts.Add(beast);
+            NetworkManager.Instance.lastDefenderBeasts.Add(beastStats);
         }
     }
 
@@ -280,15 +280,15 @@ public class FlowInterfaceBB : MonoBehaviour
         // Adding all pawns to List of all pawns that user has
         foreach (CadenceDictionaryItem listingBeast in allListingBeasts.Value)
         {
-            Beast beast = new();
+            Beast.BeastStats beastStats = new();
 
-            beast.id = (listingBeast.Key as CadenceNumber).Value;
+            beastStats.id = (listingBeast.Key as CadenceNumber).Value;
             CadenceComposite beastNft = listingBeast.Value as CadenceComposite;
             CadenceComposite beastTemplate = beastNft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+            beastStats.nameOfBeast = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            beastStats.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
 
-            beastsForListingList.Add(beast);
+            beastsForListingList.Add(beastStats);
         }
     }
 
@@ -313,7 +313,7 @@ public class FlowInterfaceBB : MonoBehaviour
         {
             foreach (CadenceComposite defenderGroup in allDefendersIds)
             {
-                List<Beast> _defenderGroup = new();
+                List<Beast.BeastStats> _defenderGroup = new();
                 string name = defenderGroup.CompositeFieldAs<CadenceString>("name").Value;
                 CadenceBase[] beastIDs = defenderGroup.CompositeFieldAs<CadenceArray>("beastIDs").Value;
 
@@ -334,21 +334,26 @@ public class FlowInterfaceBB : MonoBehaviour
                 // Adding all pawns to List of all pawns that user has
                 foreach (CadenceComposite pawn in allPawns)
                 {
-                    Beast beast = new();
+                    Beast.BeastStats beastStats = new();
 
-                    beast.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+                    beastStats.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;
+
+                    CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
+                    beastStats.manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
+
                     CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
-                    beast.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
-                    CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-                    beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-                    beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+                    beastStats.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
 
-                    _defenderGroup.Add(beast);
+                    CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
+                    beastStats.nameOfBeast = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+                    beastStats.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+
+                    _defenderGroup.Add(beastStats);
                 }
 
                 if (NetworkManager.Instance.userDefenderGroups.ContainsKey(name))
                 {
-                    NetworkManager.Instance.userDefenderGroups[name] = _defenderGroup;       
+                    NetworkManager.Instance.userDefenderGroups[name] = _defenderGroup;
                 }
                 else
                 {

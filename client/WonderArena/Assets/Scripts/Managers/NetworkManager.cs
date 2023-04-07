@@ -18,10 +18,10 @@ public class NetworkManager : MonoBehaviour
     public string parentAddressPublic = null;
     public string userUsername = null;
 
-    public List<Beast> attackerComp = new();
-    public List<Beast> lastDefenderBeasts = new();
+    public List<Beast.BeastStats> attackerComp = new();
+    public List<Beast.BeastStats> lastDefenderBeasts = new();
     public List<Player.ChallengeData> userChallengeData = new();
-    public Dictionary<string, List<Beast>> userDefenderGroups = new();
+    public Dictionary<string, List<Beast.BeastStats>> userDefenderGroups = new();
 
     public bool linkedSuccesfully;
 
@@ -374,7 +374,7 @@ public class NetworkManager : MonoBehaviour
 
         foreach (GameObject defender in listOfDefenderGroup)
         {
-            int.TryParse(defender.name.Split("_")[3], out int intID);
+            int.TryParse(defender.GetComponent<Beast>().beastStats.id, out int intID);
             _beastIds.Add(intID);
         }
 

@@ -91,7 +91,7 @@ public class TabGroup : MonoBehaviour
         Debug.Log(nameOfBeast);
         foreach (var beast in FlowInterfaceBB.Instance.beastsForListingList)
         {
-            if (beast.name == nameOfBeast)
+            if (beast.nameOfBeast == nameOfBeast)
             {
                 currentSceneManager.GetComponent<ShopManager>().idOfBeast = beast.id;
                 return;

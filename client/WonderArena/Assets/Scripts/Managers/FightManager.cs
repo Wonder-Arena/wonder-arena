@@ -12,7 +12,7 @@ using TMPro;
 
 public class FightManager : MonoBehaviour
 {
-    public List<Beast> _attackerComp = new();
+    public List<Beast.BeastStats> _attackerComp = new();
     public List<CadenceComposite> allPlayerPawns = new();
     public List<CadenceComposite> allAttackerPawns = new();
     public CadenceComposite record;
@@ -75,11 +75,11 @@ public class FightManager : MonoBehaviour
 
     private void SetAllPawns()
     {
-        List<Beast> defenderComp = new(NetworkManager.Instance.lastDefenderBeasts);
+        List<Beast.BeastStats> defenderComp = new(NetworkManager.Instance.lastDefenderBeasts);
         for (int i = 0; i < _attackerComp.Count; i++)
         {
             GameObject newAttackerObject = null;
-            string attackerNameAndSkin = _attackerComp[i].name + "_" + _attackerComp[i].skin;
+            string attackerNameAndSkin = _attackerComp[i].nameOfBeast + "_" + _attackerComp[i].skin;
             string attackerHp = _attackerComp[i].hp;
             string attackerId = _attackerComp[i].id;
             string attackerManaRequired = _attackerComp[i].manaRequired;
@@ -93,15 +93,15 @@ public class FightManager : MonoBehaviour
             }
             GameObject attackerObjectOnField = Instantiate(newAttackerObject, attackersList[i].transform);
             attackerObjectOnField.name = attackerNameAndSkin;
-            attackerObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(attackerHp);
-            attackerObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(attackerHp);
-            attackerObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(attackerId);
-            attackerObjectOnField.transform.GetComponent<BeastStats>().manaRequired = int.Parse(attackerManaRequired);
+            attackerObjectOnField.transform.GetComponent<BeastOnField>().maxHp = float.Parse(attackerHp);
+            attackerObjectOnField.transform.GetComponent<BeastOnField>().hp = float.Parse(attackerHp);
+            attackerObjectOnField.transform.GetComponent<BeastOnField>().id = int.Parse(attackerId);
+            attackerObjectOnField.transform.GetComponent<BeastOnField>().manaRequired = int.Parse(attackerManaRequired);
 
             // Defenders:
 
             GameObject newDefenderObject = null;
-            string defenderNameAndSkin = defenderComp[i].name + "_" + defenderComp[i].skin;
+            string defenderNameAndSkin = defenderComp[i].nameOfBeast + "_" + defenderComp[i].skin;
             string defenderHp = defenderComp[i].hp;
             string defenderId = defenderComp[i].id;
             string defenderManaRequired = defenderComp[i].manaRequired;
@@ -115,10 +115,10 @@ public class FightManager : MonoBehaviour
             }
             GameObject defenderObjectOnField = Instantiate(newDefenderObject, defendersList[i].transform);
             defenderObjectOnField.name = defenderNameAndSkin;
-            defenderObjectOnField.transform.GetComponent<BeastStats>().maxHp = float.Parse(defenderHp);
-            defenderObjectOnField.transform.GetComponent<BeastStats>().hp = float.Parse(defenderHp);
-            defenderObjectOnField.transform.GetComponent<BeastStats>().id = int.Parse(defenderId);
-            defenderObjectOnField.transform.GetComponent<BeastStats>().manaRequired = int.Parse(defenderManaRequired);
+            defenderObjectOnField.transform.GetComponent<BeastOnField>().maxHp = float.Parse(defenderHp);
+            defenderObjectOnField.transform.GetComponent<BeastOnField>().hp = float.Parse(defenderHp);
+            defenderObjectOnField.transform.GetComponent<BeastOnField>().id = int.Parse(defenderId);
+            defenderObjectOnField.transform.GetComponent<BeastOnField>().manaRequired = int.Parse(defenderManaRequired);
         }
     }
 
@@ -136,16 +136,16 @@ public class FightManager : MonoBehaviour
 
         for (int i = 0; i < attackersList.Count; i++)
         {
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Attackers")
+            attackersList[i].transform.GetChild(0).GetComponent<BeastOnField>().HpBar = healthBars.transform.Find("Attackers")
             .GetChild(i).Find("Hp").Find("HpBar").GetComponent<Image>();
 
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Attackers")
+            attackersList[i].transform.GetChild(0).GetComponent<BeastOnField>().ManaBar = healthBars.transform.Find("Attackers")
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Attackers")
+            attackersList[i].transform.GetChild(0).GetComponent<BeastOnField>().hpText = healthBars.transform.Find("Attackers")
             .GetChild(i).Find("Hp").Find("HpNumber").GetComponent<TextMeshProUGUI>();
 
-            attackersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Attackers")
+            attackersList[i].transform.GetChild(0).GetComponent<BeastOnField>().manaText = healthBars.transform.Find("Attackers")
             .GetChild(i).Find("Mana").Find("ManaNumber").GetComponent<TextMeshProUGUI>();
 
             healthBars.transform.Find("Attackers").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text = 
@@ -153,16 +153,16 @@ public class FightManager : MonoBehaviour
 
 
 
-            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().HpBar = healthBars.transform.Find("Defenders")
+            defendersList[i].transform.GetChild(0).GetComponent<BeastOnField>().HpBar = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Hp").Find("HpBar").GetComponent<Image>();
 
-            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().ManaBar = healthBars.transform.Find("Defenders")
+            defendersList[i].transform.GetChild(0).GetComponent<BeastOnField>().ManaBar = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Mana").Find("ManaBar").GetComponent<Image>();
 
-            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().hpText = healthBars.transform.Find("Defenders")
+            defendersList[i].transform.GetChild(0).GetComponent<BeastOnField>().hpText = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Hp").Find("HpNumber").GetComponent<TextMeshProUGUI>();
 
-            defendersList[i].transform.GetChild(0).GetComponent<BeastStats>().manaText = healthBars.transform.Find("Defenders")
+            defendersList[i].transform.GetChild(0).GetComponent<BeastOnField>().manaText = healthBars.transform.Find("Defenders")
             .GetChild(i).Find("Mana").Find("ManaNumber").GetComponent<TextMeshProUGUI>();
 
             healthBars.transform.Find("Defenders").GetChild(i).Find("Name").GetComponent<TextMeshProUGUI>().text =
@@ -216,7 +216,7 @@ public class FightManager : MonoBehaviour
 
         string target = (targetBeastIDs[0] as CadenceNumber).Value;
         GameObject targetObject = GetObjectById(target);
-        BeastStats targetStats = targetObject.GetComponent<BeastStats>();
+        BeastOnField targetStats = targetObject.GetComponent<BeastOnField>();
         bool isSideEffect = !IsOptionalNull(effect);
         
         string targetName = targetObject.name.Split("_")[0];
@@ -227,7 +227,7 @@ public class FightManager : MonoBehaviour
         if (!IsOptionalNull(byBeastId))
         {
             GameObject byBeastObject = GetObjectById((byBeastId.Value as CadenceNumber).Value);
-            BeastStats byBeastStats = byBeastObject.GetComponent<BeastStats>();
+            BeastOnField byBeastStats = byBeastObject.GetComponent<BeastOnField>();
 
             string byBeastName = byBeastObject.name.Split("_")[0];
 
@@ -237,7 +237,7 @@ public class FightManager : MonoBehaviour
             bool isSkillUsed = !IsOptionalNull(withSkill);
             if (isSkillUsed) // 1.1.1 log("NAME used")
             {
-                byBeastObject.GetComponent<BeastStats>().currentMana = 0;
+                byBeastObject.GetComponent<BeastOnField>().currentMana = 0;
                 string skillName = (withSkill.Value as CadenceString).Value;
                 if (!isSideEffect)
                 {
@@ -302,7 +302,7 @@ public class FightManager : MonoBehaviour
                     
                     textLog.text += 
                     $"{targetName} suffers {PawnStatus(byStatus.Value as CadenceComposite)} and got {damageFloat} damage";
-                    ChangeAndWaitAnimationStateTime("GetHurt", targetObject);
+                    StartCoroutine(ChangeAndWaitAnimationStateTime("GetHurt", targetObject));
                 }
 
                 else if (targetSkipped)
@@ -337,7 +337,7 @@ public class FightManager : MonoBehaviour
             foreach (Transform place in team)
             {
                 GameObject beastObject = place.GetChild(0).gameObject;
-                string beastId = beastObject.transform.GetComponent<BeastStats>().id.ToString();
+                string beastId = beastObject.transform.GetComponent<BeastOnField>().id.ToString();
                 if (beastId == id)
                 {
                     return beastObject;
@@ -371,7 +371,9 @@ public class FightManager : MonoBehaviour
             case "2":
                 return "ToPoison";
             case "3":
-                return "ToSleep";            
+                return "ToSleep";
+            default:
+                break;
         }
         return null;
     }
@@ -388,9 +390,11 @@ public class FightManager : MonoBehaviour
             case "2":
                 return "Poison";
             case "3":
-                return "Sleep";    
+                return "Sleep";
             case "4":
-                return "Defeated";            
+                return "Defeated";
+            default:
+                break;
         }
         return null;
     }
@@ -440,87 +444,87 @@ public class FightManager : MonoBehaviour
     }
 
 
-/*
-    
+    /*
 
-*/
 
-/*
-Event: 1:
-Moon used default attack without side effects -> Moon attacked Shen
- Shen_Normal suffered 5 damage and now has this much hp left: 75 -> 
+    */
 
- Event: 2:
-Moon used default attack without side effects
- Azazel_Normal suffered 20 damage and now has this much hp left: 40
+    /*
+    Event: 1:
+    Moon used default attack without side effects -> Moon attacked Shen
+     Shen_Normal suffered 5 damage and now has this much hp left: 75 -> 
 
- Event: 3:
-Azazel used default attack without side effects
- Shen_Normal suffered 80 damage and now has this much hp left: 0
- 
- Event: 4:
-Shen_Normal is defeated!
+     Event: 2:
+    Moon used default attack without side effects
+     Azazel_Normal suffered 20 damage and now has this much hp left: 40
 
-Event: 5:
-Saber used default attack without side effects
- Saber_Normal suffered 0 damage and now has this much hp left: 70
- 
- Event: 0:
-Saber used default attack without side effects
- Azazel_Normal suffered 50 damage and now has this much hp left: 0
- 
- Event: 0:
-Azazel_Normal is defeated!
+     Event: 3:
+    Azazel used default attack without side effects
+     Shen_Normal suffered 80 damage and now has this much hp left: 0
 
-Event: 0:
-Moon used default attack without side effects
- Saber_Normal suffered 45 damage and now has this much hp left: 25
- 
- Event: 0:
-Moon used default attack without side effects
- Moon_Normal suffered 10 damage and now has this much hp left: 60
- 
- Event: 0:
-Saber used default attack without side effects
- Saber_Normal suffered 0 damage and now has this much hp left: 25
- 
- Event: 0:
-Saber used default attack without side effects
- Moon_Normal suffered 25 damage and now has this much hp left: 35
- 
- Event: 0:
-Moon used default attack without side effects
- Saber_Normal suffered 45 damage and now has this much hp left: 0
- 
- Event: 0:
-Saber_Normal is defeated!Event: 0:
-Moon used default attack without side effects
- Moon_Normal suffered 10 damage and now has this much hp left: 25
- 
- Event: 0:
-Saber used default attack without side effects
- Moon_Normal suffered 25 damage and now has this much hp left: 45
- 
- Event: 0:
-Moon used default attack without side effects
- Moon_Normal suffered 10 damage and now has this much hp left: 35
- 
- Event: 0:
-Moon used default attack without side effects
- Moon_Normal suffered 10 damage and now has this much hp left: 15
- 
- Event: 0:
-Saber used default attack without side effects
- Moon_Normal suffered 25 damage and now has this much hp left: 10
- 
- Event: 0:
-Moon used "Mega Volt Crash" without side effects
- Moon_Normal suffered 40 damage and now has this much hp left: 0
- 
- Event: 0:
-Moon_Normal is defeated!
+     Event: 4:
+    Shen_Normal is defeated!
 
-*/
+    Event: 5:
+    Saber used default attack without side effects
+     Saber_Normal suffered 0 damage and now has this much hp left: 70
+
+     Event: 0:
+    Saber used default attack without side effects
+     Azazel_Normal suffered 50 damage and now has this much hp left: 0
+
+     Event: 0:
+    Azazel_Normal is defeated!
+
+    Event: 0:
+    Moon used default attack without side effects
+     Saber_Normal suffered 45 damage and now has this much hp left: 25
+
+     Event: 0:
+    Moon used default attack without side effects
+     Moon_Normal suffered 10 damage and now has this much hp left: 60
+
+     Event: 0:
+    Saber used default attack without side effects
+     Saber_Normal suffered 0 damage and now has this much hp left: 25
+
+     Event: 0:
+    Saber used default attack without side effects
+     Moon_Normal suffered 25 damage and now has this much hp left: 35
+
+     Event: 0:
+    Moon used default attack without side effects
+     Saber_Normal suffered 45 damage and now has this much hp left: 0
+
+     Event: 0:
+    Saber_Normal is defeated!Event: 0:
+    Moon used default attack without side effects
+     Moon_Normal suffered 10 damage and now has this much hp left: 25
+
+     Event: 0:
+    Saber used default attack without side effects
+     Moon_Normal suffered 25 damage and now has this much hp left: 45
+
+     Event: 0:
+    Moon used default attack without side effects
+     Moon_Normal suffered 10 damage and now has this much hp left: 35
+
+     Event: 0:
+    Moon used default attack without side effects
+     Moon_Normal suffered 10 damage and now has this much hp left: 15
+
+     Event: 0:
+    Saber used default attack without side effects
+     Moon_Normal suffered 25 damage and now has this much hp left: 10
+
+     Event: 0:
+    Moon used "Mega Volt Crash" without side effects
+     Moon_Normal suffered 40 damage and now has this much hp left: 0
+
+     Event: 0:
+    Moon_Normal is defeated!
+
+    */
 
 
 

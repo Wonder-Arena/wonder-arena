@@ -19,7 +19,7 @@ public class TeamsManager : MonoBehaviour
 
     public Transform selectedTeam = null;
 
-    public Dictionary<string, List<Beast>> userDefenderTeam = new();
+    public Dictionary<string, List<Beast.BeastStats>> userDefenderTeam = new();
 
     private void Awake()
     {
@@ -41,7 +41,7 @@ public class TeamsManager : MonoBehaviour
                 Destroy(child.gameObject);
             }
 
-            foreach (KeyValuePair<string, List<Beast>> defenderGroup in userDefenderTeam)
+            foreach (KeyValuePair<string, List<Beast.BeastStats>> defenderGroup in userDefenderTeam)
             {
                 GameObject newTeamCard = Instantiate(teamCardPrefab, teamCardsParent.transform);
                 newTeamCard.transform.Find("TeamName").GetComponent<TextMeshProUGUI>().text = defenderGroup.Key;
@@ -50,9 +50,10 @@ public class TeamsManager : MonoBehaviour
                 {
                     foreach (GameObject beastPrefab in allBeastsPrefabs)
                     {
-                        if (defenderGroup.Value[i].name + "_" + defenderGroup.Value[i].skin == beastPrefab.name)
+                        if (defenderGroup.Value[i].nameOfBeast + "_" + defenderGroup.Value[i].skin == beastPrefab.name)
                         {
                             GameObject newBeastIcon = Instantiate(beastPrefab, newTeamCard.transform.Find("BeastGroup").GetChild(i));
+                            newBeastIcon.AddComponent<Beast>().CopyFrom(defenderGroup.Value[i]);
                             Destroy(newBeastIcon.transform.Find("Background").gameObject);
                             Destroy(newBeastIcon.transform.Find("Platform").gameObject);
                             newBeastIcon.name = beastPrefab.name;
@@ -69,13 +70,13 @@ public class TeamsManager : MonoBehaviour
 
     public void SetPlatforms()
     {
-        List<Beast> beasts = new();
+        List<Beast.BeastStats> beastsStats = new();
         Transform beastGroup = selectedTeam.Find("BeastGroup");
         for (int i = 0; i < beastGroup.childCount; i++)
         {
-            beasts.Add(beastGroup.GetChild(i).GetChild(0).GetComponent<Beast>());
+            beastsStats.Add(beastGroup.GetChild(i).GetChild(0).GetComponent<Beast>().beastStats);
         }
-        PlatformSetter.Instance.SetAllBeast(beasts);
+        PlatformSetter.Instance.SetAllBeast(beastsStats);
     }
 
     public void DeleteTeam()

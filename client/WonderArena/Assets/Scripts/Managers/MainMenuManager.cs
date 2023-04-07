@@ -31,16 +31,16 @@ public class MainMenuManager : MonoBehaviour
 
     private void SetPlatforms()
     {
-        List<Beast> beastsNames;
+        List<Beast.BeastStats> beastsStats;
         List<string> teamsNames = new();
-        foreach (KeyValuePair<string, List<Beast>> defenderGroup in NetworkManager.Instance.userDefenderGroups)
+        foreach (KeyValuePair<string, List<Beast.BeastStats>> defenderGroup in NetworkManager.Instance.userDefenderGroups)
         {
             teamsNames.Add(defenderGroup.Key);
         }
         int randomIndex = Random.Range(0, NetworkManager.Instance.userDefenderGroups.Count);
-        beastsNames = new(NetworkManager.Instance.userDefenderGroups[teamsNames[randomIndex]]);
+        beastsStats = new(NetworkManager.Instance.userDefenderGroups[teamsNames[randomIndex]]);
 
-        PlatformSetter.Instance.SetAllBeast(beastsNames);
+        PlatformSetter.Instance.SetAllBeast(beastsStats);
     }
 
     private void SetPlusSign()

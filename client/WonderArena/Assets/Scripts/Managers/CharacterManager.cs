@@ -106,21 +106,21 @@ public class CharacterManager : MonoBehaviour
         List<CadenceComposite> copy_allPawns = new(flowInterface.playerAllPawns_ListCadenceComposite);
         foreach (CadenceComposite pawn in copy_allPawns)
         {
-            Beast beast = new();
-            beast.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;          
+            Beast.BeastStats beastStats = new();
+            beastStats.hp = pawn.CompositeFieldAs<CadenceNumber>("hp").Value;          
             CadenceComposite nft = pawn.CompositeFieldAs<CadenceComposite>("nft");
-            beast.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
+            beastStats.id = nft.CompositeFieldAs<CadenceNumber>("id").Value;
             CadenceComposite skill = pawn.CompositeFieldAs<CadenceComposite>("skill");
-            beast.manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
+            beastStats.manaRequired = skill.CompositeFieldAs<CadenceNumber>("manaRequired").Value;
             CadenceComposite beastTemplate = nft.CompositeFieldAs<CadenceComposite>("beastTemplate");
-            beast.name = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
-            beast.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
+            beastStats.nameOfBeast = beastTemplate.CompositeFieldAs<CadenceString>("name").Value;
+            beastStats.skin = beastTemplate.CompositeFieldAs<CadenceString>("skin").Value;
             foreach (GameObject selectionBeast in allBeastsPrefabs)
             {
-                if (selectionBeast.name == beast.name + "_" + beast.skin)
+                if (selectionBeast.name == beastStats.nameOfBeast + "_" + beastStats.skin)
                 {
                     GameObject newSelectionBeast = Instantiate(selectionBeast, ui_CharaterSelection.transform);
-                    newSelectionBeast.AddComponent<Beast>().CopyFrom(beast);
+                    newSelectionBeast.AddComponent<Beast>().CopyFrom(beastStats);
                     newSelectionBeast.name = selectionBeast.name;
                     newSelectionBeast.transform.Find("Platform").gameObject.SetActive(false);
                 }
@@ -152,21 +152,21 @@ public class CharacterManager : MonoBehaviour
             }
         }
 
-        List<Beast> beasts = new();
+        List<Beast.BeastStats> beastsStats = new();
 
         foreach (GameObject attacker in listOfAttackerGroup)
         {
             if (attacker != null)
             {
-                beasts.Add(attacker.GetComponent<Beast>());
+                beastsStats.Add(attacker.GetComponent<Beast>().beastStats);
             }
             else
             {
-                beasts.Add(null);
+                beastsStats.Add(null);
             }      
         }
 
-        PlatformSetter.Instance.SetAllBeast(beasts);
+        PlatformSetter.Instance.SetAllBeast(beastsStats);
     }
 
     public void OnConfirmClicked()
@@ -189,8 +189,8 @@ public class CharacterManager : MonoBehaviour
             {
                 if (listOfAttackerGroup[i] != null)
                 {
-                    NetworkManager.Instance.attackerComp.Add(listOfAttackerGroup[i].GetComponent<Beast>());
-                    attackerCompIntId.Add(int.Parse(listOfAttackerGroup[i].name.Split("_")[3]));
+                    NetworkManager.Instance.attackerComp.Add(listOfAttackerGroup[i].GetComponent<Beast>().beastStats);
+                    attackerCompIntId.Add(int.Parse(NetworkManager.Instance.attackerComp[i].id));
                 }
             }
             coroutineHelper.RunCoroutine("StartFight", 

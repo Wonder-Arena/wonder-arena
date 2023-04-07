@@ -1,21 +1,28 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Beast : MonoBehaviour
 {
-    public string nameOfBeast;
-    public string id;
-    public string hp;
-    public string manaRequired;
-    public string skin;
+    public BeastStats beastStats = new();
 
-    public void CopyFrom(Beast other)
+    [Serializable]
+    public class BeastStats
     {
-        this.nameOfBeast = other.nameOfBeast;
-        this.id = other.id;
-        this.hp = other.hp;
-        this.manaRequired = other.manaRequired;
-        this.skin = other.skin;
+        public string nameOfBeast;
+        public string id;
+        public string hp;
+        public string manaRequired;
+        public string skin;
+    }
+
+    public void CopyFrom(Beast.BeastStats other)
+    {
+        this.beastStats.nameOfBeast = other.nameOfBeast;
+        this.beastStats.id = other.id;
+        this.beastStats.hp = other.hp;
+        this.beastStats.manaRequired = other.manaRequired;
+        this.beastStats.skin = other.skin;
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using DapperLabs.Flow.Sdk.Cadence;
 using TMPro;
 
-public class BeastStats : MonoBehaviour
+public class BeastOnField : MonoBehaviour
 {
     [SerializeField]
     public Image HpBar;
