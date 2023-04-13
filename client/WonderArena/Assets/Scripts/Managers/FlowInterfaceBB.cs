@@ -27,6 +27,7 @@ public class FlowInterfaceBB : MonoBehaviour
     public bool isScriptsCompleted = false;
     public List<Beast.BeastStats> beastsForListingList = new();
     public bool hasParentAddress = false;
+    public CadenceComposite gettedPlayer;
 
     // FLOW account object - set via Login screen.
     [Header("FLOW Account")]
@@ -179,6 +180,31 @@ public class FlowInterfaceBB : MonoBehaviour
 
         hasParentAddress = (getIsParentAccount.Result.Value as CadenceBool).Value;
         Debug.Log(hasParentAddress);
+    }
+
+
+    public IEnumerator GetPlayer(string address)
+    {
+        Task<FlowScriptResponse> getPlayer = FLOW_ACCOUNT.ExecuteScript(GetPlayerTxn.text, new CadenceAddress(address));
+
+        yield return new WaitUntil(() => getPlayer.IsCompleted);
+
+        if (getPlayer.Result.Error != null)
+        {
+            Debug.LogError($"Error:  {getPlayer.Result.Error.Message}");
+            yield break;
+        }
+
+        CadenceOptional player = getPlayer.Result.Value as CadenceOptional;
+
+        if (player.Value != null)
+        {
+            gettedPlayer = player.Value as CadenceComposite;
+        }
+        else
+        {
+            gettedPlayer = null;
+        }
     }
 
     private IEnumerator GetAllPlayerPawns()

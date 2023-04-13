@@ -16,10 +16,11 @@ public class LeaderBoardManager : MonoBehaviour
     GameObject contentParent;
     [SerializeField]
     Button challengePlayerButton;
+    [SerializeField]
+    GameObject PlayerDefendTeamsObject;
 
     [SerializeField]
     TextMeshProUGUI battlePlayed;
-
     [SerializeField]
     TextMeshProUGUI battleWon;
 
@@ -154,6 +155,33 @@ public class LeaderBoardManager : MonoBehaviour
         
         battlePlayed.text = challenges.Count().ToString();
         battleWon.text = battleWonInt.ToString();
+
+        StartCoroutine(WaitForGetPlayer(selectedAddress));
+    }
+
+    private void SetDefendTeams()
+    {
+
+    }
+
+    private IEnumerator WaitForGetPlayer(string address)
+    {
+        yield return StartCoroutine(FlowInterfaceBB.Instance.GetPlayer(address));
+
+        CadenceComposite player = FlowInterfaceBB.Instance.gettedPlayer;
+
+        CadenceDictionary defenderGroups = player.CompositeFieldAs<CadenceDictionary>("defenderGroups");
+
+        CadenceBase[] defenderGroupsForLeaderboardPawns;
+
+        foreach (CadenceDictionaryItem defenderGroup in defenderGroups.Value)
+        {
+            foreach (CadenceCompositeField data in (defenderGroup.Value as CadenceComposite).Value.Fields)
+            {
+                Debug.Log(data.Name);
+                Debug.Log(data.Value);
+            }
+        }
     }
 }
 

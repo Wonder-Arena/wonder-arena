@@ -149,16 +149,16 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7481301}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 7.2178936}
+  m_LocalPosition: {x: 0, y: 0, z: 1.9269509}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1086176699}
-  m_RootOrder: 4
+  m_Father: {fileID: 1966314275}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 543, y: 383}
+  m_AnchoredPosition: {x: 74.99994, y: 383}
   m_SizeDelta: {x: 544.1422, y: 86.7861}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &7481303
@@ -536,14 +536,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 254308907}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 148.65979, y: 172.20807, z: 10.792705}
+  m_LocalPosition: {x: -319.3402, y: 172.20805, z: 5.501353}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 826223672}
   - {fileID: 1406398278}
-  m_Father: {fileID: 1086176699}
-  m_RootOrder: 5
+  m_Father: {fileID: 1966314275}
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &362258156
 PrefabInstance:
@@ -700,6 +700,42 @@ MonoBehaviour:
   selectedTab: {fileID: 0}
   index: 0
   currentSceneManager: {fileID: 882769674}
+--- !u!1 &559655739
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 559655740}
+  m_Layer: 5
+  m_Name: PlayerDefendTeams
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &559655740
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 559655739}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -5.2910666}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1966314275}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -468, y: 0}
+  m_SizeDelta: {x: 1100.0001, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &562269303
 GameObject:
   m_ObjectHideFlags: 0
@@ -1456,6 +1492,7 @@ MonoBehaviour:
   leaderboardRowPrefab: {fileID: 2186990364579927889, guid: 067cf7f240ed8f2419eb8129263cab2b, type: 3}
   contentParent: {fileID: 484863367}
   challengePlayerButton: {fileID: 1804088322}
+  PlayerDefendTeamsObject: {fileID: 0}
   battlePlayed: {fileID: 1406398279}
   battleWon: {fileID: 1755742262}
   gotPlayer: 0
@@ -1943,9 +1980,6 @@ RectTransform:
   - {fileID: 65118218}
   - {fileID: 139604784}
   - {fileID: 1966314275}
-  - {fileID: 7481302}
-  - {fileID: 254308908}
-  - {fileID: 1656022162}
   - {fileID: 1939364292}
   - {fileID: 1812023278}
   m_Father: {fileID: 0}
@@ -2289,14 +2323,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1656022161}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 148.65979, y: 172.20807, z: 10.792705}
+  m_LocalPosition: {x: -319.3402, y: 172.20805, z: 5.501353}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1034382254}
   - {fileID: 1755742261}
-  m_Father: {fileID: 1086176699}
-  m_RootOrder: 6
+  m_Father: {fileID: 1966314275}
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1693342949
 GameObject:
@@ -2810,7 +2844,7 @@ RectTransform:
   - {fileID: 1804088321}
   - {fileID: 1024249714}
   m_Father: {fileID: 1086176699}
-  m_RootOrder: 8
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -2848,7 +2882,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1086176699}
-  m_RootOrder: 7
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2922,7 +2956,11 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 5.2910666}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 7481302}
+  - {fileID: 254308908}
+  - {fileID: 1656022162}
+  - {fileID: 559655740}
   m_Father: {fileID: 1086176699}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
