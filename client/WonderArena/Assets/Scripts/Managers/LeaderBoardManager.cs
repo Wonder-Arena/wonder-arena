@@ -17,7 +17,9 @@ public class LeaderBoardManager : MonoBehaviour
     [SerializeField]
     Button challengePlayerButton;
     [SerializeField]
-    GameObject PlayerDefendTeamsObject;
+    GameObject playerDefendTeamsObject;
+    [SerializeField]
+    List<GameObject> listOfAllBeastsPrefabs;
 
     [SerializeField]
     TextMeshProUGUI battlePlayed;
@@ -161,7 +163,43 @@ public class LeaderBoardManager : MonoBehaviour
 
     private void SetDefendTeams()
     {
+        foreach (Transform team in playerDefendTeamsObject.transform.Find("DefendTeams"))
+        {
+            Debug.Log(team);
+            Debug.Log(team.childCount);
+            if (team.childCount > 0)
+            {
+                foreach (Transform beast in team)
+                {
+                    Destroy(beast.gameObject);
+                }
+            }
+        }
 
+        Debug.Log("Deleted");
+
+        for (int i = 0; i < NetworkManager.Instance.lastDefenderBeasts.Count; i++)
+        {
+            foreach (Transform team in playerDefendTeamsObject.transform.Find("DefendTeams"))
+            {
+                if (team.childCount < 3)
+                {
+                    foreach (var beastPrefab in listOfAllBeastsPrefabs)
+                    {
+                        if (beastPrefab.name == NetworkManager.Instance.lastDefenderBeasts[i].nameOfBeast + "_" +
+                            NetworkManager.Instance.lastDefenderBeasts[i].skin)
+                        {
+                            GameObject newBeast = Instantiate(beastPrefab, team);
+                            newBeast.transform.Find("Background").gameObject.SetActive(false);
+                            newBeast.transform.Find("Platform").gameObject.SetActive(false);
+                            newBeast.transform.localScale /= 2;
+                            break;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
     }
 
     private IEnumerator WaitForGetPlayer(string address)
@@ -172,15 +210,13 @@ public class LeaderBoardManager : MonoBehaviour
 
         CadenceDictionary defenderGroups = player.CompositeFieldAs<CadenceDictionary>("defenderGroups");
 
-        CadenceBase[] defenderGroupsForLeaderboardPawns;
-
         foreach (CadenceDictionaryItem defenderGroup in defenderGroups.Value)
         {
-            foreach (CadenceCompositeField data in (defenderGroup.Value as CadenceComposite).Value.Fields)
-            {
-                Debug.Log(data.Name);
-                Debug.Log(data.Value);
-            }
+            CadenceBase[] beastIDs = (defenderGroup.Value as CadenceComposite).CompositeFieldAs<CadenceArray>("beastIDs").Value;
+
+            yield return StartCoroutine(FlowInterfaceBB.Instance.GetPawnsNamesByID(beastIDs, address));
+
+            SetDefendTeams();
         }
     }
 }

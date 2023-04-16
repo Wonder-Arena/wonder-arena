@@ -232,12 +232,12 @@ public class FlowInterfaceBB : MonoBehaviour
         }
     }
 
-    public IEnumerator GetDefenderPawnsNames(CadenceBase[] beastIds)
+    public IEnumerator GetPawnsNamesByID(CadenceBase[] beastIds, string address)
     {
         NetworkManager.Instance.lastDefenderBeasts = new();
         // Executing script to get all Pawns from account
         Task<FlowScriptResponse> getPawns = FLOW_ACCOUNT.ExecuteScript(GetPawnsTxn.text,
-            new CadenceAddress(NetworkManager.Instance.lastDefenderAddress), new CadenceArray(beastIds));
+            new CadenceAddress(address), new CadenceArray(beastIds));
 
         yield return new WaitUntil(() => getPawns.IsCompleted);
 

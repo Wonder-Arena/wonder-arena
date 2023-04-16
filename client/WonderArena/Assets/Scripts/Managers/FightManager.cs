@@ -130,7 +130,7 @@ public class FightManager : MonoBehaviour
         attackerScoreChange = (record.CompositeFieldAs<CadenceNumber>("attackerScoreChange").Value);
         defenderScoreChange = (record.CompositeFieldAs<CadenceNumber>("defenderScoreChange").Value);
 
-        yield return StartCoroutine(FlowInterfaceBB.Instance.GetDefenderPawnsNames(defenders));
+        yield return StartCoroutine(FlowInterfaceBB.Instance.GetPawnsNamesByID(defenders, NetworkManager.Instance.lastDefenderAddress));
 
         SetAllPawns();
 
@@ -242,8 +242,7 @@ public class FightManager : MonoBehaviour
                 if (!isSideEffect)
                 {
                     textLog.text += $"{byBeastName} used \"{skillName}\"";
-                    //yield return StartCoroutine(ChangeAndWaitAnimationStateTime("Skill", byBeastObject));
-                    //TODO: Change the state of the beast GetObjectById(beastId).SetAnimation(skill)
+                    yield return StartCoroutine(ChangeAndWaitAnimationStateTime("StandardAttack", byBeastObject));
                 }
             }
             else // 1.1.2 log("NAME attacked TARGET")
